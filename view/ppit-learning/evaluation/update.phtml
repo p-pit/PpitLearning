@@ -1,0 +1,364 @@
+<br>
+<?php
+$title = $this->translate('Evaluations', 'ppit-learning', $context->getLocale());
+$this->headTitle($title);
+echo $this->partial('/partials/menu', array('context' => $context, 'user_type' => $this->user_type));
+?>
+<div class="row">
+	<div class="col-md-8 col-md-offset-2">
+		<div class="panel panel-default">
+            <div class="panel-heading">
+				<strong><?php echo $this->translate((($id) ? 'Update' : 'Add').' an evaluation', 'ppit-learning', $context->getLocale()) ?></strong>
+            </div>
+           	<div class="panel-body">
+
+<!-- Global message -->
+<?php if ($message == 'OK') : ?>
+				<div class="form-group notification">
+					<div class="col-sm-12"><?php echo $this->translate('Your request have been registered', 'ppit-core', $context->getLocale()) ?></div>
+				</div>
+<?php endif;?>
+           	
+				<table class="table-condensed">
+					<tr>
+						<td colspan="2">
+							<a class="glyphicon glyphicon-circle-arrow-left" href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"></a>
+							<a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"><?php echo $this->translate('Return to learner list', 'ppit-learning', $context->getLocale())?></a>
+						</td>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Learner', 'ppit-learning', $context->getLocale()) ?></td>
+						<td><?php echo $learner->n_first.' '.$learner->n_last ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Centre', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->center_id ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Class', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->class ?>
+					</tr>
+					<tr><td colspan="2">&nbsp;</td></tr>
+				</table>
+				
+<!-- Form opening tag -->
+				<form action="<?php echo $this->url('learningEvaluation/update', array('learner_id' => $learner_id, 'id' => $id)) ?>" method="post" name="reportRow" class="form-horizontal" enctype="form-data" id="reportRow" onSubmit="return checkForm()">
+				
+<!-- Global error -->
+<?php if ($error == 'Isolation') : ?>
+					<div class="form-group">
+						<div class="col-sm-12"><p class="help-block"><?php echo $this->translate('The database has evolved in the meantime, please input again', 'ppit-core', $context->getLocale()) ?></p></div>
+					</div>
+<?php endif;?>
+
+<!--  CSRF -->
+<?php $element = $csrfForm->get('csrf') ?>
+					<div class="form-group">
+						<?php echo $this->formElement($element) ?>
+<?php if ($this->formElementErrors($element)) : ?>
+						<div class="col-sm-12"><p class="help-block"><?php echo $this->translate('The form has expired, please input again', 'ppit-core', $context->getLocale()) ?></p></div>
+<?php endif;?>
+					</div>
+
+<!-- Period -->
+				    <div class="form-group" id="period_group">
+						<label class="col-sm-4 control-label">* <?php echo $this->translate('Period', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<select name="period" id="period" class="form-control" value="<?php echo $evaluation->period ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+								<option value=""><-- <?php echo $this->translate('Please choose', 'ppit-core', $context->getLocale()) ?> --></option>
+<?php foreach ($config['ppitLearningSettings']['periods'] as $period => $caption) : ?>
+								<option value="<?php echo $period ?>" <?php if ($period == $evaluation->period) echo 'selected="selected"'; ?>><?php echo $caption ?></option>
+<?php endforeach;?>
+							</select>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="period_error"></p></div>
+					</div>
+
+<!-- Subject -->
+				    <div class="form-group" id="subject_group">
+						<label class="col-sm-4 control-label">* <?php echo $this->translate('Subject', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="subject" id="subject" class="form-control" value="<?php echo $evaluation->subject ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="subject_error"></p></div>
+					</div>
+					
+<!-- Note on 5 -->
+				    <div class="form-group" id="note_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Note', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<select name="note" id="note" class="form-control"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+								<option value=""><-- <?php echo $this->translate('Please choose', 'ppit-core', $context->getLocale()) ?> --></option>
+<?php for ($i = 1; $i <= 5; $i++) : ?>
+								<option value="<?php echo $i ?>" <?php if ($evaluation->note == $i) echo 'selected="selected"'; ?>><?php echo $i ?>/5</option>
+<?php endfor;?>
+							</select>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="note_error"></p></div>
+					</div>
+
+<!-- Learner average -->
+				    <div class="form-group" id="input_learner_average_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Learner average', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="input_learner_average" id="input_learner_average" class="form-control" value="<?php echo $evaluation->learner_average ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+							<input type="hidden" name="learner_average" id="learner_average">
+							</div>
+						<div class="col-sm-12"><p class="help-block" id="input_learner_average_error"></p></div>
+					</div>
+
+<!-- Class average -->
+				    <div class="form-group" id="input_class_average_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Class average', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="input_class_average" id="input_class_average" class="form-control" value="<?php echo $evaluation->class_average ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+							<input type="hidden" name="class_average" id="class_average">
+							</div>
+						<div class="col-sm-12"><p class="help-block" id="input_class_average_error"></p></div>
+					</div>
+
+<!-- Coefficient -->
+				    <div class="form-group" id="input_coefficient_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Coefficient', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="input_coefficient" id="input_coefficient" class="form-control" value="<?php echo $evaluation->coefficient ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+							<input type="hidden" name="coefficient" id="coefficient">
+							</div>
+						<div class="col-sm-12"><p class="help-block" id="input_coefficient_error"></p></div>
+					</div>
+
+<!-- Lower average -->
+				    <div class="form-group" id="input_lower_note_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Lower average', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="input_lower_note" id="input_lower_note" class="form-control" value="<?php echo $evaluation->lower_note ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+							<input type="hidden" name="lower_note" id="lower_note">
+							</div>
+						<div class="col-sm-12"><p class="help-block" id="input_lower_note_error"></p></div>
+					</div>
+
+<!-- Higher average -->
+				    <div class="form-group" id="input_higher_note_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Higher average', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="input_higher_note" id="input_higher_note" class="form-control" value="<?php echo $evaluation->higher_note ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+							<input type="hidden" name="higher_note" id="higher_note">
+							</div>
+						<div class="col-sm-12"><p class="help-block" id="input_higher_note_error"></p></div>
+					</div>
+
+<!-- Number of notes -->
+				    <div class="form-group" id="input_number_of_notes_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Number of notes', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<input name="input_number_of_notes" id="input_number_of_notes" class="form-control" value="<?php echo $evaluation->number_of_notes ?>"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+							<input type="hidden" name="number_of_notes" id="number_of_notes">
+							</div>
+						<div class="col-sm-12"><p class="help-block" id="input_number_of_notes_error"></p></div>
+					</div>
+				
+<!-- Appreciation -->
+					<div class="form-group" id="appreciation_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Appreciation', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<textarea name="appreciation" rows="3" cols="100" id="appreciation" class="form-control"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>><?php echo $evaluation->appreciation ?></textarea>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="appreciation_error"></p></div>
+					</div>
+					
+<!-- Discipline note on 5 -->
+				    <div class="form-group" id="dis_note_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Discipline note', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<select name="dis_note" id="dis_note" class="form-control"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+								<option value=""><-- <?php echo $this->translate('Please choose', 'ppit-core', $context->getLocale()) ?> --></option>
+<?php for ($i = 1; $i <= 5; $i++) : ?>
+								<option value="<?php echo $i ?>" <?php if ($evaluation->dis_note == $i) echo 'selected="selected"'; ?>><?php echo $i ?>/5</option>
+<?php endfor;?>
+							</select>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="dis_note_error"></p></div>
+					</div>
+				
+<!-- Discipline appreciation -->
+					<div class="form-group" id="dis_appreciation_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Appreciation', 'ppit-learning', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<textarea name="dis_appreciation" rows="3" cols="100" id="dis_appreciation" class="form-control"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>><?php echo $evaluation->dis_appreciation ?></textarea>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="dis_appreciation_error"></p></div>
+					</div>
+					
+<!-- Attachment -->
+				    <div class="form-group" id="piece_jointe_group">
+						<label class="col-sm-4 control-label"><?php echo $this->translate('Attachment', 'ppit-core', $context->getLocale()) ?></label>
+						<div class="col-sm-8">
+							<select name="piece_jointe" id="piece_jointe" class="form-control"<?php if ($message == 'OK') echo 'disabled="disabled"' ?>>
+								<option value=""><-- <?php echo $this->translate('Please choose', 'ppit-core', $context->getLocale()) ?> --></option>
+<?php foreach ($documents as $document) : ?>
+								<option value="<?php echo $document->nom ?>" <?php if ($evaluation->piece_jointe == $document->nom) echo 'selected="selected"'; ?>><?php echo $document->nom ?></option>
+<?php endforeach;?>
+							</select>
+						</div>
+						<div class="col-sm-12"><p class="help-block" id="piece_jointe_error"></p></div>
+					</div>
+					
+<?php if ($message == 'OK') : ?>
+
+				    <div class="form-group">
+						<div class="col-sm-4">&nbsp;</div>
+						<div class="col-sm-8">
+							<a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"><?php echo $this->translate('Return', 'ppit-core', $context->getLocale()) ?></a>
+						</div>
+					</div>
+
+<?php else : ?>
+					
+<!-- Submit button -->
+				    <div class="form-group">
+						<div class="col-sm-4">&nbsp;</div>
+				    	<div class="col-sm-8">
+							<input name="submit" type="submit" id="evaluation_submit" class="btn btn-primary" value="<?php echo $this->translate((($id) ? 'Update' : 'Add'), 'ppit-core', $context->getLocale()) ?>">
+							&nbsp;&nbsp;
+							<a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"><?php echo $this->translate('Cancel', 'ppit-core', $context->getLocale()) ?></a>
+						</div>
+					</div>
+<?php endif;?>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Load the common form javascript functions -->
+<?php echo $this->partial('/partials/common-form-js.phtml'); ?>
+
+<script>
+
+// The elements are checked last to first so the focus is positionned on the first element on error
+function checkForm() 
+{
+	validity = true;	
+	
+	// Discipline appreciation
+	if (document.getElementById("dis_appreciation").value.length > 2057) {
+		renderElement("dis_appreciation", "<?php echo $this->translate('The input is too long', 'ppit-core', $context->getLocale()) ?>");
+		validity = false;
+	}
+    else {
+		renderElement("appreciation", null);
+	}
+	
+	// Appreciation
+	if (document.getElementById("appreciation").value.length > 2057) {
+		renderElement("appreciation", "<?php echo $this->translate('The input is too long', 'ppit-core', $context->getLocale()) ?>");
+		validity = false;
+	}
+    else {
+		renderElement("appreciation", null);
+	}
+	
+	// Number of notes
+	number = document.getElementById("input_number_of_notes").value;
+	error = checkNumber(number, 0, 999);
+	if (error) {
+		renderElement("input_number_of_notes", error);
+		validity = false;
+	}
+	else { 
+		renderElement("input_number_of_notes", null);
+		number = getNumber(number, 0);
+		document.getElementById("number_of_notes").value = number;
+	}
+	
+	// Higher note
+	number = document.getElementById("input_higher_note").value;
+	error = checkNumber(number, 0, 999);
+	if (error) {
+		renderElement("input_higher_note", error);
+		validity = false;
+	}
+	else { 
+		renderElement("input_higher_note", null);
+		number = getNumber(number, 2);
+		document.getElementById("higher_note").value = number;
+	}
+	
+	// Lower note
+	number = document.getElementById("input_lower_note").value;
+	error = checkNumber(number, 0, 999);
+	if (error) {
+		renderElement("input_lower_note", error);
+		validity = false;
+	}
+	else { 
+		renderElement("input_lower_note", null);
+		number = getNumber(number, 2);
+		document.getElementById("lower_note").value = number;
+	}
+	
+	// Coefficient
+	number = document.getElementById("input_coefficient").value;
+	error = checkNumber(number, 0, 999);
+	if (error) {
+		renderElement("input_coefficient", error);
+		validity = false;
+	}
+	else { 
+		renderElement("input_coefficient", null);
+		number = getNumber(number, 2);
+		document.getElementById("coefficient").value = number;
+	}
+	
+	// Class average
+	number = document.getElementById("input_class_average").value;
+	error = checkNumber(number, 0, 999);
+	if (error) {
+		renderElement("input_class_average", error);
+		validity = false;
+	}
+	else { 
+		renderElement("input_class_average", null);
+		number = getNumber(number, 2);
+		document.getElementById("class_average").value = number;
+	}
+	
+	// Learner average
+	number = document.getElementById("input_learner_average").value;
+	error = checkNumber(number, 0, 999);
+	if (error) {
+		renderElement("input_learner_average", error);
+		validity = false;
+	}
+	else { 
+		renderElement("input_learner_average", null);
+		number = getNumber(number, 2);
+		document.getElementById("learner_average").value = number;
+	}
+
+	// Subject
+	if (!document.getElementById("subject").value) {
+		renderElement("subject", "<?php echo $this->translate('Please input a value', 'ppit-core', $context->getLocale()) ?>");
+		validity = false;
+	}
+	else if (document.getElementById("subject").value.length > 255) {
+		renderElement("subject", "<?php echo $this->translate('The input is too long', 'ppit-core', $context->getLocale()) ?>");
+		validity = false;
+	}
+    else {
+		renderElement("subject", null);
+	}
+
+	// Period
+	if (!document.getElementById("period").value) {
+		renderElement("period", "<?php echo $this->translate('Please select a value', 'ppit-core', $context->getLocale()) ?>");
+		validity = false;
+	}
+    else {
+		renderElement("period", null);
+	}
+	
+	return validity;
+}
+
+</script>

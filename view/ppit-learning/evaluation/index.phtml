@@ -1,0 +1,86 @@
+<br>
+<?php
+$title = $this->translate('Evaluations', 'ppit-learning', $context->getLocale());
+$this->headTitle($title);
+echo $this->partial('/partials/menu', array('context' => $context, 'user_type' => $this->user_type));
+?>
+<div class="row">
+	<div class="col-md-10 col-md-offset-1">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<strong><?php echo $this->translate('Evaluations', 'ppit-learning', $context->getLocale());?></strong>
+			</div>
+			<div class="panel-body">
+				<table class="table-condensed">
+					<tr>
+						<td colspan="2">
+							<a class="glyphicon glyphicon-circle-arrow-left" href="<?php echo $this->url('learningEvaluation') ?>"></a>
+							<a href="<?php echo $this->url('learningEvaluation') ?>"><?php echo $this->translate('Return to evaluation list', 'ppit-learning', $context->getLocale())?></a>
+						</td>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Learner', 'ppit-learning', $context->getLocale()) ?></td>
+						<td><?php echo $learner->n_first.' '.$learner->n_last ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Centre', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->center_id ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Class', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->class ?>
+					</tr>
+					<tr><td colspan="2">&nbsp;</td></tr>
+				</table>
+				
+				<table class="table table-striped">
+					<tr>
+						<td>&nbsp;</td>
+						<td>&nbsp;</td>
+						<td><strong><?php echo $this->translate('Period', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td><strong><?php echo $this->translate('Subject', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Note', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Learner average', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Class average', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Coefficient', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Lower average', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Upper average', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Number of notes', 'ppit-learning', $context->getLocale())?></strong></td>
+					    <td align="right"><strong><?php echo $this->translate('Discipline', 'ppit-learning', $context->getLocale())?></strong></td>
+					</tr>
+					<tr>
+						<td colspan="12">
+						    <a class="glyphicon glyphicon-plus" href="<?php echo $this->url('learningEvaluation/update', array('learner_id' => $learner_id));?>"></a>
+						</td>
+					</tr>
+<?php foreach ($evaluations as $evaluation) : ?>
+					<tr>
+					    <td><a class="glyphicon glyphicon-edit" href="<?php echo $this->url('learningEvaluation/update', array('learner_id' => $learner_id, 'id' => $evaluation->id)) ?>" title="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>"></a></td>
+					    <td><a class="glyphicon glyphicon-trash" href="<?php echo $this->url('learningEvaluation/delete', array('learner_id' => $learner_id, 'id' => $evaluation->id)) ?>" title="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>"></a></td>
+						<td><?php echo $config['ppitLearningSettings']['periods'][$evaluation->period] ?></td>
+					    <td><?php echo $evaluation->subject ?></td>
+					    <td align="right"><?php echo ($evaluation->note) ? $evaluation->note.'/5' : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->learner_average) ? $context->formatFloat($evaluation->learner_average, 2) : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->class_average) ? $context->formatFloat($evaluation->class_average, 2) : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->coefficient) ? $context->formatFloat($evaluation->coefficient, 1) : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->lower_note) ? $context->formatFloat($evaluation->lower_note, 2) : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->higher_note) ? $context->formatFloat($evaluation->higher_note, 2) : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->number_of_notes) ? $evaluation->number_of_notes : '' ?></td>
+					    <td align="right"><?php echo ($evaluation->dis_note) ? $evaluation->dis_note : '' ?>/5</td>
+					</tr>
+					<tr>
+					    <td colspan="2">&nbsp;</td>
+					    <td colspan="10">
+					    	<?php echo nl2br($evaluation->appreciation) ?>
+<?php if ($evaluation->dis_appreciation) : ?>
+					    	<br>
+					    	(<?php echo $this->translate('discipline', 'ppit-learning', $context->getLocale()) ?>) <?php echo nl2br($evaluation->dis_appreciation) ?>
+<?php endif;?>
+					    </td>
+					</tr>
+<?php endforeach; ?>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,86 @@
+<?php $period = -1; $firstRow = 1; ?>
+<style>
+table.note-report {
+	font-size: 0.83em;
+	border-width:1px; 
+ 	border-style:solid; 
+	border-color:gray;
+}
+table.note-report caption { 
+	font-size:1.5em; 
+	padding:1em 0 0.5em 1em;
+}
+table.note-report th {
+	color: #666;
+    font-size:0.83em;
+	border-width:1px; 
+ 	border-style:solid; 
+	border-color:gray;
+	background-color:#DDD;
+}
+
+table.note-report td {
+	color: #666;
+	font-size: 0.83em;
+	border-width:1px; 
+ 	border-style:solid; 
+	border-color:gray;
+}
+
+table.note-report td.subject {
+	font-weight: bold;
+}
+
+table.note-report tr.period {
+	background-color:#DDD;
+}
+</style>
+						<table class="table-condensed note-report">
+							<caption><?php echo $this->translate('Note report', 'ppit-learning', $context->getLocale())?></caption>
+							<tr><th class="note-report" rowspan="2"><?php echo $this->translate('Subject', 'ppit-learning', $context->getLocale()) ?></th><th colspan="2">Moyennes</th><th rowspan="2">Coef</th><th colspan="2">Extrêmes</th><th rowspan="2">Nbre notes</th></tr>
+							<tr><th>Elève</th><th>Classe</th><th>(-)</th><th>(+)</th></tr>
+<?php foreach ($evaluations as $evaluation) : ?>
+							
+<?php 
+if ($evaluation->period != $period) {
+	$period = $evaluation->period;
+	$firstRow = 1;
+}?>
+<?php if ($firstRow) : ?>
+	<?php $firstRow = 0; ?>
+							<tr><td colspan="7">&nbsp;</td></tr>
+							<tr class="period"><td colspan="7"><?php echo $config['ppitLearningSettings']['periods'][$period] ?></td></tr>
+<?php endif;?>
+<?php if ($evaluation->learner_average) : ?>
+							<tr>
+								<td class="subject"><?php echo $evaluation->subject ?></td>
+								<td align="right"><?php echo $context->formatFloat($evaluation->learner_average, 2) ?></td>
+								<td align="right"><?php echo $context->formatFloat($evaluation->class_average, 2) ?></td>
+								<td align="right"><?php echo $context->formatFloat($evaluation->coefficient, 1) ?></td>
+								<td align="right"><?php echo $context->formatFloat($evaluation->lower_note, 2) ?></td>
+								<td align="right"><?php echo $context->formatFloat($evaluation->higher_note, 2) ?></td>
+								<td align="right"><?php echo $evaluation->number_of_notes ?></td>
+							</tr>
+<?php elseif ($evaluation->note) : ?>
+							<tr>
+								<td class="subject"><?php echo $evaluation->subject ?></td>
+								<td colspan="6"><?php echo $evaluation->note ?>/5</td> 
+							</tr>
+<?php endif;?>
+<?php if ($evaluation->appreciation) : ?>
+							<tr><td colspan="7"><?php echo nl2br($evaluation->appreciation) ?></td></tr>
+<?php endif;?>
+<?php if ($evaluation->dis_note) : ?>
+							<tr>
+								<td><?php echo $this->translate('Discipline', 'ppit-learning', $context->getLocale()) ?> :</td>
+								<td colspan="6"><?php echo $this->escapeHtml($evaluation->dis_note) ?>/5</td>
+							</tr>
+<?php endif;?>
+<?php if ($evaluation->dis_appreciation) : ?>
+							<tr><td colspan="7"><?php echo nl2br($evaluation->dis_appreciation) ?></td></tr>
+<?php endif;?>
+<?php if ($evaluation->piece_jointe) : ?>
+							<tr><td colspan="7">Piece jointe : <a target="_blank", href="<?php echo $this->basePath('resources/'.$evaluation->piece_jointe) ?>"><?php echo $this->escapeHtml($evaluation->piece_jointe) ?></a></td></tr>
+<?php endif;?>
+<?php endforeach;?>
+					</table>

@@ -1,0 +1,126 @@
+<style>
+.ppit-th {
+	font-weight: bold;
+	background-color: #eFeFeF;
+}
+</style>
+
+<br>
+<?php
+$title = $this->translate('Evaluations', 'ppit-learning', $context->getLocale());
+$this->headTitle($title);
+echo $this->partial('/partials/menu', array('context' => $context, 'user_type' => $this->user_type));
+?>
+<div class="row">
+	<div class="col-md-8 col-md-offset-2">
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<strong><?php echo $this->translate('Learners', 'ppit-learning', $context->getLocale());?></strong>
+	</div>
+	<div class="panel-body">
+<?php 
+$first = true;
+$perimeterCaption = '';
+foreach ($context->getPerimeters() as $perimeter) {
+	if ($perimeter->entity == 'md_place_of_business') {
+		if (!$first) $perimeterCaption .= ', ';
+		$first = false;
+		$perimeterCaption .= $perimeter->value;
+	}
+}
+?>
+		<table class="table table-condensed">
+			<tr>
+				<td colspan="2">
+				    <a href="<?php echo $this->url('document', array('action' => 'index'));?>">Documents</a>
+				    &nbsp;&nbsp;|&nbsp;&nbsp;
+					<a href="<?php echo $this->url('learningEvaluation/export');?>">Export Excel</a>
+				</td>
+			</tr>
+			<tr>
+				<td align="right"><?php echo $this->translate('Centre', 'ppit-studies', $context->getLocale()) ?></td>
+				<td><?php echo $perimeterCaption ?>
+			</tr>
+		</table>
+
+		<table class="table table-striped">
+			<tr>
+				<th class="ppit-th">
+					<span class="glyphicon glyphicon-search"></span>
+					<input type="search" id="search" size="5" autocomplete="off"/>
+				</th>
+				<th class="ppit-th"><strong><a href="<?php echo $this->route ?>
+													?major=sport
+													<?php if ($major == 'sport' && $dir =='ASC') echo '&dir=DESC'; else echo '&dir=ASC' ?>
+													<?php echo '&mode='.$mode ?>">
+					<?php echo $this->translate('Sport', 'ppit-studies', $context->getLocale());?></a></strong></th>
+				<th class="ppit-th"><strong><a href="<?php echo $this->route ?>
+													?major=annee_scolaire
+													<?php if ($major == 'annee_scolaire' && $dir =='ASC') echo '&dir=DESC'; else echo '&dir=ASC' ?>
+													<?php echo '&mode='.$mode ?>">
+						<?php echo $this->translate('School year', 'ppit-studies', $context->getLocale());?></strong></th>
+				<th class="ppit-th"><strong><a href="<?php echo $this->route ?>
+													?major=centre
+													<?php if ($major == 'centre' && $dir =='ASC') echo '&dir=DESC'; else echo '&dir=ASC' ?>
+													<?php echo '&mode='.$mode ?>">
+						<?php echo $this->translate('Centre', 'ppit-studies', $context->getLocale());?></strong></th>
+				<th class="ppit-th"><strong><a href="<?php echo $this->route ?>
+													?major=classe
+													<?php if ($major == 'classe' && $dir =='ASC') echo '&dir=DESC'; else echo '&dir=ASC' ?>
+													<?php echo '&mode='.$mode ?>">
+						<?php echo $this->translate('Class', 'ppit-studies', $context->getLocale());?></strong></th>
+				<th class="ppit-th">&nbsp;</th>
+				<th class="ppit-th"><strong><a href="<?php echo $this->route ?>
+													?major=nom_famille
+													<?php if ($major == 'nom_famille' && $dir =='ASC') echo '&dir=DESC'; else echo '&dir=ASC' ?>
+													<?php echo '&mode='.$mode ?>">
+						<?php echo $this->translate('Name', 'ppit-contact', $context->getLocale());?></strong></th>
+			</tr>
+
+<?php foreach ($eleves as $eleve) : ?>
+			<tr class="eleve">
+				<td align="center"><a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $eleve->id));?>"><?php echo $this->translate('Evaluations', 'ppit-learning', $context->getLocale()) ?></a></td>
+			    <td><img height="20" width="20" src="<?php 
+			      switch ($eleve->sport) {
+			          case 'Basketball': echo $this->basePath('img/basket.png'); break;
+			          case 'Equitation': echo $this->basePath('img/equitation.png'); break;
+			          case 'Golf': echo $this->basePath('img/golf.png'); break;
+			          case 'Football': echo $this->basePath('img/football.png'); break;
+			          case 'Tennis': echo $this->basePath('img/tennis.png'); break;
+			      }?>"/></td>
+
+			    <td><?php echo $eleve->school_year ?></td>
+
+			    <td><?php echo $eleve->center_id ?></td>
+
+				<td><?php echo $eleve->class.' '.$eleve->specialty;?></td>
+
+			    <td>
+					<a href="<?php echo $this->url('eleve', array('action'=>'photo', 'eid' => $eleve->id));?>">
+					<img height="60" src="<?php echo $this->basePath('photos/eleve').$eleve->id.'.jpg';?>"/></a>
+				</td>
+
+				<td><?php echo $this->escapeHtml($eleve->n_first);?> <?php echo $this->escapeHtml($eleve->n_last);?></td>
+			</tr>
+<?php endforeach; ?>
+		</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	//Override de la fonction "contains" pour permettre une recherche case-insensitive
+	jQuery.expr[':'].contains = jQuery.expr.createPseudo(function(arg) {
+	    return function( elem ) {
+	        return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+	    };
+	});
+
+	//Recherche basée sur le champs input "search"
+	$("#search").bind("keyup", function(){
+		var strToSearch = $("#search").val();
+		$(".eleve").hide();
+		$(".eleve:contains('"+strToSearch+"')").show();
+	});
+</script>

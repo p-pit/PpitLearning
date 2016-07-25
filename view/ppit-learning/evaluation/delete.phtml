@@ -1,0 +1,96 @@
+<br>
+<?php
+$title = $this->translate('Evaluations', 'ppit-learning', $context->getLocale());
+$this->headTitle($title);
+echo $this->partial('/partials/menu', array('context' => $context, 'user_type' => $this->user_type));
+?>
+<div class="row">
+	<div class="col-md-4 col-md-offset-4">
+		<div class="panel panel-default">
+            <div class="panel-heading">
+				<strong><?php echo $this->translate('Delete an evaluation', 'ppit-learning', $context->getLocale()) ?></strong>
+			</div>
+           	<div class="panel-body">
+
+<!-- Global message -->
+<?php if ($message == 'OK') : ?>
+				<div class="form-group notification">
+					<div class="col-sm-12"><?php echo $this->translate('Your request have been registered', 'ppit-core', $context->getLocale()) ?></div>
+				</div>
+<?php endif;?>
+           	
+				<table class="table-condensed">
+					<tr>
+						<td colspan="2">
+							<a class="glyphicon glyphicon-circle-arrow-left" href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"></a>
+							<a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"><?php echo $this->translate('Return to student list', 'ppit-studies', $context->getLocale())?></a>
+						</td>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Student', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->n_first.' '.$learner->n_last ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Centre', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->center_id ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Class', 'ppit-studies', $context->getLocale()) ?></td>
+						<td><?php echo $learner->class ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Period', 'ppit-learning', $context->getLocale()) ?></td>
+						<td><?php echo $evaluation->period ?>
+					</tr>
+					<tr>
+						<td align="right"><?php echo $this->translate('Subject', 'ppit-learning', $context->getLocale()) ?></td>
+						<td><?php echo $evaluation->subject ?>
+					</tr>
+					<tr><td colspan="2">&nbsp;</td></tr>
+				</table>
+				
+<!-- Form opening tag -->
+				<form action="<?php echo $this->url('learningEvaluation/delete', array('learner_id' => $learner_id, 'id' => $id)) ?>" method="post" name="reportRow" class="form-horizontal" enctype="form-data" id="reportRow" onSubmit="return checkForm()">
+				
+<!-- Global error -->
+<?php if ($error == 'Isolation') : ?>
+					<div class="form-group">
+						<div class="col-sm-12"><p class="help-block"><?php echo $this->translate('The database has evolved in the meantime, please input again', 'ppit-core', $context->getLocale()) ?></p></div>
+					</div>
+<?php endif;?>
+
+<!--  CSRF -->
+<?php $element = $csrfForm->get('csrf') ?>
+					<div class="form-group">
+						<?php echo $this->formElement($element) ?>
+<?php if ($this->formElementErrors($element)) : ?>
+						<div class="col-sm-12"><p class="help-block"><?php echo $this->translate('The form has expired, please input again', 'ppit-core', $context->getLocale()) ?></p></div>
+<?php endif;?>
+					</div>
+					
+<?php if ($message == 'OK') : ?>
+
+				    <div class="form-group">
+						<div class="col-sm-5">&nbsp;</div>
+						<div class="col-sm-7">
+							<a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"><?php echo $this->translate('Return', 'ppit-core', $context->getLocale()) ?></a>
+						</div>
+					</div>
+
+<?php else : ?>
+					
+<!-- Submit button -->
+				    <div class="form-group">
+						<div class="col-sm-5">&nbsp;</div>
+				    	<div class="col-sm-7">
+							<input name="submit" type="submit" id="evaluation_submit" class="btn btn-primary" value="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>">
+							&nbsp;&nbsp;
+							<a href="<?php echo $this->url('learningEvaluation/index', array('learner_id' => $learner_id)) ?>"><?php echo $this->translate('Cancel', 'ppit-core', $context->getLocale()) ?></a>
+						</div>
+					</div>
+<?php endif;?>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

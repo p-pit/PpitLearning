@@ -1,0 +1,44 @@
+<?php 
+header('Content-Type: text/csv; charset=utf-8');
+header("Content-disposition: filename=evaluations.csv");
+echo "\xEF\xBB\xBF";
+echo
+	'id'.";".
+	$this->translate('Learner', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('School year', 'ppit-studies', $context->getLocale()).";".
+	$this->translate('Last name', 'ppit-contact', $context->getLocale()).";".
+	$this->translate('First name', 'ppit-contact', $context->getLocale()).";".
+	$this->translate('Period', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Subject', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Note', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Learner average', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Class average', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Lower average', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Upper average', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Number of notes', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Appreciation', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Discipline note', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Discipline appreciation', 'ppit-learning', $context->getLocale()).";".
+	$this->translate('Attachment', 'ppit-core', $context->getLocale())."\n";
+
+foreach ($evaluations as $evaluation) {
+	$learner = $learnerTable->get($evaluation->learner_id);
+	if ($learner) echo 
+		$evaluation->id.";".
+		$evaluation->learner_id.";".
+		$learner->annee_scolaire.";".
+		$learner->nom_famille.";".
+		$learner->prenoms.";".
+		$evaluation->period.";".
+		$evaluation->subject.";".
+		$evaluation->note.";".
+		$evaluation->learner_average.";".
+		$evaluation->class_average.";".
+		$evaluation->lower_note.";".
+		$evaluation->higher_note.";".
+		$evaluation->number_of_notes.";".
+		$evaluation->appreciation.";".
+		$evaluation->dis_note.";".
+		$evaluation->dis_appreciation.";".
+		$evaluation->piece_jointe."\n";
+} ?>
