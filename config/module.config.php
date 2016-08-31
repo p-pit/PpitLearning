@@ -152,11 +152,13 @@ return array(
 	),
 
 	'ppitRoles' => array(
-			'trainer' => array(
-					'show' => true,
-					'labels' => array(
-							'en_US' => 'Trainer',
-							'fr_FR' => 'Formateur',
+			'ppitLearning' => array(
+					'trainer' => array(
+							'show' => true,
+							'labels' => array(
+									'en_US' => 'Trainer',
+									'fr_FR' => 'Formateur',
+							),
 					),
 			),
 	),
