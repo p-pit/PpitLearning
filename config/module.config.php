@@ -152,7 +152,7 @@ return array(
 	),
 
 	'ppitRoles' => array(
-			'ppitLearning' => array(
+			'PpitLearning' => array(
 					'trainer' => array(
 							'show' => true,
 							'labels' => array(
