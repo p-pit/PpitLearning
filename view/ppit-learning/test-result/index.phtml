@@ -1,0 +1,70 @@
+<!-- 
+/**
+ * PpitCore V1.0 (https://github.com/p-pit/PpitCore)
+ *
+ * @link      https://github.com/p-pit/PpitCore
+ * @copyright Copyright (c) 2016 Bruno Lartillot
+ * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
+ */
+-->
+
+<!-- Load the common form javascript functions -->
+<?php echo $this->partial('/partials/common-form-js.phtml'); ?>
+
+<?php
+$title = $context->getConfig('testResult/index')['title'][$context->getLocale()];
+$this->headTitle($title);
+echo $this->partial('/partials/header');
+?>
+
+<div class="container">
+	
+	<div>&nbsp;</div>
+	
+	<div id="main_menu" >
+	    <div class="col-md-10 col-md-offset-1">
+			<div align="center">
+
+<?php foreach ($context->getConfig('menus')['p-pit-learning'] as $entryId => $entryDef) : ?>
+	<?php if ($context->isAllowed($entryDef['route'])) : ?>
+				<button type="button" class="btn btn-default menu-btn" id="<?php echo $entryId ?>-anchor">
+		<?php if (array_key_exists('glyphicon', $entryDef)) : ?>
+					<span class="glyphicon <?php echo $entryDef['glyphicon'] ?>"></span>
+		<?php endif;?>
+					<?php echo $entryDef['label'][$context->getLocale()] ?>
+				</button>
+	<?php endif ?>
+<?php endforeach;?>
+
+			</div>
+			<div>&nbsp;</div>
+		</div>
+	</div>
+
+	<!-- Main panel -->
+	<div class="row">
+	    <div class="col-md-6 ppit-panel" id="index_action"></div>
+		<div class="col-md-6 ppit-panel" id="form_action"></div>
+	</div>
+	
+	<!-- Login -->
+	<div class="row">
+	    <div class="col-md-6 col-md-offset-3 ppit-panel" id="login-panel">
+		</div>
+	</div>
+</div>
+
+<script>
+
+<?php
+echo $this->partial('/partials/test-result-scripts');
+echo $this->partial('/partials/ppit-controller') 
+?>
+
+<?php foreach ($context->getConfig('menus')['p-pit-learning'] as $entryId => $entryDef) : ?>
+$('#<?php echo $entryId ?>-anchor').click(function () { $(location).attr('href', '<?php echo $this->url($entryDef['route']) ?>'); });
+<?php endforeach;?>
+
+activateTestResult();
+
+</script>

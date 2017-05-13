@@ -1,0 +1,132 @@
+<!-- 
+/**
+ * PpitCore V1.0 (https://github.com/p-pit/PpitCore)
+ *
+ * @link      https://github.com/p-pit/PpitCore
+ * @copyright Copyright (c) 2016 Bruno Lartillot
+ * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
+ */
+-->
+
+<?php if ($result->id && !$action && !$message) : ?>
+		<button type="button" class="btn btn-default action-btn" id="test-result-update-anchor" title="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>">
+			<span class="glyphicon glyphicon-edit"></span>
+		</button>
+
+		<button type="button" class="btn btn-default action-btn" id="test-result-delete-anchor" title="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>" <?php if (!$result->isDeletable()) echo 'disabled="disabled"' ?>>
+			<span class="glyphicon glyphicon-trash"></span>
+		</button>
+<?php endif;?>
+
+<!-- Form header -->
+<?php echo $this->partial('/partials/form-header', array(
+		'update_time' => $result->update_time,
+		'message' => $message,
+		'error' => $error,
+		'csrfForm' => $csrfForm,
+		'context' => $context,
+));
+?>
+		<input type="hidden" id="test_result_update_time" value="<?php echo $result->update_time ?>" />
+
+<?php if (!$result->id) : ?>
+		    <div class="form-group">
+				<div class="col-sm-5">&nbsp;</div>
+				<div class="col-sm-7">
+					<input name="submit" type="submit" id="up-submit-button" class="btn btn-warning" value="<?php echo $this->translate('Add', 'ppit-core', $context->getLocale()) ?>">
+				</div>
+			</div>
+
+<?php elseif ($action == 'update') : ?>
+		    <div class="form-group">
+				<div class="col-sm-5">&nbsp;</div>
+				<div class="col-sm-7">
+					<input name="submit" type="submit" id="up-submit-button" class="btn btn-warning" value="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>">
+				</div>
+			</div>
+
+<?php elseif ($action == 'delete') : ?>
+		    <div class="form-group">
+				<div class="col-sm-5">&nbsp;</div>
+				<div class="col-sm-7">
+					<input name="submit" type="submit" id="up-submit-button" class="btn btn-danger" value="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>">
+				</div>
+			</div>
+
+<?php endif;?>
+
+<?php 
+if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; else $isDisabled = false;
+?>
+
+<?php foreach ($context->getConfig('testResult/update') as $propertyId => $options) : ?>
+	<?php 
+	$property = $context->getConfig('testResult')['properties'][$propertyId];
+	if ($property['type'] == 'specific') $property = $context->getConfig($property['definition']);
+	?>
+
+	<?php if ($property) : ?>
+	
+		<div class="form-group" id="<?php echo (($property['type'] == 'date' || $property['type'] == 'number') ? 'input_' : '').$propertyId ?>_group">
+			<label class="col-sm-5 control-label">
+				<?php if ($options['mandatory']) echo '* ' ?><?php echo $property['labels'][$context->getLocale()] ?>
+			</label>
+			<div class="col-sm-7">
+				
+		<?php if ($property['type'] == 'date') : ?>
+				<input type="hidden" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" />
+				<input class="form-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->decodeDate($result->properties[$propertyId]) ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> />
+
+		<?php elseif ($property['type'] == 'number') : ?>
+				<input type="hidden" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" />
+				<input class="form-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->formatFloat($result->properties[$propertyId], 2) ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> />
+
+		<?php elseif ($property['type'] == 'textarea') : ?>
+				<textarea class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?> <?php if ($isDisabled) echo 'disabled="disabled"'?>><?php echo $result->properties[$propertyId] ?></textarea>
+
+		<?php elseif ($property['type'] == 'select') : ?>
+				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
+	    			<option />
+			<?php foreach ($property['modalities'] as $key => $labels) : ?>
+	    			<option value="<?php echo $key ?>" <?php if ($result->properties[$propertyId] == $key) echo 'selected="selected"' ?>><?php echo $labels[$context->getLocale()] ?></option>
+			<?php endforeach;?>
+				</select>
+	
+		<?php else : ?>
+				<input class="form-control" id="<?php echo $propertyId ?>" value="<?php echo $result->properties[$propertyId] ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> />
+
+		<?php endif;?>
+			</div>
+			<div class="col-sm-12"><p class="help-block" id="<?php echo (($property['type'] == 'date' || $property['type'] == 'number') ? 'input_' : '').$propertyId ?>_error"></p></div>
+		</div>
+
+	<?php endif;?>
+<?php endforeach;?>
+
+<?php if (!$result->id) : ?>
+		    <div class="form-group">
+				<div class="col-sm-5">&nbsp;</div>
+				<div class="col-sm-7">
+					<input name="submit" type="submit" id="submit-button" class="btn btn-warning" value="<?php echo $this->translate('Add', 'ppit-core', $context->getLocale()) ?>">
+				</div>
+			</div>
+
+<?php elseif ($action == 'update') : ?>
+		    <div class="form-group">
+				<div class="col-sm-5">&nbsp;</div>
+				<div class="col-sm-7">
+					<input name="submit" type="submit" id="submit-button" class="btn btn-warning" value="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>">
+				</div>
+			</div>
+
+<?php elseif ($action == 'delete') : ?>
+		    <div class="form-group">
+				<div class="col-sm-5">&nbsp;</div>
+				<div class="col-sm-7">
+					<input name="submit" type="submit" id="submit-button" class="btn btn-danger" value="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>">
+				</div>
+			</div>
+
+<?php endif;?>
+		
+		</form>

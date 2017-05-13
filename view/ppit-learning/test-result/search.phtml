@@ -1,0 +1,125 @@
+<!-- 
+/**
+ * PpitCore V1.0 (https://github.com/p-pit/PpitCore)
+ *
+ * @link      https://github.com/p-pit/PpitCore
+ * @copyright Copyright (c) 2016 Bruno Lartillot
+ * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
+ */
+-->
+
+<div class="panel panel-default">
+	<div class="panel-heading" style="background: <?php echo $context->getConfig('styleSheet')['panelHeadingBackground'] ?>; color: <?php echo $context->getConfig('styleSheet')['panelHeadingColor'] ?>">
+		<strong>
+			<?php 
+			$title = $context->getConfig('testResult/search')['title'][$context->getLocale()];
+			echo $title;
+			?>
+			(<span id="mode-text"></span>)
+		</strong>
+	</div>
+	<div class="panel-body">
+
+<!-- Filters -->
+
+		<div class="form-group">
+			<label class="col-sm-5 control-label"><span class="glyphicon glyphicon-search"></span></label>
+			<div class="col-sm-7">
+	    		<button type="button" class="form-control btn btn-default btn-xs" title="<?php echo $this->translate('Erase', 'ppit-core', $context->getLocale()) ?>" id="erase-button">
+					<span class="glyphicon glyphicon-remove"></span>
+				</button>
+			</div>
+		</div>
+		
+<?php foreach ($context->getConfig('testResult/search')['main'] as $propertyId => $rendering) : ?>
+	<?php 
+	$property = $context->getConfig('testResult')['properties'][$propertyId];
+	if ($property['type'] == 'specific') $property = $context->getConfig($property['definition']);
+	?>
+	<?php if ($property) : ?>
+		<?php $label = $property['labels'][$context->getLocale()] ?>
+	
+		<?php if ($rendering == 'range') : ?>
+
+		<div class="form-group">
+			<label class="col-sm-5 control-label"><?php echo $label ?></label>
+			<div class="col-sm-7">
+
+			<?php if ($property['type'] == 'select') : ?>
+				<select id="search_min_<?php echo $propertyId ?>" class="form-control">
+					<option value=""></option>
+				<?php foreach ($property['modalities'] as $modalityId => $modality) : ?>
+		    		<option value="<?php echo $modalityId ?>"><?php echo $modality[$context->getLocale()] ?></option>
+				<?php endforeach;?>
+		    	</select>
+
+			<?php else : ?>
+	    		<input class="form-control" type="text" id="search_min_<?php echo $propertyId ?>" class="form-control" placeholder="<?php echo $this->translate('Min', 'ppit-core', $context->getLocale()) ?>" />
+
+			<?php endif;?>
+
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-sm-5 control-label">&nbsp;</label>
+			<div class="col-sm-7">
+
+			<?php if ($property['type'] == 'select') : ?>
+				<select id="search_max_<?php echo $propertyId ?>" class="form-control">
+					<option value=""></option>
+				<?php foreach ($property['modalities'] as $modalityId => $modality) : ?>
+		    		<option value="<?php echo $modalityId ?>"><?php echo $modality[$context->getLocale()] ?></option>
+				<?php endforeach;?>
+		    	</select>
+
+			<?php else : ?>
+	    		<input class="form-control" type="text" id="search_max_<?php echo $propertyId ?>" class="form-control" placeholder="<?php echo $this->translate('Max', 'ppit-core', $context->getLocale()) ?>" />
+
+			<?php endif;?>
+
+			</div>
+		</div>
+
+		<?php else : ?>
+
+		<div class="form-group">
+			<label class="col-sm-5 control-label"><?php echo $label ?></label>
+			<div class="col-sm-7">
+
+			<?php if ($property['type'] == 'select') : ?>
+				<select id="search_<?php echo $propertyId ?>" class="form-control">
+					<option value=""></option>
+				<?php foreach ($property['modalities'] as $modalityId => $modality) : ?>
+		    		<option value="<?php echo $modalityId ?>"><?php echo $modality[$context->getLocale()] ?></option>
+				<?php endforeach;?>
+		    	</select>
+
+			<?php else : ?>
+				<input class="form-control" type="text" id="search_<?php echo $propertyId ?>" placeholder="<?php echo $this->translate('Contains', 'ppit-core', $context->getLocale()) ?>" />
+
+			<?php endif;?>
+
+			</div>
+		</div>
+
+		<?php endif;?>
+	<?php endif;?>
+<?php endforeach;?>
+
+	    <div>&nbsp;</div>
+
+<!-- Actions -->
+	    <div>
+	    		<button type="button" class="btn btn-default" title="<?php echo $this->translate('Export', 'ppit-core', $context->getLocale()) ?>" id="export-button">
+					<span class="glyphicon glyphicon-cloud-download"></span>
+					<span><?php echo $this->translate('Export', 'ppit-core', $context->getLocale())?></span>
+				</button>
+	    </div>
+	    
+		<div>&nbsp;</div>
+
+<!-- Add or update section -->
+		<div id="test-result-list-panel"></div>
+	</div>
+</div>

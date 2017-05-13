@@ -1,0 +1,163 @@
+<!-- 
+/**
+ * PpitCore V1.0 (https://github.com/p-pit/PpitCore)
+ *
+ * @link      https://github.com/p-pit/PpitCore
+ * @copyright Copyright (c) 2016 Bruno Lartillot
+ * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
+ */
+-->
+
+<style>
+//	.clock { position:fixed; top:10%; right:-70%; }
+</style>
+
+<!-- Load the common form javascript functions -->
+<?php echo $this->partial('/partials/common-form-js.phtml'); ?>
+
+<?php
+$title = $result->testSession->test->caption;
+$this->headTitle($title);
+echo $this->partial('/partials/header');
+?>
+
+<!-- Form opening tag -->
+<form method="post" class="form-horizontal" enctype="multipart/form-data">
+
+	<div>&nbsp;</div>
+	<div class="row">
+	    <div class="col-md-10 col-md-offset-1">
+			<div class="panel panel-default">
+				<div class="panel-heading" style="background: <?php echo $context->getConfig('styleSheet')['panelHeadingBackground'] ?>; color: <?php echo $context->getConfig('styleSheet')['panelHeadingColor'] ?>">
+					<strong><?php echo $title ?></strong>
+					&nbsp;&nbsp;|&nbsp;&nbsp;
+					<?php echo $this->translate('Begin', 'ppit-core', $context->getLocale()).': '.date('d/m/y H:i:s', strtotime($result->testSession->expected_time)) ?>
+					&nbsp;&nbsp;|&nbsp;&nbsp;
+					<?php echo $this->translate('End', 'ppit-core', $context->getLocale()).': '.date('H:i:s', strtotime($endTime)) ?>
+				</div>
+
+				<div class="panel-body">
+			
+<!-- Global message -->
+<?php $disabled = false; ?>
+<?php if ($message == 'OK' && $result->status != 'performed') : ?>
+					<div id="message">
+							<div class="alert alert-success"><h4><?php echo $this->translate('Your input has been recorded', 'ppit-learning', $context->getLocale()) ?></h4></div>
+					</div>
+<?php endif;?>
+
+<?php if ($error == 'Not begun') : ?>
+					<div id="message">
+						<div class="alert alert-danger"><h4><?php echo $this->translate('The test has not begun', 'ppit-learning', $context->getLocale()) ?></h4></div>
+					</div>
+<?php elseif ($error == 'Ended') : $disabled = true; ?>
+					<div id="message">
+						<div class="alert alert-success">
+							<h4>
+								<?php echo $this->translate('The test has ended', 'ppit-learning', $context->getLocale()) ?>.
+								<?php echo $this->translate('Your score is', 'ppit-learning', $context->getLocale()) ?>
+								<?php echo $result->score ?>/<?php echo $result->testSession->test->highestScore ?>
+							</h4>
+						</div>
+					</div>
+<?php else : ?>
+					<div id="message">
+						<div class="alert alert-warning"><h4><?php echo $this->translate('Ongoing test', 'ppit-learning', $context->getLocale()) ?></h4></div>
+					</div>
+<?php endif;?>
+<?php if ($result->status == 'performed') $disabled = true; ?>
+
+
+<?php if ($error != 'Ended') : ?>
+<div>&nbsp;</div>
+<div style="text-align: center" class="clock"></div>
+<?php endif;?>
+
+<?php if ($error != 'Not begun') : ?>
+<?php foreach ($result->testSession->test->content['parts'] as $partId => $part) : ?>
+	<?php if ($part['type'] == 'formated') : ?>
+
+			<?php $content = array_key_exists($context->getLocale(), $part['content']) ? $part['content'][$context->getLocale()] : $part['content']['en_US'] ?>
+			<?php if (array_key_exists('image', $content)) : ?>
+					<div align="center">
+						<img src="<?php echo $this->basePath($content['image']['src']) ?>" width="<?php echo $content['image']['width'] ?>" />
+					</div>
+			<?php endif;?>
+					<div><?php echo $content['text'] ?></div>
+
+	<?php elseif ($part['type'] == 'select') : ?>
+					<div><?php echo array_key_exists($context->getLocale(), $part['label']) ? $part['label'][$context->getLocale()] : $part['label']['en_US'] ?></div>
+		<?php foreach ($part['modalities'] as $modalityId => $modality) : ?>
+
+					<div class="radio">
+						<label 
+						<?php 
+						if ($error == 'Ended' && $modality['value'] == 1) echo 'style="color: green"';
+						elseif ($error == 'Ended' && $modality['value'] > 0) echo 'style="color: orange"';
+						else echo 'style="color: red"';
+						?>>
+							<input 	type="radio" 
+									name="<?php echo $partId.'-'.$modalityId ?>" 
+									class="<?php echo $partId ?>" 
+									id="<?php echo $partId.'-'.$modalityId ?>" 
+									<?php if ($disabled) echo 'disabled="disabled"' ?>
+									<?php if (array_key_exists($partId, $result->answers) && $result->answers[$partId] == $modalityId) echo 'checked="checked"' ?> />
+							<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['en_US'] ?>
+							<?php if ($result->status == 'performed' && $result->answers[$partId] == $modalityId) echo ' ('.$modality['value'].')'?>
+						</label>
+					</div>
+
+		<?php endforeach;?>
+	<?php endif;?>
+
+					<div>&nbsp;</div>
+<?php endforeach;?>
+
+<?php if (!$disabled) : ?>
+				    <div class="form-group">
+						<div class="col-sm-3">&nbsp;</div>
+						<div class="col-sm-9">
+							<input name="action" id="action" type="hidden" />
+							<input name="save" type="submit" id="save-button" class="btn btn-warning" value="<?php echo $this->translate('Save', 'ppit-core', $context->getLocale()) ?>">
+							<input name="submit" type="submit" id="submit-button" class="btn btn-danger" value="<?php echo $this->translate('Submit definitely', 'ppit-learning', $context->getLocale()) ?>">
+						</div>
+					</div>
+<?php endif; ?>
+
+				</div>
+			</div>
+	    </div>
+	</div>
+</form>
+<?php endif;?>
+
+<script>
+
+<?php if ($error == 'Not begun') : ?>
+milliseconds = (new Date('<?php echo $beginTime ?>') - new Date());
+<?php else : ?>
+milliseconds = (new Date('<?php echo $endTime ?>') - new Date());
+<?php endif;?>
+
+if (milliseconds > 0) window.setTimeout(function() { $(location).attr('href', '<?php echo $this->url('testResult/perform', array('id' => 1)) ?>'); }, milliseconds + 2000);
+
+<?php if ($error != 'Ended') : ?>
+var clock = $('.clock').FlipClock(Math.max(milliseconds/1000, 0), {
+	clockFace: 'MinuteCounter',
+	countdown: true
+});
+<?php endif;?>
+
+<?php if ($error != 'Not begun') :  ?>
+<?php foreach ($result->testSession->test->content['parts'] as $partId => $part) : ?>
+$('.<?php echo $partId ?>').click(function () {
+	$('.<?php echo $partId ?>').prop('checked', false);
+	$(this).prop('checked', true);
+});
+<?php endforeach;?>
+
+$('#save-button').click(function () { $('#action').val('save'); });
+$('#submit-button').click(function () { $('#action').val('submit'); });
+<?php endif;?>
+
+</script>
