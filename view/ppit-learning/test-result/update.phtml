@@ -73,7 +73,15 @@ if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; 
 			</label>
 			<div class="col-sm-7">
 				
-		<?php if ($property['type'] == 'date') : ?>
+		<?php if ($propertyId == 'test_session_id') : ?>
+				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
+	    			<option />
+			<?php foreach ($learningSessions as $key => $learningSession) : ?>
+	    			<option value="<?php echo $key ?>" <?php if ($result->test_session_id == $key) echo 'selected="selected"' ?>><?php echo $learningSession->caption ?><?php if ($learningSession->expected_time) echo ' - '.$context->decodeTime($learningSession->expected_time) ?></option>
+			<?php endforeach;?>
+				</select>
+				
+		<?php elseif ($property['type'] == 'date') : ?>
 				<input type="hidden" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" />
 				<input class="form-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->decodeDate($result->properties[$propertyId]) ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> />
 

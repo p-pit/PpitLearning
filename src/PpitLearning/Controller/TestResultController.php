@@ -9,11 +9,14 @@
 
 namespace PpitLearning\Controller;
 
-use PpitLearning\Model\TestResult;
-use PpitLearning\ViewHelper\SsmlTestResultViewHelper;
 use PpitCore\Model\Csrf;
 use PpitCore\Model\Context;
+use PpitCore\Model\Event;
+use PpitCore\Model\Place;
 use PpitCore\Form\CsrfForm;
+use PpitLearning\Model\TestResult;
+use PpitLearning\Model\TestSession;
+use PpitLearning\ViewHelper\SsmlTestResultViewHelper;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
@@ -22,6 +25,7 @@ class TestResultController extends AbstractActionController
     public function indexAction()
     {
     	$context = Context::getCurrent();
+    	$place = Place::getTable()->transGet($context->getPlaceId());
 
 		$applicationId = 'p-pit-learning';
 		$applicationName = 'Learning by 2Pit';
@@ -30,6 +34,7 @@ class TestResultController extends AbstractActionController
     	return new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getConfig(),
+    			'place' => $place,
     			'active' => 'application',
     			'applicationId' => $applicationId,
     			'applicationName' => $applicationName,
@@ -151,7 +156,9 @@ class TestResultController extends AbstractActionController
     	if ($id) $result = TestResult::get($id);
     	else $result = TestResult::instanciate();
     	$action = $this->params()->fromRoute('act', null);
-    	 
+
+    	$learningSessions = TestSession::getList(array(), 'expected_time', 'ASC', 'search');
+
     	// Instanciate the csrf form
     	$csrfForm = new CsrfForm();
     	$csrfForm->addCsrfElement('csrf');
@@ -171,7 +178,7 @@ class TestResultController extends AbstractActionController
 		    	foreach($context->getConfig('testResult/update') as $propertyId => $unused) {
 		    		$data[$propertyId] = $request->getPost(($propertyId));
 		    	}
-				if ($result->loadData($data) != 'OK') throw new \Exception('View error');
+		    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
 
 	    		// Atomically save
 	    		$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
@@ -201,6 +208,7 @@ class TestResultController extends AbstractActionController
     			'id' => $id,
     			'action' => $action,
     			'result' => $result,
+    			'learningSessions' => $learningSessions,
     			'csrfForm' => $csrfForm,
     			'error' => $error,
     			'message' => $message
@@ -209,22 +217,52 @@ class TestResultController extends AbstractActionController
     	return $view;
     }
 
+    public function subscribeAction()
+    {
+    	// Retrieve the context
+    	$context = Context::getCurrent();
+    
+    	$test_session_id = (int) $this->params()->fromRoute('test_session_id', 0);
+    	$learningSession = TestSession::getTable()->get($test_session_id);
+    	if (!$learningSession) return $this->redirect()->toRoute('user/expired');
+
+    	$result = TestResult::instanciate();
+    
+    	// Load the input data
+    	$data = array();
+   		$data['status'] = 'in_progress';
+    	$data['test_session_id'] = $test_session_id;
+    	$result->actual_time = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s').'+ '.'60'.' seconds'));
+    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
+    
+    	$rc = $result->add();
+    	return $this->redirect()->toRoute('testResult/perform', array('id' => $result->id));
+    }
+
     public function performAction()
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
-    	 
+    	$place = Place::getTable()->transGet($context->getPlaceId());
+
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) $result = TestResult::get($id);
     	else $result = TestResult::instanciate();
-    	$beginTime = $result->testSession->expected_time;
-    	$endTime = date('Y-m-d H:i:s', strtotime($result->testSession->expected_time.'+ '.$result->testSession->expected_duration.' seconds'));
 
+    	if ($result->actual_time > date('Y-m-d H:i:s')) {
+    		$result->status = 'new';
+    	}
+    	 
+    	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_time : $result->actual_time;
+    	$endTime = date('Y-m-d H:i:s', strtotime($beginTime.'+ '.$result->testSession->expected_duration.' seconds'));
+
+    	require_once "vendor/dropbox/dropbox-sdk/lib/Dropbox/autoload.php";
+    	$dropbox = $context->getConfig('ppitDocument')['dropbox'];
+    	$dropboxClient = new \Dropbox\Client($dropbox['credential'], $dropbox['clientIdentifier']);
     	$csrfForm = new CsrfForm();
     	$csrfForm->addCsrfElement('csrf');
     	$error = null;
-    	if ($result->testSession->expected_time > date('Y-m-d H:i:s')) $error = 'Not begun';
-    	if ($endTime < date('Y-m-d H:i:s')) $error = 'Ended';
+
     	$message = null;
     	$request = $this->getRequest();
     	if ($request->isPost()) {
@@ -235,44 +273,82 @@ class TestResultController extends AbstractActionController
 
     			// Load the input data
     			$data = array();
-    			if ($request->getPost('action') == 'submit') $data['status'] = 'performed';
-    			$answers = array();
-				foreach ($result->testSession->test->content['parts'] as $partId => $part) {
-					if ($part['type'] == 'select') {
-						foreach ($part['modalities'] as $modalityId => $modality) {
-							if ($request->getPost($partId.'-'.$modalityId)) {
-								$answers[$partId] = $modalityId;								
+    			if ($request->getPost('action') == 'start') {
+    				$result->actual_time = date('Y-m-d H:i:s');
+    				$result->status = 'in_progress';
+    				$result->update(null);
+    			}
+    			else {
+	    			$answers = array();
+					foreach ($result->testSession->test->getQuestions() as $questionId => $question) {
+						if ($question['type'] == 'select') {
+							foreach ($question['modalities'] as $modalityId => $modality) {
+								if ($request->getPost($questionId.'-'.$modalityId)) {
+									$answers[$questionId] = $modalityId;								
+								}
 							}
 						}
 					}
+					$data['answers'] = $answers;
+					if ($result->loadData($data) != 'OK') throw new \Exception('View error');
+
+					if ($request->getPost('action') == 'save') $result->update(null);
+					else {
+								
+		    			// Atomically save
+		    			$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
+		    			$connection->beginTransaction();
+		    			try {
+							$result->status = 'performed';
+		    				if (!$result->id) $rc = $result->add();
+		    				else $rc = $result->update(null);
+		    				if ($rc != 'OK') $error = $rc;
+		    				if ($error) $connection->rollback();
+		    				else {
+								$result->computeScores();
+		    					
+		    					// Generate an analysis event
+		    					$event = Event::instanciate();
+		    					$event->status = 'new';
+		    					$event->type = 'test_mythology';
+		    					$event->identifier = $result->testSession->test->caption.'_'.$result->actual_time;
+		    					$event->caption = $result->testSession->test->caption;
+		    					reset($result->axes);
+		    					$axis = current($result->axes);
+		    					$event->value = $axis['score'];
+		    					$event->property_1 = $result->testSession->expected_time;
+		    					$event->property_2 = $result->status;
+		    					$event->property_3 = $result->actual_time;
+		    					$event->property_4 = $result->actual_duration;
+		    					$event->property_5 = json_encode($result->answers);
+		    					$event->property_7 = json_encode($axis['note']);
+		    					
+		    					$scorePerAxis = array();
+		    					foreach ($result->axes as $axisId => &$axis) $scorePerAxis[$axisId] = $axis['score'];
+		    					$event->property_6 = json_encode($scorePerAxis);
+		    					$event->add();
+		    						
+		    					$connection->commit();
+		    					$message = 'OK';
+		    				}
+		    			}
+		    			catch (\Exception $e) {
+		    				$connection->rollback();
+		    				throw $e;
+		    			}
+					}
 				}
-				$data['answers'] = $answers;
-				if ($result->loadData($data) != 'OK') throw new \Exception('View error');
-    	
-    			// Atomically save
-    			$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
-    			$connection->beginTransaction();
-    			try {
-    				if (!$result->id) $rc = $result->add();
-    				else $rc = $result->update(null);
-    				if ($rc != 'OK') $error = $rc;
-    				if ($error) $connection->rollback();
-    				else {
-    					$connection->commit();
-    					$message = 'OK';
-    				}
-    			}
-    			catch (\Exception $e) {
-    				$connection->rollback();
-    				throw $e;
-    			}
     		}
     	}
-    	 
+//    	if ($result->status == 'performed' || $endTime < date('Y-m-d H:i:s')) $error = 'Ended';
+
+		$this->layout('/layout/public-layout');
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+    			'place' => $place,
     			'id' => $id,
+    			'dropboxClient' => $dropboxClient,
     			'result' => $result,
     			'beginTime' => $beginTime,
     			'endTime' => $endTime,

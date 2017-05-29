@@ -33,6 +33,7 @@ class TestResult implements InputFilterAwareInterface
     // Transient properties
     public $testSession;
     public $properties;
+    public $axes;
     public $score;
     
     protected $inputFilter;
@@ -97,7 +98,7 @@ class TestResult implements InputFilterAwareInterface
     	unset($data['n_fn']);
     	unset($data['expected_time']);
     	unset($data['expected_duration']);
-    	$data['answers'] = ($this->answers) ? json_encode($this->answers) : null;
+    	$data['answers'] = json_encode($this->answers);
     	$data['audit'] = ($this->audit) ? json_encode($this->audit) : null;
     	return $data;
     }
@@ -136,13 +137,42 @@ class TestResult implements InputFilterAwareInterface
     		$result->properties = $result->getProperties();
     	    $result->score = 0;
 	    	foreach ($result->answers as $questionId => $answer) {
-    			$result->score += $result->content['parts'][$questionId]['modalities'][$answer]['value'];
+    			$result->score += $result->content['questions'][$questionId]['modalities'][$answer]['value'];
     		}
     		$results[] = $result;
     	}
     	return $results;
     }
-   
+
+    public function computeScores()
+    {
+    	$context = Context::getCurrent();
+    	$this->axes = $this->testSession->test->getAxes();
+    	$this->score = 0;
+    	foreach ($this->answers as $questionId => $answer) {
+    		$question = $this->testSession->test->content['questions'][$questionId];
+    		$value = $question['modalities'][$answer]['value'];
+    		$this->score += $value;
+    		foreach ($question['axes'] as $axisId => &$axis) {
+    			foreach ($axis['categories'] as $categoryId => &$category) {
+    				if (!array_key_exists('score', $this->axes[$axisId])) $this->axes[$axisId]['score'] = 0;
+    				$this->axes[$axisId]['score'] += $value * $category['weight'];
+    				if (!array_key_exists('score', $this->axes[$axisId]['categories'][$categoryId])) $this->axes[$axisId]['categories'][$categoryId]['score'] = 0;
+    				$this->axes[$axisId]['categories'][$categoryId]['score'] += $value * $category['weight'];
+    			}
+    		}
+    	}
+    	foreach ($this->axes as $axisId => &$axis) {
+    		if (array_key_exists('score', $axis)) {
+    			$axis['score'] = round($axis['score'] / $this->testSession->test->axes[$axisId]['highest_score'], 2);
+    			$axis['note'] = null;
+    			foreach ($axis['segmentation'] as $segmentId => &$segment) {
+    				if (!$axis['note'] && $axis['score'] <= $segment['limit']) $axis['note'] = $segment;
+    			}
+    		}
+    	}
+    }
+    
     public static function get($id, $column = 'id')
     {
     	$context = Context::getCurrent();
@@ -150,10 +180,7 @@ class TestResult implements InputFilterAwareInterface
     	if ($result) {
     		$result->testSession = TestSession::get($result->test_session_id);
     	}
-    	$result->score = 0;
-    	foreach ($result->answers as $questionId => $answer) {
-    		$result->score += $result->testSession->test->content['parts'][$questionId]['modalities'][$answer]['value'];
-    	}
+    	$result->computeScores();
     	return $result;
     }
     
@@ -162,6 +189,7 @@ class TestResult implements InputFilterAwareInterface
     	$context = Context::getCurrent();
     	$result = new TestResult;
     	$result->status = 'new';
+    	$result->answers = array();
     	$result->audit = array();
     	return $result;
     }
@@ -182,7 +210,11 @@ class TestResult implements InputFilterAwareInterface
 			$contact_id = (int) $data['contact_id'];
     		if ($this->contact_id != $contact_id) $auditRow['contact_id'] = $this->contact_id = $contact_id;
 		}
-    	if (array_key_exists('actual_time', $data)) {
+        if (array_key_exists('test_session_id', $data)) {
+			$test_session_id = (int) $data['test_session_id'];
+    		if ($this->test_session_id != $test_session_id) $auditRow['test_session_id'] = $this->test_session_id = $test_session_id;
+		}
+		if (array_key_exists('actual_time', $data)) {
     		$actual_time = trim(strip_tags($data['actual_time']));
     		if ($actual_time == '' || strlen($actual_time) > 255) return 'Integrity';
     		if ($this->actual_time != $actual_time) $auditRow['actual_time'] = $this->actual_time = $actual_time;

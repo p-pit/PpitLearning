@@ -13,6 +13,7 @@ class Test implements InputFilterAwareInterface
     public $id;
     public $instance_id;
     public $status;
+    public $type;
     public $identifier;
     public $caption;
     public $content;
@@ -22,7 +23,8 @@ class Test implements InputFilterAwareInterface
 
     // Transient properties
     public $properties;
-	public $highestScore;
+	public $axes;
+    public $highestScore;
     
     // Static fields
     private static $table;
@@ -37,6 +39,7 @@ class Test implements InputFilterAwareInterface
         $this->id = (isset($data['id'])) ? $data['id'] : null;
         $this->instance_id = (isset($data['instance_id'])) ? $data['instance_id'] : null;
         $this->status = (isset($data['status'])) ? $data['status'] : null;
+        $this->type = (isset($data['type'])) ? $data['type'] : null;
         $this->identifier = (isset($data['identifier'])) ? $data['identifier'] : null;
         $this->caption = (isset($data['caption'])) ? $data['caption'] : null;
         $this->content = (isset($data['content'])) ? json_decode($data['content'], true) : null;
@@ -49,6 +52,7 @@ class Test implements InputFilterAwareInterface
     	$data['id'] = (int) $this->id;
     	$data['instance_id'] = (int) $this->instance_id;
     	$data['status'] =  $this->status;
+    	$data['type'] =  $this->type;
     	$data['identifier'] =  $this->identifier;
     	$data['caption'] =  $this->caption;
     	$data['content'] =  $this->content;
@@ -64,17 +68,20 @@ class Test implements InputFilterAwareInterface
     	return $data;
     }
 
-    public static function getList($params, $major, $dir, $mode = 'todo')
+    public static function getList($type, $params, $major, $dir, $mode = 'todo')
     {
     	$select = Test::getTable()->getSelect()
-    		->order(array($major.' '.$dir, 'identifier'));
+    		->order(array($major.' '.$dir, 'identifier'))
+    		->limit(200);
     	$where = new Where;
-    	$where->notEqualTo('status', 'deleted');
-    
+    	if ($type) $where->equalTo('test.type', $type);
+    	 
     	// Todo list vs search modes
     	if ($mode == 'todo') {
+	    	$where->equalTo('status', 'new');
     	}
     	else {
+	    	$where->notEqualTo('status', 'deleted');
     		foreach ($params as $propertyId => $property) {
     			if (substr($propertyId, 0, 4) == 'min_') $where->greaterThanOrEqualTo('learning_test.'.substr($propertyId, 4), $params[$propertyId]);
     			elseif (substr($propertyId, 0, 4) == 'max_') $where->lessThanOrEqualTo('learning_test.'.substr($propertyId, 4), $params[$propertyId]);
@@ -92,9 +99,55 @@ class Test implements InputFilterAwareInterface
     {
     	$context = Context::getCurrent();
     	$test = Test::getTable()->get($id, $column);
+    	$test->axes = $test->getAxes();
     	$test->highestScore = 0;
-    	foreach ($test->content['parts'] as $partId => $part) if (in_array($part['type'], array('select'))) $test->highestScore++;
+    	foreach ($test->content['questions'] as $questionId => $question) {
+    		foreach ($question['axes'] as $axisId => &$axis) {
+    			foreach ($axis['categories'] as $categoryId => &$category) {
+    				if (!array_key_exists('highest_score', $test->axes[$axisId])) $test->axes[$axisId]['highest_score'] = 0;
+    				$test->axes[$axisId]['highest_score'] += $category['weight'];
+    				if (!array_key_exists('highest_score', $test->axes[$axisId]['categories'][$categoryId])) $test->axes[$axisId]['categories'][$categoryId]['highest_score'] = 0;
+    				$test->axes[$axisId]['categories'][$categoryId]['highest_score'] += $category['weight'];
+    			}
+    		}
+    		$test->highestScore++;
+    	}
     	return $test;
+    }
+
+    public function getDescription()
+    {
+    	$context = Context::getCurrent();
+    	if (array_key_exists('description', $this->content)) return $this->content['description'];
+    	else return $context->getConfig('testResult/description'.(($this->type) ? '/'.$type : ''));
+    }
+    
+    public function getAxes()
+    {
+    	$context = Context::getCurrent();
+    	if (array_key_exists('axes', $this->content)) return $this->content['axes'];
+    	else return $context->getConfig('testResult/axes'.(($this->type) ? '/'.$type : ''));
+    }
+
+    public function getRules()
+    {
+    	$context = Context::getCurrent();
+    	if (array_key_exists('rules', $this->content)) return $this->content['rules'];
+    	else return $context->getConfig('testResult/rules'.(($this->type) ? '/'.$type : ''));
+    }
+
+    public function getQuestions()
+    {
+    	$context = Context::getCurrent();
+    	if (array_key_exists('questions', $this->content)) return $this->content['questions'];
+    	else return $context->getConfig('testResult/questions'.(($this->type) ? '/'.$type : ''));
+    }
+
+    public function getParts()
+    {
+    	$context = Context::getCurrent();
+    	if (array_key_exists('parts', $this->content)) return $this->content['parts'];
+    	else return $context->getConfig('testResult/parts'.(($this->type) ? '/'.$type : ''));
     }
     
     public static function instanciate()
@@ -118,6 +171,11 @@ class Test implements InputFilterAwareInterface
     		$status = trim(strip_tags($data['status']));
     		if ($status == '' || strlen($status) > 255) return 'Integrity';
     		if ($this->status != $status) $auditRow['status'] = $this->status = $status;
+    	}
+        if (array_key_exists('type', $data)) {
+    		$type = trim(strip_tags($data['type']));
+    		if ($type == '' || strlen($type) > 255) return 'Integrity';
+    		if ($this->type != $type) $auditRow['type'] = $this->type = $type;
     	}
     	if (array_key_exists('identifier', $data)) {
     		$identifier = trim(strip_tags($data['identifier']));

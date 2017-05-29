@@ -17,6 +17,7 @@ class TestSession implements InputFilterAwareInterface
     public $test_id;
     public $expected_time;
     public $expected_duration;
+    public $next_session_id;
     public $audit;
     
     // Joined properties
@@ -45,6 +46,7 @@ class TestSession implements InputFilterAwareInterface
         $this->test_id = (isset($data['test_id'])) ? $data['test_id'] : null;
         $this->expected_time = (isset($data['expected_time'])) ? $data['expected_time'] : null;
         $this->expected_duration = (isset($data['expected_duration'])) ? $data['expected_duration'] : null;
+        $this->next_session_id = (isset($data['next_session_id'])) ? $data['next_session_id'] : null;
         $this->audit = (isset($data['audit'])) ? json_decode($data['audit'], true) : null;
         
         // Joined properties
@@ -61,6 +63,7 @@ class TestSession implements InputFilterAwareInterface
     	$data['test_id'] = (int) $this->test_id;
     	$data['expected_time'] =  $this->expected_time;
     	$data['expected_duration'] =  $this->expected_duration;
+    	$data['next_session_id'] = (int) $this->next_session__id;
     	$data['audit'] = $this->audit;
 
     	$data['identifier'] = $this->identifier;
@@ -80,11 +83,11 @@ class TestSession implements InputFilterAwareInterface
 
     public static function getList($params, $major, $dir, $mode = 'todo')
     {
-    	$select = Test::getTable()->getSelect()
+    	$select = TestSession::getTable()->getSelect()
     		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('identifier', 'caption'), 'left')
     		->order(array($major.' '.$dir, 'identifier'));
     	$where = new Where;
-    	$where->notEqualTo('status', 'deleted');
+    	$where->notEqualTo('learning_test_session.status', 'deleted');
     
     	// Todo list vs search modes
     	if ($mode == 'todo') {
@@ -101,7 +104,12 @@ class TestSession implements InputFilterAwareInterface
     	$select->where($where);
     	$cursor = TestSession::getTable()->selectWith($select);
     	$sessions = array();
-    	foreach ($cursor as $session) $sessions[] = $session;
+    	foreach ($cursor as $session) {
+			if ($mode == 'todo') {
+				if (!$session->expected_time || $session->expected_time >= date('Y-m-d h:i:s')) $sessions[$session->id] = $session;
+			}
+    		else $sessions[$session->id] = $session;
+    	}
     	return $sessions;
     }
    
@@ -148,7 +156,11 @@ class TestSession implements InputFilterAwareInterface
 			$expected_duration = (int) $data['expected_duration'];
     		if ($this-expected_>duration != $expected_duration) $auditRow['expected_duration'] = $this->expected_duration = $expected_duration;
 		}
-    	$this->audit[] = $auditRow;
+        if (array_key_exists('next_session_id', $data)) {
+			$next_session_id = (int) $data['next_session_id'];
+    		if ($this->next_session_id != $next_session_id) $auditRow['next_session_id'] = $this->next_session_id = $next_session_id;
+		}
+		$this->audit[] = $auditRow;
     	return 'OK';
     }
     

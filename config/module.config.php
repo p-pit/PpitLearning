@@ -83,6 +83,18 @@ return array(
             								),
             						),
             				),
+            				'subscribe' => array(
+	        						'type' => 'segment',
+	        						'options' => array(
+	        								'route' => '/subscribe[/:test_session_id]',
+            								'constraints' => array(
+            										'test_session_id'     => '[0-9]*',
+            								),
+	        								'defaults' => array(
+	        										'action' => 'subscribe',
+	        								),
+	        						),
+	        				),
             				'perform' => array(
 	        						'type' => 'segment',
 	        						'options' => array(
@@ -185,14 +197,15 @@ return array(
 		'guards' => array(
 			'BjyAuthorize\Guard\Route' => array(
 
-					array('route' => 'testResult', 'roles' => array('admin')),
-					array('route' => 'testResult/index', 'roles' => array('admin')),
-					array('route' => 'testResult/search', 'roles' => array('admin')),
-					array('route' => 'testResult/list', 'roles' => array('admin')),
-					array('route' => 'testResult/export', 'roles' => array('admin')),
-					array('route' => 'testResult/detail', 'roles' => array('admin')),
-					array('route' => 'testResult/update', 'roles' => array('admin')),
-					array('route' => 'testResult/perform', 'roles' => array('guest')),
+				array('route' => 'testResult', 'roles' => array('admin')),
+				array('route' => 'testResult/index', 'roles' => array('admin')),
+				array('route' => 'testResult/search', 'roles' => array('admin')),
+				array('route' => 'testResult/list', 'roles' => array('admin')),
+				array('route' => 'testResult/export', 'roles' => array('admin')),
+				array('route' => 'testResult/detail', 'roles' => array('admin')),
+				array('route' => 'testResult/update', 'roles' => array('admin')),
+				array('route' => 'testResult/subscribe', 'roles' => array('guest')),
+				array('route' => 'testResult/perform', 'roles' => array('guest')),
 						
 				// Learning evaluation
             	array('route' => 'learningEvaluation', 'roles' => array('trainer', 'admin')),
@@ -269,6 +282,71 @@ return array(
 			),
 	),
 
+	// Axis
+	
+	'testResult/description' => array(
+	        'title' => array(
+		            'en_US' => 'Example test',
+            		'fr_FR' => 'Test exemple',
+        	),
+	        'author' => array(
+		            'en_US' => array(
+			                'text' => '© 2017 Copyright: P-Pit',
+		            ),
+		            'fr_FR' => array(
+		                	'text' => '© 2017 Copyright: P-Pit',
+		            ),
+	        ),
+	),
+		
+	// Axis
+
+	'testResult/axes' => array(
+			"culture" => array(
+					'segmentation' => array(
+							'novice' => array(
+									'limit' => 0.3,
+									'label' => array('en_US' => '', 'fr_FR' => ''),
+							),
+							'specialist' => array(
+									'limit' => 0.7,
+									'label' => array('en_US' => 'Not so bad!', 'fr_FR' => 'Pas si mal !'),
+							),
+							'expert' => array(
+									'limit' => 1.0,
+									'label' => array('en_US' => 'You\'re the boss!', 'fr_FR' => 'C\'est toi le(la) chef !'),
+							),
+					),
+					'categories' => array(
+							'mythology' => array(
+									'label' => array(
+											'en_US' => 'Mythology',
+											'fr_FR' => "Mythologie",
+									),
+							),
+					),
+			)
+	),
+
+	'rules' => array(
+			'en_US' => array(
+					'text' => '<h2>Rules of the test</h2><p>The test will start automatically in 2 minutes. It is presented as a series of multiple choice questions, illustrated with a support, written text or audio record.</p><p>You have 5 minutes in order to answer to the questions. Your answers are automatically registered, no matter if you have not enough time to click on the <em>Submit definitely</em> button.<p></p>At the end of the test, your score is displayed with the correction.</p><p>It\'s up to you and good luck!</p>',
+					'image' => array(
+							'src' => 'img/P-PIT/IMG_2180.jpg',
+							'width' => '200',
+					),
+			),
+			'fr_FR' => array(
+					'text' => '<h2>Règles du test</h2><p>Le test démarrera automatiquement dans 2 minutes. Il se présente sous la forme d\'une série de questions à choix multiples, illustrées par un support, texte écrit ou enregistrement audio.</p><p>Vous disposez de 5 minutes pour répondre aux questions. Vos réponses sont enregistrées automatiquement, pas d\'inquiétude si vous n\'avez pas le temps de cliquer sur le bouton <em>Enregistrer définitivement</em> dans le délai imparti.<p></p>A la fin du test, votre score s\'affiche avec le corrigé.</p><p>A vous de jouer et bon courage !</p>',
+					'image' => array(
+							'src' => 'img/P-PIT/IMG_2180.jpg',
+							'width' => '200',
+					),
+			),
+	),
+	
+	'questions' => array(),
+		
 	// Test results
 		
 	'testResult' => array(
@@ -278,6 +356,7 @@ return array(
 							'type' => 'select',
 							'modalities' => array(
 									'new' => array('en_US' => 'New', 'fr_FR' => 'Nouveau'),
+									'in_progress' => array('en_US' => 'New', 'fr_FR' => 'En cours'),
 									'performed' => array('en_US' => 'Performed', 'fr_FR' => 'Effectué'),
 							),
 							'labels' => array(
@@ -304,6 +383,13 @@ return array(
 							'labels' => array(
 									'en_US' => 'Name',
 									'fr_FR' => 'Nom',
+							),
+					),
+					'test_session_id' => array(
+							'type' => 'primitive',
+							'labels' => array(
+									'en_US' => 'Training session',
+									'fr_FR' => 'Session de formation',
 							),
 					),
 					'expected_time' => array(
@@ -368,6 +454,7 @@ return array(
 	
 	'testResult/update' => array(
 			'status' => array('mandatory' => true),
+			'test_session_id' => array('mandatory' => true),
 	),
 	
 	'testResult/export' => array(
