@@ -101,8 +101,12 @@ function filterTestResultList() {
 		criterion = ascCriterion.split('-')[0];
 		dir = 'ASC';
 	}
-	else {
+	else if (descCriterion) {
 		criterion = descCriterion.split('-')[0];
+		dir = 'DESC';
+	}
+	else {
+		criterion = 'identifier';
 		dir = 'ASC';
 	}
 	getTestResultList(testResultGetParams(), criterion, dir);
@@ -310,6 +314,14 @@ function getTestResultUpdate(id, action, target) {
 			if (xhttp.status == 200) {
 	<?php endif;?>
 			document.getElementById(target).innerHTML = xhttp.responseText;
+			
+			$(function () {
+			    $('.tip').tooltip({
+			        content: function () {
+			            return $(this).prop('title');
+			        }
+			    });
+			});
 
 			if (id) {
 				$('#test-result-update-anchor').click(function () { getTestResultUpdate(id, 'update', target); });
@@ -367,8 +379,6 @@ function getTestResultDetail(id) {
 
 function activateTestResult() {
 	loadPanel('index_action', '<?php echo $this->url('testResult/search') ?>');
-	$('.menu-btn').removeClass("btn-primary").addClass("btn-default");
-	$('#test-result-anchor').removeClass("btn-default").addClass("btn-primary");
 	<?php
 	$todoTitle = $context->getConfig('testResult/search')['todoTitle'][$context->getLocale()];
 	?>

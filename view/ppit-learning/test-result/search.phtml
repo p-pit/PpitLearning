@@ -17,13 +17,26 @@
 			?>
 			(<span id="mode-text"></span>)
 		</strong>
+	
+<?php if ($context->isDemoModeActive()) : ?>
+		<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/search/title'][$context->getLocale()] ?>">
+		    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+		</a>
+<?php endif;?>
 	</div>
 	<div class="panel-body">
 
 <!-- Filters -->
 
 		<div class="form-group">
-			<label class="col-sm-5 control-label"><span class="glyphicon glyphicon-search"></span></label>
+			<label class="col-sm-4 control-label"><span class="glyphicon glyphicon-search"></span></label>
+			<div class="col-sm-1 control-label">
+<?php if ($context->isDemoModeActive()) : ?>
+				<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/search/x'][$context->getLocale()] ?>">
+				    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+				</a>
+<?php endif;?>
+			</div>
 			<div class="col-sm-7">
 	    		<button type="button" class="form-control btn btn-default btn-xs" title="<?php echo $this->translate('Erase', 'ppit-core', $context->getLocale()) ?>" id="erase-button">
 					<span class="glyphicon glyphicon-remove"></span>
@@ -90,9 +103,15 @@
 			<?php if ($property['type'] == 'select') : ?>
 				<select id="search_<?php echo $propertyId ?>" class="form-control">
 					<option value=""></option>
-				<?php foreach ($property['modalities'] as $modalityId => $modality) : ?>
+				<?php if ($propertyId == 'place_id') : ?>
+					<?php var_dump($places); foreach ($places as $placeId => $place) : ?>
+		    		<option value="<?php echo $placeId ?>"><?php echo $place->caption ?></option>
+					<?php endforeach;?>
+				<?php else : ?>
+					<?php foreach ($property['modalities'] as $modalityId => $modality) : ?>
 		    		<option value="<?php echo $modalityId ?>"><?php echo $modality[$context->getLocale()] ?></option>
-				<?php endforeach;?>
+					<?php endforeach;?>
+				<?php endif?>
 		    	</select>
 
 			<?php else : ?>
@@ -115,6 +134,11 @@
 					<span class="glyphicon glyphicon-cloud-download"></span>
 					<span><?php echo $this->translate('Export', 'ppit-core', $context->getLocale())?></span>
 				</button>
+<?php if ($context->isDemoModeActive()) : ?>
+				<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/search/export'][$context->getLocale()] ?>">
+				    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+				</a>
+<?php endif;?>
 	    </div>
 	    
 		<div>&nbsp;</div>

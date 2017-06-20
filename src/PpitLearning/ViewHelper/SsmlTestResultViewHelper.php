@@ -29,18 +29,18 @@ class SsmlTestResultViewHelper
 		
 		foreach($context->getConfig('testResult/export') as $propertyId => $unused) {
 			$property = $context->getConfig('testResult')['properties'][$propertyId];
-			if ($property['type'] == 'repository') $property = $context->getConfig($property['definition']);
+			if ($property['type'] == 'specific') $property = $context->getConfig($property['definition']);
 			$i++;
 			$sheet->setCellValue($colNames[$i].'1', $property['labels'][$context->getLocale()]);
 		}
-		$sheet->setCellValue($colNames[$i++].'1', 'Question Id');
+/*		$sheet->setCellValue($colNames[$i++].'1', 'Question Id');
 		$sheet->setCellValue($colNames[$i++].'1', 'Réponse');
 		$sheet->setCellValue($colNames[$i++].'1', 'Score');
-		$sheet->setCellValue($colNames[$i++].'1', 'Categories');
+		$sheet->setCellValue($colNames[$i++].'1', 'Categories');*/
 		
 		$j = 1;
 		foreach ($view->results as $result) {
-			foreach ($result->answers as $questionId => $answer) {
+//			foreach ($result->answers as $questionId => $answer) {
 				$j++;
 				$i = 0;
 				foreach($context->getConfig('testResult/export') as $propertyId => $unused) {
@@ -52,11 +52,11 @@ class SsmlTestResultViewHelper
 					elseif ($property['type'] == 'select')  $sheet->setCellValue($colNames[$i].$j, (array_key_exists($result->properties[$propertyId], $property['modalities'])) ? $property['modalities'][$result->properties[$propertyId]][$context->getLocale()] : $result->properties[$propertyId]);
 					else $sheet->setCellValue($colNames[$i].$j, $result->properties[$propertyId]);
 				}
-				$sheet->setCellValue($colNames[$i++].$j, $questionId);
+/*				$sheet->setCellValue($colNames[$i++].$j, $questionId);
 				$sheet->setCellValue($colNames[$i++].$j, $answer);
-				$sheet->setCellValue($colNames[$i++].$j, $result->content['parts'][$questionId]['modalities'][$answer]['value']);
-				$sheet->setCellValue($colNames[$i++].$j, implode(',', $result->content['parts'][$questionId]['categories']));
-			}
+				$sheet->setCellValue($colNames[$i++].$j, $result->content['questions'][$questionId]['modalities'][$answer]['value']);
+				$sheet->setCellValue($colNames[$i++].$j, json_encode($result->content['questions'][$questionId]['axes']));
+			}*/
 		}
 		$i = 0;
 		foreach($context->getConfig('testResult/export') as $propertyId => $property) {
@@ -67,7 +67,7 @@ class SsmlTestResultViewHelper
 			$sheet->getStyle($colNames[$i].'1')->getFont()->setBold(true);
 			$sheet->getColumnDimension($colNames[$i])->setAutoSize(true);
 		}
-		$sheet->getStyle($colNames[$i].'1')->getFont()->getColor()->setRGB(substr($context->getConfig('styleSheet')['panelHeadingColor'], 1, 6));
+/*		$sheet->getStyle($colNames[$i].'1')->getFont()->getColor()->setRGB(substr($context->getConfig('styleSheet')['panelHeadingColor'], 1, 6));
 		$sheet->getStyle($colNames[$i].'1')->getFill()->setFillType(\PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB(substr($context->getConfig('styleSheet')['panelHeadingBackground'], 1, 6));
 		$sheet->getStyle($colNames[$i].'1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 		$sheet->getStyle($colNames[$i].'1')->getFont()->setBold(true);
@@ -89,6 +89,6 @@ class SsmlTestResultViewHelper
 		$sheet->getStyle($colNames[$i].'1')->getFill()->setFillType(\PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB(substr($context->getConfig('styleSheet')['panelHeadingBackground'], 1, 6));
 		$sheet->getStyle($colNames[$i].'1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 		$sheet->getStyle($colNames[$i].'1')->getFont()->setBold(true);
-		$sheet->getColumnDimension($colNames[$i++])->setAutoSize(true);
+		$sheet->getColumnDimension($colNames[$i++])->setAutoSize(true);*/
 	}
 }

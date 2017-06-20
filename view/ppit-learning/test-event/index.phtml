@@ -12,7 +12,7 @@
 <?php echo $this->partial('/partials/common-form-js.phtml'); ?>
 
 <?php
-$title = $context->getConfig('testResult/index')['title'][$context->getLocale()];
+$title = $context->getConfig('event/index'.(($type) ? '/'.$type : ''))['title'][$context->getLocale()];
 $this->headTitle($title);
 echo $this->partial('/partials/header');
 ?>
@@ -23,7 +23,7 @@ echo $this->partial('/partials/header');
 
 <?php foreach ($context->getConfig('menus')['p-pit-learning'] as $entryId => $entryDef) : ?>
 	<?php if ($context->isAllowed($entryDef['route'])) : ?>
-		<?php if ($entryId == 'testResult') $color = 'btn-primary'; else $color = 'btn-default' ?>
+		<?php if ($entryId == $type) $color = 'btn-primary'; else $color = 'btn-default' ?>
 		<div class="col-md-2">
 				<button type="button" class="btn menu-btn <?php echo $color ?>" style="width:100%; text-align: left" id="<?php echo $entryId ?>-anchor">
 				<?php if (array_key_exists('glyphicon', $entryDef)) : ?>
@@ -41,8 +41,7 @@ echo $this->partial('/partials/header');
 
 	<!-- Main panel -->
 	<div class="row">
-	    <div class="col-md-6 ppit-panel" id="index_action"></div>
-		<div class="col-md-6 ppit-panel" id="form_action"></div>
+	    <div class="col-md-12 ppit-panel" id="index_action"></div>
 	</div>
 	
 	<!-- Login -->
@@ -51,10 +50,13 @@ echo $this->partial('/partials/header');
 		</div>
 	</div>
 
+<!-- MDB core JavaScript -->
+<script type="text/javascript" src="<?php echo $this->basePath('mdb-free/js/mdb.min.js') ?>"></script>
+
 <script>
 
 <?php
-echo $this->partial('/partials/test-result-scripts');
+echo $this->partial('/partials/event-scripts');
 echo $this->partial('/partials/ppit-controller') 
 ?>
 
@@ -62,6 +64,6 @@ echo $this->partial('/partials/ppit-controller')
 $('#<?php echo $entryId ?>-anchor').click(function () { $(location).attr('href', '<?php echo $this->url($entryDef['route'], $entryDef['params']) ?>'); });
 <?php endforeach;?>
 
-activateTestResult();
+activateEvent();
 
 </script>

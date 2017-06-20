@@ -2,6 +2,8 @@
 namespace PpitLearning\Model;
 
 use PpitCore\Model\Context;
+use PpitCore\Model\Place;
+use PpitCore\Model\Vcard;
 use PpitLearning\Model\TestSession;
 use Zend\Db\Sql\Where;
 use Zend\InputFilter\Factory as InputFactory;
@@ -14,8 +16,10 @@ class TestResult implements InputFilterAwareInterface
     public $id;
     public $instance_id;
     public $status;
-    public $contact_id;
+    public $place_id;
+    public $vcard_id;
     public $test_session_id;
+    public $authentication_token;
     public $actual_time;
     public $actual_duration;
     public $answers;
@@ -24,9 +28,15 @@ class TestResult implements InputFilterAwareInterface
     
     // Joined properties
     public $identifier;
+    public $place_caption;
+    public $n_title;
+    public $n_first;
+    public $n_last;
+    public $n_fn;
+    public $email;
+    public $tel_cell;
     public $caption;
     public $content;
-    public $n_fn;
     public $expected_time;
     public $expected_duration;
     
@@ -51,8 +61,10 @@ class TestResult implements InputFilterAwareInterface
         $this->id = (isset($data['id'])) ? $data['id'] : null;
         $this->instance_id = (isset($data['instance_id'])) ? $data['instance_id'] : null;
         $this->status = (isset($data['status'])) ? $data['status'] : null;
-        $this->contact_id = (isset($data['contact_id'])) ? $data['contact_id'] : null;
+        $this->place_id = (isset($data['place_id'])) ? $data['place_id'] : null;
+        $this->vcard_id = (isset($data['vcard_id'])) ? $data['vcard_id'] : null;
         $this->test_session_id = (isset($data['test_session_id'])) ? $data['test_session_id'] : null;
+        $this->authentication_token = (isset($data['authentication_token'])) ? $data['authentication_token'] : null;
         $this->actual_time = (isset($data['actual_time'])) ? $data['actual_time'] : null;
         $this->actual_duration = (isset($data['actual_duration'])) ? $data['actual_duration'] : null;
         $this->answers = (isset($data['answers'])) ? json_decode($data['answers'], true) : null;
@@ -61,9 +73,15 @@ class TestResult implements InputFilterAwareInterface
         
         // Joined properties
         $this->identifier = (isset($data['identifier'])) ? $data['identifier'] : null;
+        $this->place_caption = (isset($data['place_caption'])) ? $data['place_caption'] : null;
+        $this->n_title = (isset($data['n_title'])) ? $data['n_title'] : null;
+        $this->n_first = (isset($data['n_first'])) ? $data['n_first'] : null;
+        $this->n_last = (isset($data['n_last'])) ? $data['n_last'] : null;
+        $this->n_fn = (isset($data['n_fn'])) ? $data['n_fn'] : null;
+        $this->email = (isset($data['email'])) ? $data['email'] : null;
+        $this->tel_cell = (isset($data['tel_cell'])) ? $data['tel_cell'] : null;
         $this->caption = (isset($data['caption'])) ? $data['caption'] : null;
         $this->content = (isset($data['content'])) ? json_decode($data['content'], true) : null;
-        $this->n_fn = (isset($data['n_fn'])) ? $data['n_fn'] : null;
         $this->expected_time = (isset($data['expected_time'])) ? $data['expected_time'] : null;
         $this->expected_duration = (isset($data['expected_duration'])) ? $data['expected_duration'] : null;
     }
@@ -74,16 +92,23 @@ class TestResult implements InputFilterAwareInterface
     	$data['id'] = (int) $this->id;
     	$data['instance_id'] = (int) $this->instance_id;
     	$data['status'] =  $this->status;
-    	$data['contact_id'] = (int) $this->contact_id;
+    	$data['place_id'] = (int) $this->place_id;
+    	$data['vcard_id'] = (int) $this->vcard_id;
     	$data['test_session_id'] = (int) $this->test_session_id;
-    	$data['actual_time'] =  $this->actual_time;
+    	$data['authentication_token'] =  $this->authentication_token;
+    	$data['actual_time'] =  ($this->actual_time) ? $this->actual_time : null;
     	$data['actual_duration'] =  $this->actual_duration;
     	$data['answers'] = $this->answers;
     	$data['audit'] = $this->audit;
 
     	$data['identifier'] = $this->identifier;
     	$data['caption'] = $this->caption;
+    	$data['n_title'] = $this->n_title;
+    	$data['n_first'] = $this->n_first;
+    	$data['n_last'] = $this->n_last;
     	$data['n_fn'] = $this->n_fn;
+    	$data['email'] = $this->email;
+    	$data['tel_cell'] = $this->tel_cell;
     	$data['expected_time'] =  $this->expected_time;
     	$data['expected_duration'] =  $this->expected_duration;
     	 
@@ -95,7 +120,12 @@ class TestResult implements InputFilterAwareInterface
     	$data = $this->getProperties();
     	unset($data['identifier']);
     	unset($data['caption']);
+    	unset($data['n_title']);
+    	unset($data['n_first']);
+    	unset($data['n_last']);
     	unset($data['n_fn']);
+    	unset($data['email']);
+    	unset($data['tel_cell']);
     	unset($data['expected_time']);
     	unset($data['expected_duration']);
     	$data['answers'] = json_encode($this->answers);
@@ -108,7 +138,8 @@ class TestResult implements InputFilterAwareInterface
     	$select = TestResult::getTable()->getSelect()
     		->join('learning_test_session', 'learning_test_result.test_session_id = learning_test_session.id', array('expected_time', 'expected_duration'), 'left')
     		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('identifier', 'caption', 'content'), 'left')
-    		->join('core_vcard', 'learning_test_result.contact_id = core_vcard.id', array('n_fn'), 'left')
+    		->join('core_vcard', 'learning_test_result.vcard_id = core_vcard.id', array('n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_cell'), 'left')
+    		->join('core_place', 'learning_test_result.place_id = core_place.id', array('place_caption' => 'caption'), 'left')
     		->order(array($major.' '.$dir, 'identifier'));
     	$where = new Where;
     	$where->notEqualTo('learning_test_result.status', 'deleted');
@@ -137,7 +168,8 @@ class TestResult implements InputFilterAwareInterface
     		$result->properties = $result->getProperties();
     	    $result->score = 0;
 	    	foreach ($result->answers as $questionId => $answer) {
-    			$result->score += $result->content['questions'][$questionId]['modalities'][$answer]['value'];
+	    		$question = $result->content['questions'][$questionId];
+    			if ($question['type'] == 'select') $result->score += $question['modalities'][$answer]['value'];
     		}
     		$results[] = $result;
     	}
@@ -149,9 +181,15 @@ class TestResult implements InputFilterAwareInterface
     	$context = Context::getCurrent();
     	$this->axes = $this->testSession->test->getAxes();
     	$this->score = 0;
-    	foreach ($this->answers as $questionId => $answer) {
-    		$question = $this->testSession->test->content['questions'][$questionId];
-    		$value = $question['modalities'][$answer]['value'];
+    	foreach ($this->testSession->test->content['questions'] as $questionId => $question) {
+	    	$value = 0;
+    		if (array_key_exists($questionId, $this->answers)) {
+    		 	$answer = $this->answers[$questionId];
+    		 	if ($question['type'] == 'select') $value = $question['modalities'][$answer]['value'];
+	    		elseif ($question['type'] == 'phpCode') {
+	    			if ($answer['result'] == $question['result']) $value = $question['value'];
+	    		}
+    		}
     		$this->score += $value;
     		foreach ($question['axes'] as $axisId => &$axis) {
     			foreach ($axis['categories'] as $categoryId => &$category) {
@@ -178,9 +216,24 @@ class TestResult implements InputFilterAwareInterface
     	$context = Context::getCurrent();
     	$result = TestResult::getTable()->get($id, $column);
     	if ($result) {
+    		if ($result->place_id) {
+    			$place = Place::get($result->place_id);
+    			if ($place) $result->place_caption = $place->caption;
+    		}
+
+    		if ($result->vcard_id) {
+    			$vcard = Vcard::get($result->vcard_id);
+    			if ($vcard) $result->n_title = $vcard->n_title;
+    			if ($vcard) $result->n_first = $vcard->n_first;
+    			if ($vcard) $result->n_last = $vcard->n_last;
+    			if ($vcard) $result->n_fn = $vcard->n_fn;
+    			if ($vcard) $result->email = $vcard->email;
+    			if ($vcard) $result->tel_cell = $vcard->tel_cell;
+    		}
+    		
     		$result->testSession = TestSession::get($result->test_session_id);
+    		$result->computeScores();
     	}
-    	$result->computeScores();
     	return $result;
     }
     
@@ -206,17 +259,26 @@ class TestResult implements InputFilterAwareInterface
     		if ($status == '' || strlen($status) > 255) return 'Integrity';
     		if ($this->status != $status) $auditRow['status'] = $this->status = $status;
     	}
-    	if (array_key_exists('contact_id', $data)) {
-			$contact_id = (int) $data['contact_id'];
-    		if ($this->contact_id != $contact_id) $auditRow['contact_id'] = $this->contact_id = $contact_id;
+        if (array_key_exists('place_id', $data)) {
+			$place_id = (int) $data['place_id'];
+    		if ($this->place_id != $place_id) $auditRow['place_id'] = $this->place_id = $place_id;
+		}
+    	if (array_key_exists('vcard_id', $data)) {
+			$vcard_id = (int) $data['vcard_id'];
+    		if ($this->vcard_id != $vcard_id) $auditRow['vcard_id'] = $this->vcard_id = $vcard_id;
 		}
         if (array_key_exists('test_session_id', $data)) {
 			$test_session_id = (int) $data['test_session_id'];
     		if ($this->test_session_id != $test_session_id) $auditRow['test_session_id'] = $this->test_session_id = $test_session_id;
 		}
+        if (array_key_exists('authentication_token', $data)) {
+    		$authentication_token = trim(strip_tags($data['authentication_token']));
+    		if ($authentication_token == '' || strlen($authentication_token) > 255) return 'Integrity';
+    		if ($this->authentication_token != $authentication_token) $auditRow['authentication_token'] = $this->authentication_token = $authentication_token;
+    	}
 		if (array_key_exists('actual_time', $data)) {
     		$actual_time = trim(strip_tags($data['actual_time']));
-    		if ($actual_time == '' || strlen($actual_time) > 255) return 'Integrity';
+    		if (strlen($actual_time) > 255) return 'Integrity';
     		if ($this->actual_time != $actual_time) $auditRow['actual_time'] = $this->actual_time = $actual_time;
     	}
         if (array_key_exists('actual_duration', $data)) {

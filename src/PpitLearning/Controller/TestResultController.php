@@ -13,6 +13,7 @@ use PpitCore\Model\Csrf;
 use PpitCore\Model\Context;
 use PpitCore\Model\Event;
 use PpitCore\Model\Place;
+use PpitCore\Model\Vcard;
 use PpitCore\Form\CsrfForm;
 use PpitLearning\Model\TestResult;
 use PpitLearning\Model\TestSession;
@@ -71,6 +72,7 @@ class TestResultController extends AbstractActionController
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+				'places' => Place::getList(array()),
     	));
     	$view->setTerminal(true);
     	return $view;
@@ -94,6 +96,7 @@ class TestResultController extends AbstractActionController
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+				'places' => Place::getList(array()),
     			'results' => $results,
     			'mode' => $mode,
     			'params' => $params,
@@ -153,8 +156,16 @@ class TestResultController extends AbstractActionController
     	$context = Context::getCurrent();
 
     	$id = (int) $this->params()->fromRoute('id', 0);
-    	if ($id) $result = TestResult::get($id);
-    	else $result = TestResult::instanciate();
+    	if ($id) {
+    		$result = TestResult::get($id);
+    		$vcard = Vcard::get($result->vcard_id);
+    		if (!$vcard) $vcard = Vcard::instanciate();
+    	}
+    	else {
+    		$result = TestResult::instanciate();
+    		$vcard = Vcard::instanciate();
+    	}
+
     	$action = $this->params()->fromRoute('act', null);
 
     	$learningSessions = TestSession::getList(array(), 'expected_time', 'ASC', 'search');
@@ -175,23 +186,69 @@ class TestResultController extends AbstractActionController
     		if ($csrfForm->isValid()) { // CSRF check
     			// Load the input data
 		    	$data = array();
+		    	$data['status'] = 'new';
+		    	$data['actual_time'] = null;
+		    	$data['answers'] = array();
 		    	foreach($context->getConfig('testResult/update') as $propertyId => $unused) {
 		    		$data[$propertyId] = $request->getPost(($propertyId));
 		    	}
 		    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
+		    	unset($data['status']);
+		    	if ($vcard->loadData($data) != 'OK') throw new \Exception('View error');
 
 	    		// Atomically save
 	    		$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
 	    		$connection->beginTransaction();
 	    		try {
-	    			if (!$result->id) $rc = $result->add();
-	    			elseif ($action == 'delete') $rc = $result->delete($request->getPost('test_result_update_time'));
-	    			else $rc = $result->update($request->getPost('test_result_update_time'));
+	    			if ($result->vcard_id) {
+		    			Event::getTable()->multipleDelete(array('type' => 'test_note', 'vcard_id' => $result->vcard_id));
+		    			Event::getTable()->multipleDelete(array('type' => 'test_detail', 'vcard_id' => $result->vcard_id));
+	    			}
+	    			if (!$result->id) {
+	    				$rc = $vcard->add();
+	    				if ($rc == 'OK') {
+				    		$result->authentication_token = md5(uniqid(rand(), true));
+	    					$result->vcard_id = $vcard->id;
+    						$result->n_title = $vcard->n_title;
+    						$result->n_first = $vcard->n_first;
+    						$result->n_last = $vcard->n_last;
+    						$result->n_fn = $vcard->n_fn;
+    						$result->email = $vcard->email;
+    						$result->tel_cell = $vcard->tel_cell;
+	    					$rc = $result->add();
+	    				}
+	    			}
+	    			elseif ($action == 'delete') {
+	    				$rc = $vcard->delete(null);
+	    				if ($rc == 'OK') $rc = $result->delete($request->getPost('test_result_update_time'));
+	    			}
+	    			else {
+	    				$rc = $vcard->update(null);
+	    				if ($rc == 'OK') {
+	    					$result->vcard_id = $vcard->id;
+    						$result->n_title = $vcard->n_title;
+    						$result->n_first = $vcard->n_first;
+    						$result->n_last = $vcard->n_last;
+    						$result->n_fn = $vcard->n_fn;
+    						$result->email = $vcard->email;
+    						$result->tel_cell = $vcard->tel_cell;
+	    					$rc = $result->update($request->getPost('test_result_update_time'));
+	    				}
+	    			}
     				if ($rc != 'OK') $error = $rc;
 	    			if ($error) $connection->rollback();
 	    			else {
 	    				$connection->commit();
 	    				$message = 'OK';
+
+						// Send the email to the user
+	    				if ($action != 'delete') {
+	    					$url = $context->getServiceManager()->get('viewhelpermanager')->get('url');
+							$email_body = $context->getConfig('testResult/message')['subscribeText'][$context->getLocale()];
+							$email_body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('id' => $result->id)).'?hash='.$result->authentication_token);
+							$email_title = $context->getConfig('testResult/message')['subscribeTitle'][$context->getLocale()];
+							Context::sendMail($result->email, $email_body, $email_title, null);
+	    				}
 	    			}
 	    		}
 	    		catch (\Exception $e) {
@@ -205,9 +262,11 @@ class TestResultController extends AbstractActionController
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+				'places' => Place::getList(array()),
     			'id' => $id,
     			'action' => $action,
     			'result' => $result,
+    			'vcard' => $vcard,
     			'learningSessions' => $learningSessions,
     			'csrfForm' => $csrfForm,
     			'error' => $error,
@@ -243,22 +302,27 @@ class TestResultController extends AbstractActionController
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
+    	
     	$place = Place::getTable()->transGet($context->getPlaceId());
 
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) $result = TestResult::get($id);
     	else $result = TestResult::instanciate();
 
+    	$token = null;
+		if ($result->authentication_token) {
+	    	$token = $this->params()->fromQuery('hash', null);
+	    	if ($token != $result->authentication_token) return $this->redirect()->toRoute('user/expired');
+		}
+
     	if ($result->actual_time > date('Y-m-d H:i:s')) {
     		$result->status = 'new';
     	}
-    	 
-    	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_time : $result->actual_time;
-    	$endTime = date('Y-m-d H:i:s', strtotime($beginTime.'+ '.$result->testSession->expected_duration.' seconds'));
 
     	require_once "vendor/dropbox/dropbox-sdk/lib/Dropbox/autoload.php";
     	$dropbox = $context->getConfig('ppitDocument')['dropbox'];
-    	$dropboxClient = new \Dropbox\Client($dropbox['credential'], $dropbox['clientIdentifier']);
+    	if ($dropbox) $dropboxClient = new \Dropbox\Client($dropbox['credential'], $dropbox['clientIdentifier']);
+    	else $dropboxClient = null;
     	$csrfForm = new CsrfForm();
     	$csrfForm->addCsrfElement('csrf');
     	$error = null;
@@ -288,6 +352,11 @@ class TestResultController extends AbstractActionController
 								}
 							}
 						}
+						elseif ($question['type'] == 'phpCode') {
+							$res = $request->getPost('result_'.$questionId);
+							$proposition = $request->getPost('proposition_'.$questionId);
+							$answers[$questionId] = array('result' => $res, 'proposition' => $proposition);
+						}
 					}
 					$data['answers'] = $answers;
 					if ($result->loadData($data) != 'OK') throw new \Exception('View error');
@@ -306,12 +375,14 @@ class TestResultController extends AbstractActionController
 		    				if ($error) $connection->rollback();
 		    				else {
 								$result->computeScores();
-		    					
-		    					// Generate an analysis event
+
+		    					// Generate the global result event
 		    					$event = Event::instanciate();
 		    					$event->status = 'new';
-		    					$event->type = 'test_mythology';
+		    					$event->type = 'test_note';
 		    					$event->identifier = $result->testSession->test->caption.'_'.$result->actual_time;
+		    					$event->place_id = $result->place_id;
+		    					$event->vcard_id = $result->vcard_id;
 		    					$event->caption = $result->testSession->test->caption;
 		    					reset($result->axes);
 		    					$axis = current($result->axes);
@@ -324,10 +395,45 @@ class TestResultController extends AbstractActionController
 		    					$event->property_7 = json_encode($axis['note']);
 		    					
 		    					$scorePerAxis = array();
-		    					foreach ($result->axes as $axisId => &$axis) $scorePerAxis[$axisId] = $axis['score'];
+		    					foreach ($result->axes as $axisId => &$axis) $scorePerAxis[$axisId] = array_key_exists('score', $axis) ? $axis['score'] : null;
 		    					$event->property_6 = json_encode($scorePerAxis);
 		    					$event->add();
-		    						
+
+		    					// Generate the detailed result events
+		    					$event = Event::instanciate();
+		    					$event->status = 'new';
+		    					$event->type = 'test_detail';
+		    					$event->place_id = $result->place_id;
+		    					$event->vcard_id = $result->vcard_id;
+			    				$event->property_1 = $result->testSession->expected_time;
+			    				$event->property_2 = $result->status;
+			    				$event->property_3 = $result->actual_time;
+			    				$event->property_4 = $result->actual_duration;
+			    				foreach ($result->answers as $answerId => $answer) {
+			    					$question = $result->testSession->test->content['questions'][$answerId];
+									$event->id = 0;
+		    						$event->identifier = $result->testSession->test->caption.'_'.$result->n_fn.'_'.$answerId;
+			    					$event->caption = $answerId;
+			    					if ($question['type'] == 'select') $event->value = $question['modalities'][$answer]['value'];
+			    					elseif ($question['type'] == 'phpCode') $event->value = ($answer['result'] == $question['result']) ? $question['value'] : 0;
+			    					$event->property_5 = $answerId;
+			    					$event->property_6 = substr(json_encode($question['label']), 0, 255);
+			    					$event->property_7 = json_encode($answer);
+			    					if ($question['type'] == 'select') $event->property_8 = json_encode($question['modalities'][$answer]['label']);
+			    					elseif ($question['type'] == 'phpCode') $event->property_8 = json_encode($question['result']);
+
+		    						reset($result->testSession->test->content['questions'][$answerId]['axes']);
+		    						foreach(current($result->testSession->test->content['questions'][$answerId]['axes'])['categories'] as $categoryId => $category) {
+				    					$event->property_9 = $categoryId;
+				    					$event->property_10 = $category['weight'];
+		    						}
+			    					foreach(current($result->testSession->test->content['questions'][$answerId]['axes'])['categories'] as $categoryId => $category) {
+				    					$event->property_11 = $categoryId;
+				    					$event->property_12 = $category['weight'];
+		    						}
+		    						$event->add();
+		    					}
+
 		    					$connection->commit();
 		    					$message = 'OK';
 		    				}
@@ -340,12 +446,15 @@ class TestResultController extends AbstractActionController
 				}
     		}
     	}
-//    	if ($result->status == 'performed' || $endTime < date('Y-m-d H:i:s')) $error = 'Ended';
-
+    	 
+    	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_time : $result->actual_time;
+    	$endTime = date('Y-m-d H:i:s', strtotime($beginTime.'+ '.$result->testSession->expected_duration.' seconds'));
+    	
 		$this->layout('/layout/public-layout');
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+    			'token' => $token,
     			'place' => $place,
     			'id' => $id,
     			'dropboxClient' => $dropboxClient,

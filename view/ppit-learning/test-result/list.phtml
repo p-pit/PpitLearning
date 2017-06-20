@@ -12,7 +12,7 @@
 	<tr>
 		<th>&nbsp;</th>
 
-<?php foreach ($context->getConfig('testResult/list') as $propertyId => $rendering) : ?>
+<?php $first = true; foreach ($context->getConfig('testResult/list') as $propertyId => $rendering) : ?>
 	<?php 
 	$property = $context->getConfig('testResult')['properties'][$propertyId];
 	if ($property['type'] == 'specific') $property = $context->getConfig($property['definition']);
@@ -27,6 +27,11 @@
 				<span class="glyphicon glyphicon-triangle-<?php echo ($dir == 'ASC') ? 'top' : 'bottom' ?>"></span>
 			<?php endif ?>
 			</button>
+		<?php if ($first && $context->isDemoModeActive()) : ?>
+			<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/list/ordering'][$context->getLocale()] ?>">
+			    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+			</a>
+		<?php $first=false; endif;?>
 		<?php endif;?>
 		</th>
 	<?php endif;?>
@@ -40,11 +45,16 @@
 			<button type="button" class="btn btn-default index-btn test-result-detail-anchor" title="<?php echo $this->translate('Detail', 'ppit-core', $context->getLocale())?>" id="test-result-detail-anchor_0">
 				<span class="glyphicon glyphicon-plus" id="add-glyphicon"></span>
 			</button>
+<?php if ($context->isDemoModeActive()) : ?>
+			<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/list/add'][$context->getLocale()] ?>">
+			    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+			</a>
+<?php endif;?>
 		</td>
 		<td colspan="7">&nbsp;</td>
 	</tr>
 
-<?php foreach ($results as $result) : ?>
+<?php $i = 0; foreach ($results as $result) : ?>
 	
 	<tr class="test-result">
 	
@@ -52,6 +62,11 @@
 			<button type="button" class="btn btn-default index-btn test-result-detail-anchor" title="<?php echo $this->translate('Detail', 'ppit-core', $context->getLocale())?>" id="test-result-detail-anchor_<?php echo $result->id ?>">
 				<span class="glyphicon glyphicon-zoom-in" id="<?php echo $result->id ?>-glyphicon"></span>
 			</button>
+<?php if ($i++ == 0 && $context->isDemoModeActive()) : ?>
+			<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/list/detail'][$context->getLocale()] ?>">
+			    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+			</a>
+<?php endif;?>
 		</td>
 
 	<?php foreach ($context->getConfig('testResult/list') as $propertyId => $rendering) : ?>
@@ -71,7 +86,11 @@
 		<td style="text-align: right"><?php echo $context->formatFloat($result->properties[$propertyId], 2) ?></td>
 
 			<?php elseif ($rendering =='select') : ?>
+				<?php if ($propertyId == 'place_id') : ?>
+		<td><?php echo $result->place_caption ?></td>
+				<?php else : ?>
 		<td><?php echo $property['modalities'][$result->properties[$propertyId]][$context->getLocale()] ?></td>
+				<?php endif;?>
 
 			<?php else : ?>
 		<td><?php echo $result->properties[$propertyId] ?></td>

@@ -7,6 +7,17 @@
  * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
  */
 -->
+<?php if ($context->isDemoModeActive()) : ?>
+	<?php if (!$result->id) : ?>
+		<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/add'][$context->getLocale()] ?>">
+		    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+		</a>
+	<?php else : ?>
+		<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/update'][$context->getLocale()] ?>">
+		    <img src="<?php echo $this->basePath('img/tip.png') ?>" width="20" />
+		</a>
+	<?php endif;?>
+<?php endif;?>
 
 <?php if ($result->id && !$action && !$message) : ?>
 		<button type="button" class="btn btn-default action-btn" id="test-result-update-anchor" title="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>">
@@ -27,6 +38,18 @@
 		'context' => $context,
 ));
 ?>
+
+<?php if (!$result->id && !$message) : ?>
+			<div class="alert alert-success" style="text-align: center">
+				<strong><?php echo $this->translate('This action send to the candidate an email containing a link to the test.', 'ppit-learning', $context->getLocale()) ?></strong>
+			</div>
+
+<?php elseif ($message == 'confirm-update') : ?>
+			<div class="alert alert-danger" style="text-align: center">
+				<strong><?php echo $this->translate('This action reinitializes the test. The previous results for this candidate will be suppressed.', 'ppit-learning', $context->getLocale()) ?></strong>
+			</div>
+<?php endif;?>
+
 		<input type="hidden" id="test_result_update_time" value="<?php echo $result->update_time ?>" />
 
 <?php if (!$result->id) : ?>
@@ -95,9 +118,15 @@ if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; 
 		<?php elseif ($property['type'] == 'select') : ?>
 				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
 	    			<option />
-			<?php foreach ($property['modalities'] as $key => $labels) : ?>
+			<?php if ($propertyId == 'place_id') : ?>
+				<?php foreach ($places as $placeId => $place) : ?>
+	    			<option value="<?php echo $placeId ?>" <?php if ($result->properties[$propertyId] == $placeId) echo 'selected="selected"' ?>><?php echo $place->caption ?></option>
+				<?php endforeach;?>
+			<?php else : ?>
+				<?php foreach ($property['modalities'] as $key => $labels) : ?>
 	    			<option value="<?php echo $key ?>" <?php if ($result->properties[$propertyId] == $key) echo 'selected="selected"' ?>><?php echo $labels[$context->getLocale()] ?></option>
-			<?php endforeach;?>
+				<?php endforeach;?>
+			<?php endif;?>
 				</select>
 	
 		<?php else : ?>
@@ -110,6 +139,15 @@ if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; 
 
 	<?php endif;?>
 <?php endforeach;?>
+
+<?php if ($result->id) : ?>	
+		<div class="form-group">
+			<label class="col-sm-5 control-label">&nbsp;</label>
+			<div class="col-sm-7">
+				<a target="_blank" href="<?php echo $this->url('testResult/perform', array('id' => $result->id)) ?>?hash=<?php echo $result->authentication_token ?>"><?php echo $this->translate('See the page', 'ppit-learning', $context->getLocale()) ?></a>
+			</div>
+		</div>
+<?php endif;?>
 
 <?php if (!$result->id) : ?>
 		    <div class="form-group">
