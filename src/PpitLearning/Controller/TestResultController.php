@@ -26,8 +26,8 @@ class TestResultController extends AbstractActionController
     public function indexAction()
     {
     	$context = Context::getCurrent();
-    	$place = Place::getTable()->transGet($context->getPlaceId());
-
+    	$place = Place::get($context->getPlaceId());
+    	
 		$applicationId = 'p-pit-learning';
 		$applicationName = 'Learning by 2Pit';
 		$currentEntry = $this->params()->fromQuery('entry', 'place');
@@ -303,8 +303,8 @@ class TestResultController extends AbstractActionController
     	// Retrieve the context
     	$context = Context::getCurrent();
     	
-    	$place = Place::getTable()->transGet($context->getPlaceId());
-
+    	$place = Place::get($context->getPlaceId());
+    	
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) $result = TestResult::get($id);
     	else $result = TestResult::instanciate();

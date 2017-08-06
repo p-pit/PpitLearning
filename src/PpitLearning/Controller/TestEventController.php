@@ -36,7 +36,7 @@ class TestEventController extends AbstractActionController
     	$type = $this->params()->fromRoute('type', $context->getConfig('event/type')['default']);
     	
     	$personnalize = ($this->params()->fromQuery('personnalize'));
-    	$place = Place::getTable()->transGet($context->getPlaceId());
+    	$place = Place::get($context->getPlaceId());
     	$community = Community::get($context->getCommunityId());
     		 
 		$applicationId = 'p-pit-learning';
