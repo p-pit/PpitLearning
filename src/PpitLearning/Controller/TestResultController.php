@@ -168,7 +168,7 @@ class TestResultController extends AbstractActionController
 
     	$action = $this->params()->fromRoute('act', null);
 
-    	$learningSessions = TestSession::getList(array(), 'expected_time', 'ASC', 'search');
+    	$learningSessions = TestSession::getList(array('status' => 'new'), 'expected_time', 'ASC', 'search');
 
     	// Instanciate the csrf form
     	$csrfForm = new CsrfForm();
@@ -215,7 +215,22 @@ class TestResultController extends AbstractActionController
     						$result->n_fn = $vcard->n_fn;
     						$result->email = $vcard->email;
     						$result->tel_cell = $vcard->tel_cell;
-	    					$rc = $result->add();
+    						$rc = $result->add();
+    						$result_id = $result->id;
+    						$resultIds = array();
+    						$session = TestSession::get($result->test_session_id);
+    						while ($rc =='OK' && $session->next_session_id) {
+    							$session = TestSession::get($session->next_session_id);
+    							$result->test_session_id = $session->id;
+    							$rc = $result->add();
+    							$resultIds[] = $result->id;
+    						}
+    						$result = TestResult::get($result_id);
+    						foreach ($resultIds as $id) {
+    							$result->next_result_id = $id;
+    							$result->update(null);
+    							$result = TestResult::get($id);
+    						}
 	    				}
 	    			}
 	    			elseif ($action == 'delete') {
@@ -233,6 +248,7 @@ class TestResultController extends AbstractActionController
     						$result->email = $vcard->email;
     						$result->tel_cell = $vcard->tel_cell;
 	    					$rc = $result->update($request->getPost('test_result_update_time'));
+    						$result_id = $result->id;
 	    				}
 	    			}
     				if ($rc != 'OK') $error = $rc;
@@ -245,7 +261,7 @@ class TestResultController extends AbstractActionController
 	    				if ($action != 'delete') {
 	    					$url = $context->getServiceManager()->get('viewhelpermanager')->get('url');
 							$email_body = $context->getConfig('testResult/message')['subscribeText'][$context->getLocale()];
-							$email_body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('id' => $result->id)).'?hash='.$result->authentication_token);
+							$email_body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('id' => $result_id)).'?hash='.$result->authentication_token);
 							$email_title = $context->getConfig('testResult/message')['subscribeTitle'][$context->getLocale()];
 							Context::sendMail($result->email, $email_body, $email_title, null);
 	    				}
@@ -309,7 +325,12 @@ class TestResultController extends AbstractActionController
     	if ($id) $result = TestResult::get($id);
     	else $result = TestResult::instanciate();
 
-    	$token = null;
+    	// Shift to the first result in the chain not already performed
+    	while($result->status == 'performed' && $result->next_result_id) $result = TestResult::get($result->next_result_id);
+
+    	$part = $result->testSession->test->getParts()[$result->testSession->part_identifier];
+
+		$token = null;
 		if ($result->authentication_token) {
 	    	$token = $this->params()->fromQuery('hash', null);
 	    	if ($token != $result->authentication_token) return $this->redirect()->toRoute('user/expired');
@@ -446,10 +467,10 @@ class TestResultController extends AbstractActionController
 				}
     		}
     	}
-    	 
+
     	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_time : $result->actual_time;
     	$endTime = date('Y-m-d H:i:s', strtotime($beginTime.'+ '.$result->testSession->expected_duration.' seconds'));
-    	
+
 		$this->layout('/layout/public-layout');
     	$view = new ViewModel(array(
     			'context' => $context,
@@ -459,6 +480,7 @@ class TestResultController extends AbstractActionController
     			'id' => $id,
     			'dropboxClient' => $dropboxClient,
     			'result' => $result,
+    			'part' => $part,
     			'beginTime' => $beginTime,
     			'endTime' => $endTime,
     			'message' => $message,

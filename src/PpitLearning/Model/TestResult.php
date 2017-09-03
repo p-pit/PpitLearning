@@ -19,6 +19,7 @@ class TestResult implements InputFilterAwareInterface
     public $place_id;
     public $vcard_id;
     public $test_session_id;
+    public $next_result_id;
     public $authentication_token;
     public $actual_time;
     public $actual_duration;
@@ -64,6 +65,7 @@ class TestResult implements InputFilterAwareInterface
         $this->place_id = (isset($data['place_id'])) ? $data['place_id'] : null;
         $this->vcard_id = (isset($data['vcard_id'])) ? $data['vcard_id'] : null;
         $this->test_session_id = (isset($data['test_session_id'])) ? $data['test_session_id'] : null;
+        $this->next_result_id = (isset($data['next_result_id'])) ? $data['next_result_id'] : null;
         $this->authentication_token = (isset($data['authentication_token'])) ? $data['authentication_token'] : null;
         $this->actual_time = (isset($data['actual_time'])) ? $data['actual_time'] : null;
         $this->actual_duration = (isset($data['actual_duration'])) ? $data['actual_duration'] : null;
@@ -95,6 +97,7 @@ class TestResult implements InputFilterAwareInterface
     	$data['place_id'] = (int) $this->place_id;
     	$data['vcard_id'] = (int) $this->vcard_id;
     	$data['test_session_id'] = (int) $this->test_session_id;
+    	$data['next_result_id'] = (int) $this->next_result_id;
     	$data['authentication_token'] =  $this->authentication_token;
     	$data['actual_time'] =  ($this->actual_time) ? $this->actual_time : null;
     	$data['actual_duration'] =  $this->actual_duration;
@@ -271,7 +274,11 @@ class TestResult implements InputFilterAwareInterface
 			$test_session_id = (int) $data['test_session_id'];
     		if ($this->test_session_id != $test_session_id) $auditRow['test_session_id'] = $this->test_session_id = $test_session_id;
 		}
-        if (array_key_exists('authentication_token', $data)) {
+        if (array_key_exists('next_result_id', $data)) {
+			$next_result_id = (int) $data['next_result_id'];
+    		if ($this->next_result_id != $next_result_id) $auditRow['next_result_id'] = $this->next_result_id = $next_result_id;
+		}
+		if (array_key_exists('authentication_token', $data)) {
     		$authentication_token = trim(strip_tags($data['authentication_token']));
     		if ($authentication_token == '' || strlen($authentication_token) > 255) return 'Integrity';
     		if ($this->authentication_token != $authentication_token) $auditRow['authentication_token'] = $this->authentication_token = $authentication_token;

@@ -15,6 +15,7 @@ class TestSession implements InputFilterAwareInterface
     public $instance_id;
     public $status;
     public $test_id;
+    public $part_identifier;
     public $expected_time;
     public $expected_duration;
     public $next_session_id;
@@ -44,6 +45,7 @@ class TestSession implements InputFilterAwareInterface
         $this->instance_id = (isset($data['instance_id'])) ? $data['instance_id'] : null;
         $this->status = (isset($data['status'])) ? $data['status'] : null;
         $this->test_id = (isset($data['test_id'])) ? $data['test_id'] : null;
+        $this->part_identifier = (isset($data['part_identifier'])) ? $data['part_identifier'] : null;
         $this->expected_time = (isset($data['expected_time'])) ? $data['expected_time'] : null;
         $this->expected_duration = (isset($data['expected_duration'])) ? $data['expected_duration'] : null;
         $this->next_session_id = (isset($data['next_session_id'])) ? $data['next_session_id'] : null;
@@ -61,6 +63,7 @@ class TestSession implements InputFilterAwareInterface
     	$data['instance_id'] = (int) $this->instance_id;
     	$data['status'] =  $this->status;
     	$data['test_id'] = (int) $this->test_id;
+    	$data['part_identifier'] =  $this->part_identifier;
     	$data['expected_time'] =  $this->expected_time;
     	$data['expected_duration'] =  $this->expected_duration;
     	$data['next_session_id'] = (int) $this->next_session__id;
@@ -147,7 +150,12 @@ class TestSession implements InputFilterAwareInterface
 			$test_id = (int) $data['test_id'];
     		if ($this->test_id != $test_id) $auditRow['test_id'] = $this->test_id = $test_id;
 		}
-    	if (array_key_exists('expected_time', $data)) {
+        if (array_key_exists('part_identifier', $data)) {
+    		$part_identifier = trim(strip_tags($data['part_identifier']));
+    		if ($part_identifier == '' || strlen($part_identifier) > 255) return 'Integrity';
+    		if ($this->part_identifier != $part_identifier) $auditRow['part_identifier'] = $this->part_identifier = $part_identifier;
+    	}
+		if (array_key_exists('expected_time', $data)) {
     		$expected_time = trim(strip_tags($data['expected_time']));
     		if ($expected_time == '' || strlen($expected_time) > 255) return 'Integrity';
     		if ($this->expected_time != $expected_time) $auditRow['expected_time'] = $this->expected_time = $expected_time;

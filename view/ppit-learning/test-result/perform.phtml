@@ -157,14 +157,33 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 	    <div class="form-group">
 			<div class="col-sm-12">
 				<input name="action" id="action" type="hidden" />
-				<input name="start" type="submit" id="start-button" class="btn btn-danger" value="<?php echo $this->translate('Start now', 'ppit-learning', $context->getLocale()) ?>">
+				<input name="start" type="submit" id="start-button" class="btn btn-danger" value="<?php echo $this->translate('Start now', 'ppit-learning', $context->getLocale()) ?>"/>
 			</div>
 		</div>
 	</div>
 
 <?php elseif ($result->status != 'performed' || $result->testSession->test->getDescription()['confidentiality'] != 'protected') : ?>
 
-<?php foreach ($result->testSession->test->getParts() as $partId => $sections) : ?>
+	
+	<div class="row">
+		            <div class="col-md-12">
+				        <!--Card-->
+				        <div class="card">
+
+			<?php $content = array_key_exists($context->getLocale(), $part['content']) ? $part['content'][$context->getLocale()] : $part['content']['default'] ?>
+		
+				            <!--Card content-->
+				            <div class="card-block">
+				            	<h1 style="text-align: center"><?php echo array_key_exists($context->getLocale(), $part['title']) ? $part['title'][$context->getLocale()] : $part['title']['default'] ?></h1>
+								<div><?php echo $content['text'] ?></div>
+				            </div>
+				            <!--/.Card content-->
+				        </div>
+				    </div>
+	</div>
+	<hr>
+
+<?php foreach ($part['subjects'] as $partId => $sections) : ?>
 	
 	<div class="row">
 

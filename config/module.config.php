@@ -857,8 +857,8 @@ return array(
 					'caption' => array(
 							'type' => 'input',
 							'labels' => array(
-									'en_US' => 'Title',
-									'fr_FR' => 'Titre',
+									'en_US' => 'Test',
+									'fr_FR' => 'Test',
 							),
 					),
 					'n_title' => array(
