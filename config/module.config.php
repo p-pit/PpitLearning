@@ -329,8 +329,7 @@ return array(
 			),
 	),
 		
-	'menus' => array(
-			'p-pit-learning' => array(
+	'menus/p-pit-learning' => array(
 					'testResult' => array(
 							'route' => 'testResult/index',
 							'params' => array(),
@@ -358,7 +357,6 @@ return array(
 									'fr_FR' => 'Résultats détaillés',
 							),
 					),
-			),
 	),
 
 	// Axis
