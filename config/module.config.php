@@ -315,8 +315,7 @@ return array(
 	'ppitApplications' => array(
 			'p-pit-learning' => array(
 					'labels' => array('fr_FR' => 'P-Pit Learning', 'en_US' => 'Learning by 2Pit'),
-					'route' => 'testResult',
-					'params' => array(),
+					'default' => 'testResult',
 					'roles' => array(
 							'trainer' => array(
 									'show' => true,
