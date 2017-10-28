@@ -329,7 +329,6 @@ class TestResultController extends AbstractActionController
     	while($result->status == 'performed' && $result->next_result_id) $result = TestResult::get($result->next_result_id);
 
     	$part = $result->testSession->test->getParts()[$result->testSession->part_identifier];
-
 		$token = null;
 		if ($result->authentication_token) {
 	    	$token = $this->params()->fromQuery('hash', null);

@@ -275,11 +275,11 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 								<h5>
 									<span <?php if ($style) echo $style ?>><?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?></span>
 							<?php if ($modality['value'] == 1) : ?>
-									<?php echo $this->translate('is a correct answer', 'ppit-learning', $context->getLocale()) ?>
+									<?php echo $this->translate('is a correct answer', 'ppit-learning', $context->getLocale()) ?>.
 							<?php elseif ($modality['value'] > 0) : ?>
-									<?php echo $this->translate('is an acceptable answer', 'ppit-learning', $context->getLocale()) ?>
+									<?php echo $this->translate('is an acceptable answer', 'ppit-learning', $context->getLocale()) ?>.
 							<?php else : ?>
-									<?php echo $this->translate('is not a correct answer', 'ppit-learning', $context->getLocale()) ?>
+									<?php echo $this->translate('is not a correct answer', 'ppit-learning', $context->getLocale()) ?>.
 							<?php endif;?>
 									<?php echo array_key_exists($context->getLocale(), $modality['explanation']) ? $modality['explanation'][$context->getLocale()] : $modality['explanation']['default'] ?>
 								</h5>
