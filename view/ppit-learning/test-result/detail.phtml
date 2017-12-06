@@ -19,9 +19,9 @@
 	</div>
 	<div class="panel-body">
 
-<?php if ($context->getConfig('testResult/detail')['displayAudit'] && $result->id) : ?>
+<?php if ($page['displayAudit'] && $result->id) : ?>
 <!-- Display the audit -->
-		<?php echo $this->translate('History', 'ppit-core', $context->getLocale()) ?> (<a id="audit-label" href="#"><?php echo $this->translate('Show', 'ppit-core', $context->getLocale()) ?></a>)
+		<?php echo $this->translate('History', 'ppit-core', $context->getLocale()) ?> (<a id="audit-label"><?php echo $this->translate('Show', 'ppit-core', $context->getLocale()) ?></a>)
 		<div id="audit-panel" class="panel panel-default">
 			<div class="panel-body">
 	<?php foreach ($result->audit as $event) : ?>
@@ -47,7 +47,7 @@
 <?php endif;?>
 
 		<div class="tab-content">
-			<div class="tab-pane fade in active" id="test-result-update-panel"></div>
+			<div class="tab-pane fade in active" id="update-panel"></div>
 		</div>
 	</div>
 	

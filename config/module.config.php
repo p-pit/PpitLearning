@@ -81,7 +81,7 @@ return array(
             				'index' => array(
             						'type' => 'segment',
             						'options' => array(
-            								'route' => '/index',
+            								'route' => '/index[/:type]',
             								'defaults' => array(
             										'action' => 'index',
             								),
@@ -90,7 +90,7 @@ return array(
             				'search' => array(
             						'type' => 'segment',
             						'options' => array(
-            								'route' => '/search',
+            								'route' => '/search[/:type]',
             								'defaults' => array(
             										'action' => 'search',
             								),
@@ -99,7 +99,7 @@ return array(
             				'list' => array(
 	        						'type' => 'segment',
 	        						'options' => array(
-	        								'route' => '/list',
+	        								'route' => '/list[/:type]',
 	        								'defaults' => array(
 	        										'action' => 'list',
 	        								),
@@ -108,16 +108,25 @@ return array(
             				'export' => array(
 	        						'type' => 'segment',
 	        						'options' => array(
-	        								'route' => '/export',
+	        								'route' => '/export[/:type]',
 	        								'defaults' => array(
 	        										'action' => 'export',
+	        								),
+	        						),
+	        				),
+            				'distribute' => array(
+	        						'type' => 'segment',
+	        						'options' => array(
+	        								'route' => '/distribute[/:type]',
+	        								'defaults' => array(
+	        										'action' => 'distribute',
 	        								),
 	        						),
 	        				),
             				'detail' => array(
             						'type' => 'segment',
             						'options' => array(
-            								'route' => '/detail[/:id]',
+            								'route' => '/detail[/:type][/:id]',
             								'constraints' => array(
             										'id'     => '[0-9]*',
             								),
@@ -129,7 +138,7 @@ return array(
             				'update' => array(
             						'type' => 'segment',
             						'options' => array(
-            								'route' => '/update[/:id][/:act]',
+            								'route' => '/update[/:type][/:id][/:act]',
             								'constraints' => array(
             										'id'     => '[0-9]*',
             								),
@@ -141,7 +150,7 @@ return array(
             				'subscribe' => array(
 	        						'type' => 'segment',
 	        						'options' => array(
-	        								'route' => '/subscribe[/:test_session_id]',
+	        								'route' => '/subscribe[/:type][/:test_session_id]',
             								'constraints' => array(
             										'test_session_id'     => '[0-9]*',
             								),
@@ -153,7 +162,7 @@ return array(
             				'perform' => array(
 	        						'type' => 'segment',
 	        						'options' => array(
-	        								'route' => '/perform[/:id]',
+	        								'route' => '/perform[/:type][/:id]',
             								'constraints' => array(
             										'id'     => '[0-9]*',
             								),
@@ -263,6 +272,7 @@ return array(
 				array('route' => 'testResult/search', 'roles' => array('sales_manager', 'admin')),
 				array('route' => 'testResult/list', 'roles' => array('sales_manager', 'admin')),
 				array('route' => 'testResult/export', 'roles' => array('sales_manager', 'admin')),
+				array('route' => 'testResult/distribute', 'roles' => array('sales_manager', 'admin')),
 				array('route' => 'testResult/detail', 'roles' => array('sales_manager', 'admin')),
 				array('route' => 'testResult/update', 'roles' => array('sales_manager', 'admin')),
 				array('route' => 'testResult/subscribe', 'roles' => array('guest')),
@@ -331,7 +341,7 @@ return array(
 	'menus/p-pit-learning' => array(
 					'testResult' => array(
 							'route' => 'testResult/index',
-							'params' => array(),
+							'params' => array('type' => 'generic'),
 							'glyphicon' => 'glyphicon-education',
 							'label' => array(
 									'en_US' => 'Subscriptions',
@@ -358,70 +368,7 @@ return array(
 					),
 	),
 
-	// Axis
-	
-	'testResult/description' => array(
-	        'title' => array(
-		            'en_US' => 'Example test',
-            		'fr_FR' => 'Test exemple',
-        	),
-	        'author' => array(
-		            'en_US' => array(
-			                'text' => '© 2017 Copyright: P-Pit',
-		            ),
-		            'fr_FR' => array(
-		                	'text' => '© 2017 Copyright: P-Pit',
-		            ),
-	        ),
-	),
-		
-	// Axis
-
-	'testResult/axes' => array(
-			"culture" => array(
-					'segmentation' => array(
-							'novice' => array(
-									'limit' => 0.3,
-									'label' => array('en_US' => '', 'fr_FR' => ''),
-							),
-							'specialist' => array(
-									'limit' => 0.7,
-									'label' => array('en_US' => 'Not so bad!', 'fr_FR' => 'Pas si mal !'),
-							),
-							'expert' => array(
-									'limit' => 1.0,
-									'label' => array('en_US' => 'You\'re the boss!', 'fr_FR' => 'C\'est toi le(la) chef !'),
-							),
-					),
-					'categories' => array(
-							'mythology' => array(
-									'label' => array(
-											'en_US' => 'Mythology',
-											'fr_FR' => "Mythologie",
-									),
-							),
-					),
-			)
-	),
-
-	'rules' => array(
-			'en_US' => array(
-					'text' => '<h2>Rules of the test</h2><p>The test will start automatically in 2 minutes. It is presented as a series of multiple choice questions, illustrated with a support, written text or audio record.</p><p>You have 5 minutes in order to answer to the questions. Your answers are automatically registered, no matter if you have not enough time to click on the <em>Submit definitely</em> button.<p></p>At the end of the test, your score is displayed with the correction.</p><p>It\'s up to you and good luck!</p>',
-					'image' => array(
-							'src' => 'img/P-PIT/IMG_2180.jpg',
-							'width' => '200',
-					),
-			),
-			'fr_FR' => array(
-					'text' => '<h2>Règles du test</h2><p>Le test démarrera automatiquement dans 2 minutes. Il se présente sous la forme d\'une série de questions à choix multiples, illustrées par un support, texte écrit ou enregistrement audio.</p><p>Vous disposez de 5 minutes pour répondre aux questions. Vos réponses sont enregistrées automatiquement, pas d\'inquiétude si vous n\'avez pas le temps de cliquer sur le bouton <em>Enregistrer définitivement</em> dans le délai imparti.<p></p>A la fin du test, votre score s\'affiche avec le corrigé.</p><p>A vous de jouer et bon courage !</p>',
-					'image' => array(
-							'src' => 'img/P-PIT/IMG_2180.jpg',
-							'width' => '200',
-					),
-			),
-	),
-	
-	'questions' => array(),
+	// Event
 
 	'event/type' => array(
 			'type' => 'select',
@@ -818,183 +765,326 @@ return array(
 			'property_11'=> 'Q',
 			'property_12'=> 'R',
 	),
-		
-	// Test results
-	'testResult/place_id' => array(
+
+	// Test
+	
+	'test/type/generic' => array(
 			'type' => 'select',
+			'modalities' => array(
+			),
+			'labels' => array(
+					'en_US' => 'Type',
+					'fr_FR' => 'Type',
+			),
+	),
+	'test/identifier/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Identifier',
+					'fr_FR' => 'Identifiant',
+			),
+	),
+	'test/place_id/generic' => array(
+			'type' => 'list',
+			'labels' => array(
+					'en_US' => 'Place',
+					'fr_FR' => 'Etablissement',
+			),
+	),
+	'test/place_identifier/generic' => array(
+			'type' => 'input',
 			'labels' => array(
 					'en_US' => 'Place code',
 					'fr_FR' => 'Code établissement',
 			),
 	),
-		
-	'testResult' => array(
-			'statuses' => array(),
-			'properties' => array(
-					'status' => array(
-							'type' => 'select',
-							'modalities' => array(
-									'new' => array('en_US' => 'New', 'fr_FR' => 'Nouveau'),
-									'in_progress' => array('en_US' => 'New', 'fr_FR' => 'En cours'),
-									'performed' => array('en_US' => 'Performed', 'fr_FR' => 'Effectué'),
-							),
-							'labels' => array(
-									'en_US' => 'Status',
-									'fr_FR' => 'Statut',
-							),
-					),
-					'identifier' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Identifier',
-									'fr_FR' => 'Identifiant',
-							),
-					),
-					'place_id' => array('type' => 'specific', 'definition' => 'testResult/place_id'),
-					'caption' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Test',
-									'fr_FR' => 'Test',
-							),
-					),
-					'n_title' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Title',
-									'fr_FR' => 'Titre',
-							),
-					),
-					'n_first' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'First name',
-									'fr_FR' => 'Prénom',
-							),
-					),
-					'n_last' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Last name',
-									'fr_FR' => 'Nom de famille',
-							),
-					),
-					'n_fn' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Name',
-									'fr_FR' => 'Nom',
-							),
-					),
-					'email' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Email',
-									'fr_FR' => 'Email',
-							),
-					),
-					'tel_cell' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Cellular',
-									'fr_FR' => 'Tél. portable',
-							),
-					),
-					'test_session_id' => array(
-							'type' => 'primitive',
-							'labels' => array(
-									'en_US' => 'Training session',
-									'fr_FR' => 'Session de formation',
-							),
-					),
-					'expected_time' => array(
-							'type' => 'date',
-							'labels' => array(
-									'en_US' => 'Expected date',
-									'fr_FR' => 'Date prévue',
-							),
-					),
-					'expected_duration' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Expected duration',
-									'fr_FR' => 'Durée prévue',
-							),
-					),
-					'actual_time' => array(
-							'type' => 'date',
-							'labels' => array(
-									'en_US' => 'Actual date',
-									'fr_FR' => 'Date réelle',
-							),
-					),
-					'actual_duration' => array(
-							'type' => 'input',
-							'labels' => array(
-									'en_US' => 'Actual duration',
-									'fr_FR' => 'Durée réelle',
-							),
-					),
+	'test/place_caption/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Place',
+					'fr_FR' => 'Etablissement',
+			),
+	),
+	'test/caption/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Caption',
+					'fr_FR' => 'Libellé',
+			),
+	),
+	'test/part_identifier/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Part',
+					'fr_FR' => 'Partie',
+			),
+	),
+
+	// testSession
+	
+	'testSession/test_id/generic' => array(
+			'type' => 'list',
+			'labels' => array(
+					'en_US' => 'Test',
+					'fr_FR' => 'Test',
+			),
+	),
+	'testSession/expected_date/generic' => array(
+			'type' => 'date',
+			'labels' => array(
+					'en_US' => 'Expected date',
+					'fr_FR' => 'Date prévue',
+			),
+	),
+	'testSession/expected_time/generic' => array(
+			'type' => 'time',
+			'labels' => array(
+					'en_US' => 'Expected time',
+					'fr_FR' => 'Heure prévue',
+			),
+	),
+	'testSession/expected_time_zone/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Time zone',
+					'fr_FR' => 'Fuseau horaire',
+			),
+	),
+	'testSession/expected_duration/generic' => array(
+			'type' => 'number',
+			'minValue' => 0,
+			'maxValue' => 86400, // 24h
+			'labels' => array(
+					'en_US' => 'Expected duration',
+					'fr_FR' => 'Durée prévue',
+			),
+	),
+	'testSession/expected_location/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Location',
+					'fr_FR' => 'Lieu',
+			),
+	),
+	'testSession/expected_latitude/generic' => array(
+			'type' => 'number',
+			'minValue' => -90,
+			'maxValue' => 90,
+			'labels' => array(
+					'en_US' => 'Latitude',
+					'fr_FR' => 'Latitude',
+			),
+	),
+	'testSession/expected_longitude/generic' => array(
+			'type' => 'number',
+			'minValue' => 0,
+			'maxValue' => 359.5999,
+			'labels' => array(
+					'en_US' => 'Longitude',
+					'fr_FR' => 'Longitude',
 			),
 	),
 	
-	'testResult/index' => array(
+	// testResult
+	
+	'testResult/status/generic' => array(
+			'type' => 'select',
+			'modalities' => array(
+					'new' => array('en_US' => 'New', 'fr_FR' => 'Nouveau'),
+					'in_progress' => array('en_US' => 'In progress', 'fr_FR' => 'En cours'),
+					'performed' => array('en_US' => 'Performed', 'fr_FR' => 'Réalisé'),
+			),
+			'labels' => array(
+					'en_US' => 'Status',
+					'fr_FR' => 'Statut',
+			),
+	),
+	'testResult/n_fn/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Name',
+					'fr_FR' => 'Nom',
+			),
+	),
+	'testResult/test_session_id/generic' => array(
+			'type' => 'list',
+			'labels' => array(
+					'en_US' => 'Test session',
+					'fr_FR' => 'Session de test',
+			),
+	),
+	'testResult/actual_date/generic' => array(
+			'type' => 'date',
+			'labels' => array(
+					'en_US' => 'Actual date',
+					'fr_FR' => 'Date réelle',
+			),
+	),
+	'testResult/actual_time/generic' => array(
+			'type' => 'time',
+			'labels' => array(
+					'en_US' => 'Actual time',
+					'fr_FR' => 'Heure réelle',
+			),
+	),
+	'testResult/actual_time_zone/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Time zone',
+					'fr_FR' => 'Fuseau horaire',
+			),
+	),
+	'testResult/actual_duration/generic' => array(
+			'type' => 'number',
+			'minValue' => 0,
+			'maxValue' => 86400, // 24h
+			'labels' => array(
+					'en_US' => 'Actual duration',
+					'fr_FR' => 'Durée réelle',
+			),
+	),
+	'testResult/actual_location/generic' => array(
+			'type' => 'input',
+			'labels' => array(
+					'en_US' => 'Location',
+					'fr_FR' => 'Lieu',
+			),
+	),
+	'testResult/actual_latitude/generic' => array(
+			'type' => 'number',
+			'minValue' => -90,
+			'maxValue' => 90,
+			'labels' => array(
+					'en_US' => 'Latitude',
+					'fr_FR' => 'Latitude',
+			),
+	),
+	'testResult/actual_longitude/generic' => array(
+			'type' => 'number',
+			'minValue' => 0,
+			'maxValue' => 359.5999,
+			'labels' => array(
+					'en_US' => 'Longitude',
+					'fr_FR' => 'Longitude',
+			),
+	),
+	'testResult/update_time/generic' => array(
+			'type' => 'datetime',
+			'labels' => array(
+					'en_US' => 'Update time',
+					'fr_FR' => 'Heure de mise à jour',
+			),
+	),
+
+	'testResult/generic' => array(
+			'properties' => array(
+					'status' => array('definition' => 'testResult/status/generic'),
+					'identifier' => array('definition' => 'test/identifier/generic'),
+					'place_id' => array('definition' => 'test/place_id/generic'),
+					'place_identifier' => array('definition' => 'test/place_identifier/generic'),
+					'place_caption' => array('definition' => 'test/place_caption/generic'),
+					'caption' => array('definition' => 'test/caption/generic'),
+					'test_id' => array('definition' => 'testSession/test_id/generic'),
+					'test_session_id' => array('definition' => 'testResult/test_session_id/generic'),
+					'part_identifier' => array('definition' => 'test/part_identifier/generic'),
+					'n_title' => array('definition' => 'coreVcard/n_title'),
+					'n_first' => array('definition' => 'coreVcard/n_first'),
+					'n_last' => array('definition' => 'coreVcard/n_last'),
+					'n_fn' => array('definition' => 'coreVcard/n_fn'),
+					'email' => array('definition' => 'coreVcard/email'),
+					'tel_cell' => array('definition' => 'coreVcard/tel_cell'),
+					'expected_date' => array('definition' => 'testSession/expected_date/generic'),
+					'expected_time' => array('definition' => 'testSession/expected_time/generic'),
+					'expected_time_zone' => array('definition' => 'testSession/expected_time_zone/generic'),
+					'expected_duration' => array('definition' => 'testSession/expected_duration/generic'),
+					'expected_location' => array('definition' => 'testSession/expected_location/generic'),
+					'expected_latitude' => array('definition' => 'testSession/expected_latitude/generic'),
+					'expected_duration' => array('definition' => 'testSession/expected_duration/generic'),
+					'actual_date' => array('definition' => 'testResult/actual_date/generic'),
+					'actual_time' => array('definition' => 'testResult/actual_time/generic'),
+					'actual_time_zone' => array('definition' => 'testResult/actual_time_zone/generic'),
+					'actual_duration' => array('definition' => 'testResult/actual_duration/generic'),
+					'actual_location' => array('definition' => 'testResult/actual_location/generic'),
+					'actual_latitude' => array('definition' => 'testResult/actual_latitude/generic'),
+					'actual_duration' => array('definition' => 'testResult/actual_duration/generic'),
+					'update_time' => array('definition' => 'testResult/update_time/generic'),
+			),
+	),
+	
+	'testResult/index/generic' => array(
 			'title' => array('en_US' => 'Learning by 2Pit', 'fr_FR' => 'P-Pit Learning'),
 	),
 	
-	'testResult/search' => array(
+	'testResult/search/generic' => array(
 			'title' => array('en_US' => 'Test subscriptions', 'fr_FR' => 'Inscription au test'),
-			'todoTitle' => array('en_US' => 'recent', 'fr_FR' => 'récents'),
+			'todoTitle' => array('en_US' => 'Coming or in progress', 'fr_FR' => 'En cours ou prévus'),
 			'searchTitle' => array('en_US' => 'search', 'fr_FR' => 'recherche'),
-			'main' => array(
-					'status' => 'value',
-					'place_id' => 'value',
-					'caption' => 'contains',
-					'n_fn' => 'contains',
-					'expected_time' => 'range',
-					'actual_time' => 'range',
+			'properties' => array(
+					'status' => null,
+					'place_id' => null,
+					'caption' => null,
+					'n_fn' => null,
+					'test_id' => null,
+					'test_session_id' => null,
+					'expected_date' => null,
+					'actual_date' => null,
 			),
 	),
 	
-	'testResult/list' => array(
-			'place_id' => 'select',
-			'caption' => 'text',
-			'n_fn' => 'text',
-			'expected_time' => 'time',
-			'status' => 'select',
+	'testResult/list/generic' => array(
+			'properties' => array(
+					'place_caption' => [],
+					'caption' => [],
+					'test_id' => [],
+					'test_session_id' => [],
+					'n_fn' => [],
+					'expected_date' => [],
+					'actual_date' => [],
+					'status' => [],
+			),
 	),
 	
-	'testResult/detail' => array(
+	'testResult/detail/generic' => array(
 			'title' => array('en_US' => 'Test result detail', 'fr_FR' => 'Détail du résultat de test'),
 			'displayAudit' => true,
 	),
 	
-	'testResult/update' => array(
-			'place_id' => array('mandatory' => true),
-			'n_title' => array('mandatory' => false),
-			'n_first' => array('mandatory' => true),
-			'n_last' => array('mandatory' => true),
-			'email' => array('mandatory' => true),
-			'tel_cell' => array('mandatory' => false),
-			'test_session_id' => array('mandatory' => true),
+	'testResult/update/generic' => array(
+			'properties' => array(
+					'place_id' => array('mandatory' => true, 'focus' => true),
+					'n_title' => array('mandatory' => false),
+					'n_first' => array('mandatory' => true),
+					'n_last' => array('mandatory' => true),
+					'email' => array('mandatory' => true),
+					'tel_cell' => array('mandatory' => false),
+					'test_session_id' => array('mandatory' => true),
+			),
 	),
 	
-	'testResult/export' => array(
-			'identifier' => null,
-			'status' => null,
-			'place_id' => null,
-			'n_title' => null,
-			'n_first' => null,
-			'n_last' => null,
-			'n_fn' => null,
-			'email' => null,
-			'expected_time' => null,
-			'expected_duration' => null,
-			'actual_time' => null,
-			'actual_duration' => null,
+	'testResult/export/generic' => array(
+			'properties' => array(
+					'identifier' => null,
+					'status' => null,
+					'place_identifier' => null,
+					'place_caption' => null,
+					'part_identifier' => null,
+					'caption' => null,
+					'n_title' => null,
+					'n_first' => null,
+					'n_last' => null,
+					'n_fn' => null,
+					'email' => null,
+					'tel_cell' => null,
+					'expected_date' => null,
+					'expected_time' => null,
+					'expected_duration' => null,
+					'actual_date' => null,
+					'actual_time' => null,
+					'actual_duration' => null,
+			),
 	),
 		
-	'testResult/message' => array(
+	'testResult/message/generic' => array(
 			'subscribeTitle' => array(
 					'en_US' => 'Your P-Pit Learning lesson',
 					'fr_FR' => 'Votre leçon P-Pit Learning',

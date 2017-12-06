@@ -16,7 +16,12 @@ class TestSession implements InputFilterAwareInterface
     public $status;
     public $test_id;
     public $part_identifier;
+    public $expected_date;
     public $expected_time;
+    public $time_zone;
+    public $location;
+    public $latitude;
+    public $longitude;
     public $expected_duration;
     public $next_session_id;
     public $audit;
@@ -24,7 +29,8 @@ class TestSession implements InputFilterAwareInterface
     // Joined properties
     public $identifier;
     public $caption;
-
+    public $session_caption;
+    
     // Transient properties
     public $test;
     public $properties;
@@ -46,14 +52,20 @@ class TestSession implements InputFilterAwareInterface
         $this->status = (isset($data['status'])) ? $data['status'] : null;
         $this->test_id = (isset($data['test_id'])) ? $data['test_id'] : null;
         $this->part_identifier = (isset($data['part_identifier'])) ? $data['part_identifier'] : null;
+        $this->caption = (isset($data['caption'])) ? $data['caption'] : null;
+        $this->expected_date = (isset($data['expected_date'])) ? $data['expected_date'] : null;
         $this->expected_time = (isset($data['expected_time'])) ? $data['expected_time'] : null;
+        $this->time_zone = (isset($data['time_zone'])) ? $data['time_zone'] : null;
+        $this->location = (isset($data['location'])) ? $data['location'] : null;
+        $this->latitude = (isset($data['latitude'])) ? $data['latitude'] : null;
+        $this->longitude = (isset($data['longitude'])) ? $data['longitude'] : null;
         $this->expected_duration = (isset($data['expected_duration'])) ? $data['expected_duration'] : null;
         $this->next_session_id = (isset($data['next_session_id'])) ? $data['next_session_id'] : null;
         $this->audit = (isset($data['audit'])) ? json_decode($data['audit'], true) : null;
         
         // Joined properties
         $this->identifier = (isset($data['identifier'])) ? $data['identifier'] : null;
-        $this->caption = (isset($data['caption'])) ? $data['caption'] : null;
+        $this->test_caption = (isset($data['test_caption'])) ? $data['test_caption'] : null;
     }
 
     public function getProperties()
@@ -64,13 +76,19 @@ class TestSession implements InputFilterAwareInterface
     	$data['status'] =  $this->status;
     	$data['test_id'] = (int) $this->test_id;
     	$data['part_identifier'] =  $this->part_identifier;
+    	$data['caption'] = $this->caption;
+    	$data['expected_date'] = ($this->expected_date) ? $this->expected_date : null;
     	$data['expected_time'] =  $this->expected_time;
+    	$data['time_zone'] =  $this->time_zone;
+    	$data['location'] =  $this->location;
+    	$data['latitude'] =  $this->latitude;
+    	$data['longitude'] =  $this->longitude;
     	$data['expected_duration'] =  $this->expected_duration;
     	$data['next_session_id'] = (int) $this->next_session__id;
     	$data['audit'] = $this->audit;
 
     	$data['identifier'] = $this->identifier;
-    	$data['caption'] = $this->caption;
+    	$data['test_caption'] = $this->test_caption;
     	 
     	return $data;
     }
@@ -79,15 +97,15 @@ class TestSession implements InputFilterAwareInterface
     {
     	$data = $this->getProperties();
     	unset($data['identifier']);
-    	unset($data['caption']);
+    	unset($data['test_caption']);
     	$data['audit'] = ($this->audit) ? json_encode($this->audit) : null;
     	return $data;
     }
 
-    public static function getList($params, $major, $dir, $mode = 'todo')
+    public static function getList($params = array(), $major = 'identifier', $dir = 'ASC', $mode = 'search')
     {
     	$select = TestSession::getTable()->getSelect()
-    		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('identifier', 'caption'), 'left')
+    		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('identifier', 'test_caption' => 'caption'), 'left')
     		->order(array($major.' '.$dir, 'identifier'));
     	$where = new Where;
     	$where->notEqualTo('learning_test_session.status', 'deleted');
@@ -134,6 +152,23 @@ class TestSession implements InputFilterAwareInterface
     	return $session;
     }
     
+    public static function checktime($time) {
+    	$hour = substr($time, 0, 2);
+    	$min = substr($time, 3, 2);
+    	$sec = substr($time, 6, 2);
+    	if (substr($time, 2, 1) != ':' || substr($time, 5, 1) != ':') return false;
+    	if ($hour < 0 || $hour > 23 || !is_numeric($hour)) {
+    		return false;
+    	}
+    	if ($min < 0 || $min > 59 || !is_numeric($min)) {
+    		return false;
+    	}
+    	if ($sec < 0 || $sec > 59 || !is_numeric($sec)) {
+    		return false;
+    	}
+    	return true;
+    }
+    
     public function loadData($data)
     {
     	$context = Context::getCurrent();
@@ -155,12 +190,34 @@ class TestSession implements InputFilterAwareInterface
     		if ($part_identifier == '' || strlen($part_identifier) > 255) return 'Integrity';
     		if ($this->part_identifier != $part_identifier) $auditRow['part_identifier'] = $this->part_identifier = $part_identifier;
     	}
-		if (array_key_exists('expected_time', $data)) {
-    		$expected_time = trim(strip_tags($data['expected_time']));
-    		if ($expected_time == '' || strlen($expected_time) > 255) return 'Integrity';
+    	if (array_key_exists('expected_date', $data)) {
+	    	$expected_date = $data['expected_date'];
+			if ($expected_date && !checkdate(substr($expected_date, 5, 2), substr($expected_date, 8, 2), substr($expected_date, 0, 4))) return 'Integrity';
+	    	if ($this->expected_date != $expected_date) $auditRow['expected_date'] = $this->expected_date = $expected_date;
+    	}
+    	if (array_key_exists('expected_time', $data)) {
+    		$expected_time = substr(trim(strip_tags($data['expected_time'])), 0, 19);
+			if ($expected_time && !TestSession::checktime($expected_time)) return 'Integrity';
     		if ($this->expected_time != $expected_time) $auditRow['expected_time'] = $this->expected_time = $expected_time;
     	}
-        if (array_key_exists('expected_duration', $data)) {
+        if (array_key_exists('time_zone', $data)) {
+			$time_zone = (int) $data['time_zone'];
+    		if ($this->time_zone != $time_zone) $auditRow['time_zone'] = $this->time_zone = $time_zone;
+		}
+        if (array_key_exists('location', $data)) {
+    		$location = trim(strip_tags($data['location']));
+    		if ($location == '' || strlen($location) > 255) return 'Integrity';
+    		if ($this->location != $location) $auditRow['location'] = $this->location = $location;
+    	}
+        if (array_key_exists('latitude', $data)) {
+			$latitude = (float) $data['latitude'];
+    		if ($this->latitude != $latitude) $auditRow['latitude'] = $this->latitude = $latitude;
+		}
+        if (array_key_exists('longitude', $data)) {
+			$longitude = (float) $data['longitude'];
+    		if ($this->longitude != $longitude) $auditRow['longitude'] = $this->longitude = $longitude;
+		}
+		if (array_key_exists('expected_duration', $data)) {
 			$expected_duration = (int) $data['expected_duration'];
     		if ($this-expected_>duration != $expected_duration) $auditRow['expected_duration'] = $this->expected_duration = $expected_duration;
 		}
@@ -168,6 +225,7 @@ class TestSession implements InputFilterAwareInterface
 			$next_session_id = (int) $data['next_session_id'];
     		if ($this->next_session_id != $next_session_id) $auditRow['next_session_id'] = $this->next_session_id = $next_session_id;
 		}
+		$this->caption = $this->test_caption.(($this->part_identifier) ? ' - '.$context->localize($this->test['parts'][$this->part_identifier]['title']) : '').(($this->expected_date) ? ' - '.$context->decodeDate($this->expected_date) : '');
 		$this->audit[] = $auditRow;
     	return 'OK';
     }

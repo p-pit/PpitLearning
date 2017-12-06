@@ -68,7 +68,7 @@ class Test implements InputFilterAwareInterface
     	return $data;
     }
 
-    public static function getList($type, $params, $major, $dir, $mode = 'todo')
+    public static function getList($type, $params = array(), $major = 'identifier', $dir = 'ASC', $mode = 'todo')
     {
     	$select = Test::getTable()->getSelect()
     		->order(array($major.' '.$dir, 'identifier'))
@@ -91,7 +91,7 @@ class Test implements InputFilterAwareInterface
     	$select->where($where);
     	$cursor = Test::getTable()->selectWith($select);
     	$tests = array();
-    	foreach ($cursor as $test) $tests[] = $test;
+    	foreach ($cursor as $test) $tests[$test->id] = $test;
     	return $tests;
     }
    
@@ -118,36 +118,35 @@ class Test implements InputFilterAwareInterface
     public function getDescription()
     {
     	$context = Context::getCurrent();
-    	if (array_key_exists('description', $this->content)) return $this->content['description'];
-    	else return $context->getConfig('testResult/description'.(($this->type) ? '/'.$type : ''));
+    	if ($context->getConfig()['specificationMode'] == 'config') return $context->getConfig()['test/'.$this->identifier]['description'];
+    	else return $this->content['description'];
     }
     
     public function getAxes()
     {
     	$context = Context::getCurrent();
-    	if (array_key_exists('axes', $this->content)) return $this->content['axes'];
-    	else return $context->getConfig('testResult/axes'.(($this->type) ? '/'.$type : ''));
+    	if ($context->getConfig()['specificationMode'] == 'config') return $context->getConfig()['test/'.$this->identifier]['axes'];
+    	else return $this->content['axes'];
     }
 
     public function getRules()
     {
     	$context = Context::getCurrent();
-    	if (array_key_exists('rules', $this->content)) return $this->content['rules'];
-    	else return $context->getConfig('testResult/rules'.(($this->type) ? '/'.$type : ''));
+    	if ($context->getConfig()['specificationMode'] == 'config') return $context->getConfig()['test/'.$this->identifier]['rules'];
+    	else return $this->content['rules'];
     }
 
     public function getQuestions()
     {
     	$context = Context::getCurrent();
-    	if (array_key_exists('questions', $this->content)) return $this->content['questions'];
-    	else return $context->getConfig('testResult/questions'.(($this->type) ? '/'.$type : ''));
-    }
+    	if ($context->getConfig()['specificationMode'] == 'config') return $context->getConfig()['test/'.$this->identifier]['questions'];
+    	else return $this->content['questions'];    }
 
     public function getParts()
     {
     	$context = Context::getCurrent();
-    	if (array_key_exists('parts', $this->content)) return $this->content['parts'];
-    	else return $context->getConfig('testResult/parts'.(($this->type) ? '/'.$type : ''));
+    	if ($context->getConfig()['specificationMode'] == 'config') return $context->getConfig()['test/'.$this->identifier]['parts'];
+    	else return $this->content['parts'];
     }
     
     public static function instanciate()

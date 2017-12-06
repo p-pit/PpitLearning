@@ -15,15 +15,38 @@ use PpitCore\Model\Event;
 use PpitCore\Model\Place;
 use PpitCore\Model\Vcard;
 use PpitCore\Form\CsrfForm;
+use PpitLearning\Model\Test;
 use PpitLearning\Model\TestResult;
 use PpitLearning\Model\TestSession;
 use PpitLearning\ViewHelper\SsmlTestResultViewHelper;
 use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 
 class TestResultController extends AbstractActionController
 {
-    public function indexAction()
+	public function getConfigProperties($type) {
+		$context = Context::getCurrent();
+		$properties = array();
+		foreach($context->getConfig('testResult/'.$type)['properties'] as $propertyId => $property) {
+			if ($property['definition'] != 'inline') $property = $context->getConfig($property['definition']);
+			$properties[$propertyId] = $property;
+		}
+		return $properties;
+	}
+	
+	public function getListProperties($type) {
+		foreach ($this->getConfigProperties($type) as $propertyId => $property) {
+			if ($property['type'] == 'list') {
+				if ($propertyId == 'place_id') $lists['place_id'] = Place::getList(array());
+				elseif ($propertyId == 'test_id') $lists['test_id'] = Test::getList(array());
+				elseif ($propertyId == 'test_session_id') $lists['test_session_id'] = TestSession::getList(array());
+			}
+		}
+		return $lists;
+	}
+
+	public function indexAction()
     {
     	$context = Context::getCurrent();
     	$place = Place::get($context->getPlaceId());
@@ -32,25 +55,35 @@ class TestResultController extends AbstractActionController
 		$applicationName = 'Learning by 2Pit';
 		$currentEntry = $this->params()->fromQuery('entry', 'place');
 
-    	return new ViewModel(array(
+		$type = $this->params()->fromRoute('type', '');
+		$personnalize = ($this->params()->fromQuery('personnalize'));
+
+		$configProperties = $this->getConfigProperties($type);
+		return new ViewModel(array(
     			'context' => $context,
-    			'config' => $context->getConfig(),
+    			'type' => $type,
     			'place' => $place,
-    			'active' => 'application',
     			'applicationId' => $applicationId,
-    			'applicationName' => $applicationName,
-    			'currentEntry' => $currentEntry,
-    	));
+				'personnalize' => $personnalize,
+				'page' => $context->getConfig('testResult/index/'.$type),
+				'searchPage' => $context->getConfig('testResult/search/'.$type),
+				'listPage' => $context->getConfig('testResult/list/'.$type),
+				'detailPage' => $context->getConfig('testResult/detail/'.$type),
+				'updatePage' => $context->getConfig('testResult/update/'.$type),
+				'configProperties' => $configProperties,
+				'major' => 'expected_date',
+				'dir' => 'DESC',
+		));
     }
 
-    public function getFilters($params)
+    public function getFilters($type, $params)
     {
 		$context = Context::getCurrent();
     	
     	// Retrieve the query parameters
     	$filters = array();
 
-    	foreach ($context->getConfig('testResult/search')['main'] as $propertyId => $rendering) {
+    	foreach ($context->getConfig('testResult/search/'.$type)['properties'] as $propertyId => $unused) {
     
     		$property = ($params()->fromQuery($propertyId, null));
     		if ($property) $filters[$propertyId] = $property;
@@ -67,12 +100,15 @@ class TestResultController extends AbstractActionController
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
-
-    	// Return the link list
+    	$type = $this->params()->fromRoute('type', '');
+		$configProperties = $this->getConfigProperties($type);
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
-				'places' => Place::getList(array()),
+    			'type' => $type,
+				'page' => $context->getConfig('testResult/search/'.$type),
+    			'configProperties' => $configProperties,
+    			'lists' => $this->getListProperties($type),
     	));
     	$view->setTerminal(true);
     	return $view;
@@ -80,28 +116,44 @@ class TestResultController extends AbstractActionController
 
     public function getList()
     {
-    	// Retrieve the context
     	$context = Context::getCurrent();
-    	 
-    	$params = $this->getFilters($this->params());
-    	$major = ($this->params()->fromQuery('major', 'identifier'));
-    	$dir = ($this->params()->fromQuery('dir', 'ASC'));
-
+    	$type = $this->params()->fromRoute('type', '');
+    	$params = $this->getFilters($type, $this->params());
+    	$major = ($this->params()->fromQuery('major', 'expected_date'));
+    	$dir = ($this->params()->fromQuery('dir', 'DESC'));
     	if (count($params) == 0) $mode = 'todo'; else $mode = 'search';
-
-    	// Retrieve the list
-    	$results = TestResult::getList($params, $major, $dir, $mode);
-
-    	// Return the link list
+    	$results = TestResult::getList($type, $params, $major, $dir, $mode);
+    	$configProperties = $this->getConfigProperties($type);
+    	 
+    	// Aggregate
+    	$sum = 0;
+    	$distribution = array();
+    	foreach ($results as $result) {
+    		$majorProperty = $configProperties[$major];
+    		if ($majorProperty['type'] == 'number') $sum += $result->properties[$major];
+    		elseif ($majorProperty['type'] == 'select') {
+    			if (array_key_exists($result->properties[$major], $distribution)) $distribution[$result->properties[$major]]++;
+    			else $distribution[$result->properties[$major]] = 1;
+    		}
+    	}
+    	$average = (count($results)) ? round($sum / count($results), 1) : null;
+    	 
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
-				'places' => Place::getList(array()),
+    			'type' => $type,
+				'page' => $context->getConfig('testResult/list/'.$type),
     			'results' => $results,
+    			'distribution' => $distribution,
+    			'count' => count($results),
+    			'sum' => $sum,
+    			'average' => $average,
     			'mode' => $mode,
     			'params' => $params,
     			'major' => $major,
     			'dir' => $dir,
+				'configProperties' => $configProperties,
+    			'lists' => $this->getListProperties($type),
     	));
     	$view->setTerminal(true);
     	return $view;
@@ -129,10 +181,34 @@ class TestResultController extends AbstractActionController
     	return $this->response;
     }
 
+    public function distributeAction()
+    {
+    	$distribution = array();
+    	foreach ($this->getList()->results as $result) {
+    		if (array_key_exists($result->caption, $distribution)) $distribution[$result->caption]++;
+    		else $distribution[$result->caption] = 1;
+    	}
+    	$colors = array('#F7464A', '#46BFBD', '#FDB45C', '#4D5360');
+    	$highlights = array('#FF5A5E', '#5AD3D1', '#FFC870', '#616774');
+    	$data = array();
+    	$i=0;
+    	foreach ($distribution as $value => $number) {
+    		$data[] = array(
+    				'value' => $number,
+    				'color' => $colors[$i % 4],
+    				'highlight' => $highlights[$i % 4],
+    				'label' => $value,
+    		);
+    		$i++;
+    	}
+    	return new JsonModel($data);
+    }
+    
     public function detailAction()
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
+    	$type = $this->params()->fromRoute('type', '');
     	 
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) {
@@ -140,11 +216,15 @@ class TestResultController extends AbstractActionController
     	}
     	else $result = TestResult::instanciate();
 
+    	$configProperties = $this->getConfigProperties($type);
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+    			'type' => $type,
+				'page' => $context->getConfig('testResult/detail/'.$type),
     			'id' => $id,
     			'result' => $result,
+				'configProperties' => $configProperties,
     	));
     	$view->setTerminal(true);
     	return $view;
@@ -154,7 +234,8 @@ class TestResultController extends AbstractActionController
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
-
+    	$type = $this->params()->fromRoute('type', '');
+    	 
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) {
     		$result = TestResult::get($id);
@@ -165,10 +246,9 @@ class TestResultController extends AbstractActionController
     		$result = TestResult::instanciate();
     		$vcard = Vcard::instanciate();
     	}
-
     	$action = $this->params()->fromRoute('act', null);
-
-    	$learningSessions = TestSession::getList(array('status' => 'new'), 'expected_time', 'ASC', 'search');
+    	$learningSessions = TestSession::getList(array(/*'status' => 'new'*/), 'expected_date', 'ASC', 'search');
+    	$configProperties = $this->getConfigProperties($type);
 
     	// Instanciate the csrf form
     	$csrfForm = new CsrfForm();
@@ -189,7 +269,7 @@ class TestResultController extends AbstractActionController
 		    	$data['status'] = 'new';
 		    	$data['actual_time'] = null;
 		    	$data['answers'] = array();
-		    	foreach($context->getConfig('testResult/update') as $propertyId => $unused) {
+		    	foreach($context->getConfig('testResult/update/'.$type)['properties'] as $propertyId => $unused) {
 		    		$data[$propertyId] = $request->getPost(($propertyId));
 		    	}
 		    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
@@ -260,7 +340,7 @@ class TestResultController extends AbstractActionController
 						// Send the email to the user
 	    				if ($action != 'delete') {
 	    					$url = $context->getServiceManager()->get('viewhelpermanager')->get('url');
-							$email_body = $context->getConfig('testResult/message')['subscribeText'][$context->getLocale()];
+							$email_body = $context->getConfig('testResult/message'.$type)['subscribeText'][$context->getLocale()];
 							$email_body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('id' => $result_id)).'?hash='.$result->authentication_token);
 							$email_title = $context->getConfig('testResult/message')['subscribeTitle'][$context->getLocale()];
 							Context::sendMail($result->email, $email_body, $email_title, null);
@@ -274,11 +354,12 @@ class TestResultController extends AbstractActionController
 	    		$action = null;
     		}
 	    }
-    	$result->properties = $result->getProperties();
+	    $result->properties = $result->getProperties();
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
-				'places' => Place::getList(array()),
+    			'type' => $type,
+				'page' => $context->getConfig('testResult/update/'.$type),
     			'id' => $id,
     			'action' => $action,
     			'result' => $result,
@@ -286,7 +367,9 @@ class TestResultController extends AbstractActionController
     			'learningSessions' => $learningSessions,
     			'csrfForm' => $csrfForm,
     			'error' => $error,
-    			'message' => $message
+    			'message' => $message,
+				'configProperties' => $configProperties,
+    			'lists' => $this->getListProperties($type),
     	));
     	$view->setTerminal(true);
     	return $view;
@@ -296,7 +379,8 @@ class TestResultController extends AbstractActionController
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
-    
+    	$type = $this->params()->fromRoute('type', '');
+    	 
     	$test_session_id = (int) $this->params()->fromRoute('test_session_id', 0);
     	$learningSession = TestSession::getTable()->get($test_session_id);
     	if (!$learningSession) return $this->redirect()->toRoute('user/expired');
@@ -307,7 +391,9 @@ class TestResultController extends AbstractActionController
     	$data = array();
    		$data['status'] = 'in_progress';
     	$data['test_session_id'] = $test_session_id;
-    	$result->actual_time = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s').'+ '.'60'.' seconds'));
+    	$actual_datetime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s').'+ '.'60'.' seconds'));
+    	$result->actual_date = substr($actual_datetime, 0, 10);
+    	$result->actual_time = substr($actual_datetime, 11, 8);
     	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
     
     	$rc = $result->add();
@@ -318,12 +404,14 @@ class TestResultController extends AbstractActionController
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
-    	
+    	$type = $this->params()->fromRoute('type', '');
+
     	$place = Place::get($context->getPlaceId());
     	
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) $result = TestResult::get($id);
     	else $result = TestResult::instanciate();
+    	$configProperties = $this->getConfigProperties($type);
 
     	// Shift to the first result in the chain not already performed
     	while($result->status == 'performed' && $result->next_result_id) $result = TestResult::get($result->next_result_id);
@@ -335,7 +423,7 @@ class TestResultController extends AbstractActionController
 	    	if ($token != $result->authentication_token) return $this->redirect()->toRoute('user/expired');
 		}
 
-    	if ($result->actual_time > date('Y-m-d H:i:s')) {
+    	if ($result->actual_date.' '.$result->actual_time > date('Y-m-d H:i:s')) {
     		$result->status = 'new';
     	}
 
@@ -358,7 +446,8 @@ class TestResultController extends AbstractActionController
     			// Load the input data
     			$data = array();
     			if ($request->getPost('action') == 'start') {
-    				$result->actual_time = date('Y-m-d H:i:s');
+    				$result->actual_date = date('Y-m-d');
+    				$result->actual_time = date('H:i:s');
     				$result->status = 'in_progress';
     				$result->update(null);
     			}
@@ -390,7 +479,17 @@ class TestResultController extends AbstractActionController
 		    			try {
 							$result->status = 'performed';
 		    				if (!$result->id) $rc = $result->add();
-		    				else $rc = $result->update(null);
+		    				else {
+		    					$rc = $result->update(null);
+		    				    $session = TestSession::get($result->test_session_id);
+		    					if ($rc =='OK' && $result->status == 'performed' && $session->next_session_id) {
+		    						$nextResult = TestResult::get($result->next_result_id);
+		    						if ($nextResult->status == 'new') {
+		    							$nextResult->status = 'in_progress';
+		    							$nextResult->update(null);
+		    						}
+		    					}
+		    				}
 		    				if ($rc != 'OK') $error = $rc;
 		    				if ($error) $connection->rollback();
 		    				else {
@@ -400,16 +499,16 @@ class TestResultController extends AbstractActionController
 		    					$event = Event::instanciate();
 		    					$event->status = 'new';
 		    					$event->type = 'test_note';
-		    					$event->identifier = $result->testSession->test->caption.'_'.$result->actual_time;
+		    					$event->identifier = $result->testSession->test->caption.'_'.$result->actual_date.' '.$result->actual_time;
 		    					$event->place_id = $result->place_id;
 		    					$event->vcard_id = $result->vcard_id;
 		    					$event->caption = $result->testSession->test->caption;
 		    					reset($result->axes);
 		    					$axis = current($result->axes);
 		    					$event->value = $axis['score'];
-		    					$event->property_1 = $result->testSession->expected_time;
+		    					$event->property_1 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
 		    					$event->property_2 = $result->status;
-		    					$event->property_3 = $result->actual_time;
+		    					$event->property_3 = $result->actual_date.' '.$result->actual_time;
 		    					$event->property_4 = $result->actual_duration;
 		    					$event->property_5 = json_encode($result->answers);
 		    					$event->property_7 = json_encode($axis['note']);
@@ -425,9 +524,9 @@ class TestResultController extends AbstractActionController
 		    					$event->type = 'test_detail';
 		    					$event->place_id = $result->place_id;
 		    					$event->vcard_id = $result->vcard_id;
-			    				$event->property_1 = $result->testSession->expected_time;
+			    				$event->property_1 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
 			    				$event->property_2 = $result->status;
-			    				$event->property_3 = $result->actual_time;
+			    				$event->property_3 = $result->actual_date.' '.$result->actual_time;
 			    				$event->property_4 = $result->actual_duration;
 			    				foreach ($result->answers as $answerId => $answer) {
 			    					$question = $result->testSession->test->content['questions'][$answerId];
@@ -455,6 +554,7 @@ class TestResultController extends AbstractActionController
 		    					}
 
 		    					$connection->commit();
+		    					return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $id), array('query' => array('hash' => $token)));
 		    					$message = 'OK';
 		    				}
 		    			}
@@ -467,13 +567,14 @@ class TestResultController extends AbstractActionController
     		}
     	}
 
-    	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_time : $result->actual_time;
+    	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_date.' '.$result->testSession->expected_time : $result->actual_date.' '.$result->actual_time;
     	$endTime = date('Y-m-d H:i:s', strtotime($beginTime.'+ '.$result->testSession->expected_duration.' seconds'));
 
 		$this->layout('/layout/public-layout');
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+    			'type' => $type,
     			'token' => $token,
     			'place' => $place,
     			'id' => $id,
@@ -484,6 +585,7 @@ class TestResultController extends AbstractActionController
     			'endTime' => $endTime,
     			'message' => $message,
     			'error' => $error,
+				'configProperties' => $configProperties,
     	));
     	return $view;
     }

@@ -38,5 +38,5 @@
 		'You didn\'t give any answer' => 'Tu n\'as saisi aucune réponse',
 		'Your input has been recorded' => 'Votre saisie a été enregistrée',
 		'Your score is' => 'Ton score est de',
-		'You will soon be contacted for a presentation of your results' => 'Tu va être contacté prochainement pour une présentation de test résultats.'
+		'You will soon be contacted for a presentation of your results' => 'Tu va être contacté prochainement pour une présentation de tes résultats.'
 	);

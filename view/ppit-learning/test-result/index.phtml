@@ -12,13 +12,12 @@
 <?php echo $this->partial('/partials/common-form-js.phtml'); ?>
 
 <?php
-$title = $context->getConfig('testResult/index')['title'][$context->getLocale()];
+$title = $context->localize($page['title']);
 $this->headTitle($title);
 echo $this->partial('/partials/header');
 ?>
 	
 	<div>&nbsp;</div>
-	
 	<div class="row" id="main_menu" >
 
 <?php foreach ($context->getConfig('menus/p-pit-learning') as $entryId => $entryDef) : ?>
@@ -29,7 +28,7 @@ echo $this->partial('/partials/header');
 				<?php if (array_key_exists('glyphicon', $entryDef)) : ?>
 					<span class="glyphicon <?php echo $entryDef['glyphicon'] ?>"></span>
 				<?php endif;?>
-					<?php echo $entryDef['label'][$context->getLocale()] ?>
+					<?php echo $context->localize($entryDef['label']) ?>
 				</button>
 		</div>
 	<?php endif ?>
@@ -41,26 +40,487 @@ echo $this->partial('/partials/header');
 
 	<!-- Main panel -->
 	<div class="row">
-	    <div class="col-md-6 ppit-panel" id="index_action"></div>
-		<div class="col-md-6 ppit-panel" id="form_action"></div>
+	    <div class="col-md-12 ppit-panel" id="index_action"></div>
 	</div>
-	
-	<!-- Login -->
-	<div class="row">
-	    <div class="col-md-6 col-md-offset-3 ppit-panel" id="login-panel">
-		</div>
-	</div>
+
+<!-- MDB core JavaScript -->
+<script type="text/javascript" src="<?php echo $this->basePath('mdb-free/js/mdb.min.js') ?>"></script>
 
 <script>
-
-<?php
-echo $this->partial('/partials/test-result-scripts');
-echo $this->partial('/partials/ppit-controller') 
-?>
 
 <?php foreach ($context->getConfig('menus/p-pit-learning') as $entryId => $entryDef) : ?>
 $('#<?php echo $entryId ?>-anchor').click(function () { $(location).attr('href', '<?php echo $this->url($entryDef['route'], $entryDef['params']) ?>'); });
 <?php endforeach;?>
+
+function getParams() {
+
+	var params = '?', todo = true;
+
+<?php foreach ($searchPage['properties'] as $propertyId => $rendering) : ?>
+	<?php $property = $configProperties[$propertyId] ?>
+
+	<?php if (in_array($property['type'], array('date', 'time', 'datetime', 'number'))) : ?>
+
+	if (document.getElementById('search_check_min_<?php echo $propertyId ?>').checked) {
+		var min_<?php echo $propertyId ?> = $('#search_min_<?php echo $propertyId ?>').val();
+		<?php if ($property['type'] == 'date') : ?>
+			if (min_<?php echo $propertyId ?>) min_<?php echo $propertyId ?> = encodeDate(min_<?php echo $propertyId ?>);
+		<?php endif;?>
+		params += 'min_<?php echo $propertyId ?>=' + min_<?php echo $propertyId ?> + '&'; 
+		todo = false;
+	}
+
+	if (document.getElementById('search_check_max_<?php echo $propertyId ?>').checked) {
+		var max_<?php echo $propertyId ?> = $('#search_max_<?php echo $propertyId ?>').val();
+		<?php if ($property['type'] == 'date') : ?>
+			if (max_<?php echo $propertyId ?>) max_<?php echo $propertyId ?> = encodeDate(max_<?php echo $propertyId ?>);
+		<?php endif;?>
+		params += 'max_<?php echo $propertyId ?>=' + max_<?php echo $propertyId ?> + '&'; 
+		todo = false;
+	}
+
+	<?php else : ?>
+	if (document.getElementById('search_check_<?php echo $propertyId ?>').checked) {
+		params += '<?php echo $propertyId ?>=' + $('#search_<?php echo $propertyId ?>').val() + '&'; todo = false;
+	}
+	<?php endif;?>
+
+<?php endforeach;?>
+
+	$('#mode-text').text((todo) ? '<?php echo $searchPage['todoTitle'][$context->getLocale()] ?>' : '<?php echo $searchPage['searchTitle'][$context->getLocale()] ?>');
+
+	return params;
+}
+
+// Export the list
+function exportList() {
+
+	var params = getParams();
+	document.location.href = '<?php echo $this->url('testResult/export') ?>' + params;
+}
+
+function sortList(criterion) {
+
+	var dir;
+	ascCriterion = $('.glyphicon-triangle-top').first().parent().attr('id');
+	descCriterion = $('.glyphicon-triangle-bottom').first().parent().attr('id');
+	if (criterion + '-anchor' == ascCriterion) dir = 'DESC'; else dir = 'ASC';
+	getList(getParams(), criterion, dir);
+}
+
+function filterList() {
+
+	ascCriterion = $('.glyphicon-triangle-top').first().parent().attr('id');
+	descCriterion = $('.glyphicon-triangle-bottom').first().parent().attr('id');
+	if (ascCriterion) {
+		criterion = ascCriterion.split('-')[0];
+		dir = 'ASC';
+	}
+	else if (descCriterion) {
+		criterion = descCriterion.split('-')[0];
+		dir = 'DESC';
+	}
+	else {
+		criterion = '<?php echo $major ?>';
+		dir = '<?php echo $dir?>';
+	}
+	getList(getParams(), criterion, dir);
+}
+
+function connectSearchInputs() {
+	$('#erase-button').click(function () { 
+		$('.search_input').val('');
+		$('.search_check').attr('checked', false);
+		filterList();
+	});
+
+<?php foreach ($searchPage['properties'] as $propertyId => $unused) : ?>
+	<?php $property = $configProperties[$propertyId] ?>
+
+	<?php if ($propertyId == 'type') : ?>
+		$('#search_<?php echo $propertyId ?>').change(function () { 
+			document.location.href = '<?php echo $this->url('testResult/index') ?>/' + $('#search_type').val(); 
+		});
+
+	<?php elseif (in_array($property['type'], array('date', 'time', 'datetime', 'number'))) : ?>
+
+	$('#search_check_min_<?php echo $propertyId ?>').change(function () {
+
+		$('#search-button').removeClass('btn-default').addClass('btn-success');
+		$('#search-button').unbind('click');
+		$('#search-button').click(function () { 
+			getList(getParams(), '<?php echo $major ?>', '<?php echo $dir?>');
+		});
+		if (!document.getElementById('search_check_min_<?php echo $propertyId ?>').checked) {
+			$('#search_min_<?php echo $propertyId ?>').val('');
+		}
+	});
+	$('#search_min_<?php echo $propertyId ?>').change(function () { filterList(); });
+	$('#search_max_<?php echo $propertyId ?>').change(function () { filterList(); });
+
+		<?php if ($property['type'] == 'date') : ?>
+	$("#search_min_<?php echo $propertyId ?>").datepicker();
+	$("#search_max_<?php echo $propertyId ?>").datepicker();
+		<?php endif;?>
+	
+	<?php else : ?>
+
+	$('#search_check_<?php echo $propertyId ?>').change(function () {
+		$('#search-button').removeClass('btn-default').addClass('btn-success');
+		$('#search-button').unbind('click');
+		$('#search-button').click(function () { 
+			getList(getParams(), '<?php echo $major ?>', '<?php echo $dir?>');
+		});
+		if (!document.getElementById('search_check_<?php echo $propertyId ?>').checked) {
+			$('#search_<?php echo $propertyId ?>').val('');
+		}
+	});
+	
+		<?php if (in_array($property['type'], ['list', 'select'])) : ?>
+	$('#search_<?php echo $propertyId ?>').change(function () { 
+		$('#search-button').removeClass('btn-default').addClass('btn-success');
+		$('#search-button').unbind('click');
+		$('#search-button').click(function () { 
+			getList(getParams(), '<?php echo $major ?>', '<?php echo $dir?>');
+		});
+		document.getElementById('search_check_<?php echo $propertyId ?>').checked = true;
+	});
+
+		<?php else : ?>
+	$('#search_<?php echo $propertyId ?>').keyup(function () {
+		$('#search-button').removeClass('btn-default').addClass('btn-success');
+		$('#search-button').unbind('click');
+		$('#search-button').click(function () { 
+			getlist(getParams(), '<?php echo $major ?>', '<?php echo $dir?>');
+		});
+		document.getElementById('search_check_<?php echo $propertyId ?>').checked = true;	
+	});
+	
+		<?php endif;?>
+
+	<?php endif;?>
+<?php endforeach;?>
+}
+
+function showChart(params) {
+
+	// Execute the ajax request
+	var route = '<?php echo $this->url('testResult/distribute', array('type' => $type)) ?>' + params;
+	var xhttp = new XMLHttpRequest();
+	xhttp.open("GET", route, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+		    var option = {
+			    responsive: true,
+		    };
+		    var ctx = document.getElementById("chart").getContext('2d');
+			var data = JSON.parse(xhttp.responseText);
+			var myChart = new Chart(ctx).Doughnut(data,option);
+		}
+	}
+	xhttp.send();
+}
+
+// Load the list
+function getList(params, major, dir) {		
+
+	showChart(params);
+
+	// Execute the ajax request
+	route = '<?php echo $this->url('testResult/list', array('type' => $type)) ?>' + params + '&major=' + major + ((dir =='ASC') ? '&dir=ASC' : '&dir=DESC');
+	xhttp = new XMLHttpRequest();
+	xhttp.open("GET", route, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+		if (xhttp.readyState == 4) {
+			document.getElementById('list-panel').innerHTML = xhttp.responseText;
+			
+			$('#export-button').click(function () { exportList(); });
+
+			$('.detail-row').hide();
+			$('.invisible').hide();
+			
+			$(function () {
+			    $('.tip').tooltip({
+			        content: function () {
+			            return $(this).prop('title');
+			        }
+			    });
+			});
+			
+			// Connect the sort anchors
+			$('.sort-anchor').each(function () {
+				$(this).click(function () {
+					sortList($(this).attr('id').split('-')[0]);
+				});
+			});
+
+			// Connect the more anchor
+			$('#more-anchor').click(function () {
+				$('#limit').val('');
+				filterList();
+			});
+
+			// Able the group action button
+			$('.group-checkbox').click(function () {
+				$('.group-anchor').removeAttr('disabled');
+			});
+
+			// Connect the check all checkbox
+			$('#group-checkbox').click(function () {
+				var current = document.getElementById('group-checkbox').checked;
+				var groupNumber = $('#group-number').val();
+				document.getElementById('down-group-checkbox').checked = (current) ? true : false;
+				for (i = 0; i < groupNumber; i++) {
+					document.getElementById('group-checkbox_' + i).checked = (current) ? true : false;
+				}
+			});
+			$('#down-group-checkbox').click(function () {
+				var current = document.getElementById('down-group-checkbox').checked;
+				var groupNumber = $('#group-number').val();
+				document.getElementById('group-checkbox').checked = (current) ? true : false;
+				for (i = 0; i < groupNumber; i++) {
+					document.getElementById('group-checkbox_' + i).checked = (current) ? true : false;
+				}
+			});
+			
+			// Connect the detail anchors
+			$('.detail-anchor').each(function () {
+				$(this).click(function () {
+					getDetail($(this).attr('id').split('_')[1]);
+				});
+			});
+			
+			// Connect the distribution anchor
+			$('.distribution').hide();
+			var distributionValue = $('#select-distribution').val();
+			$('#distribution_' + distributionValue).show();
+			$('#select-distribution').change(function () {
+				$('.distribution').hide();
+				var distributionValue = $('#select-distribution').val();
+				$('#distribution_' + distributionValue).show();
+			});
+		}
+	}
+	xhttp.send();
+	$('#search-button').removeClass('btn-success').addClass('btn-default');
+}
+
+function connectAuditPanel()
+{
+	$('#audit-panel').hide();
+	$('#audit-label').click(function () {
+		if ($('#audit-label').text() == '<?php echo $this->translate('Show', 'ppit-core', $context->getLocale()) ?>') {
+			$('#audit-panel').show();
+			$('#audit-label').text('<?php echo $this->translate('Mask', 'ppit-core', $context->getLocale()) ?>');
+		}
+		else {
+			$('#audit-panel').hide();
+			$('#audit-label').text('<?php echo $this->translate('Show', 'ppit-core', $context->getLocale()) ?>');
+		}
+	});
+}
+
+<?php 
+$properties = array();
+foreach ($updatePage['properties'] as $propertyId => $options) {
+	$property = $configProperties[$propertyId];
+
+	if ($property['type'] == 'number') $properties[$propertyId] = array('type' => $property['type'], 'mandatory' => $options['mandatory'], 'minValue' => $property['minValue'], 'maxValue' => $property['maxValue']);
+	else $properties[$propertyId] = array('type' => $property['type'], 'mandatory' => $options['mandatory'], 'maxSize' => ($property['type'] == 'textarea') ? 2047 : 255);
+}
+$properties['test_result_update_time'] = array('type' => 'hidden');
+
+echo $this->partial('/partials/check-update-properties', array('entity' => 'TestResult', 'context' => $context, 'properties' => $properties)) 
+?>
+
+function connectUpdateForm(id, action, target)
+{
+<?php foreach ($updatePage['properties'] as $propertyId => $options) : ?>
+	<?php $property = $configProperties[$propertyId] ?>
+	<?php if ($property['type'] == 'date') : ?>
+		$('#input_<?php echo $propertyId ?>').datepicker();
+	<?php endif;?>
+<?php endforeach ?>
+
+	var form = document.getElementById('ppit-form');
+	form.onsubmit = function(event) {
+		event.preventDefault();
+	
+		var validity;
+		var formData = new FormData();
+		if (action == 'delete') {
+			validity = true;
+			formData.append('update_time', $('#update_time').val());
+		}
+		else {
+		// Check validity
+			validity = checkTestResultUpdateProperties(id);
+			if (validity) {
+		
+				// Create a new FormData object.
+				var formData = new FormData();
+				
+				// Get the properties values
+<?php foreach ($properties as $propertyId => $property) : ?>
+
+	<?php if ($property['type'] == 'checkbox') : ?>
+				formData.append('<?php echo $propertyId ?>', ((document.getElementById('<?php echo $propertyId ?>').checked) ? 1 : 0));
+
+	<?php elseif ($property['type'] == 'attachment') : ?>
+				var fileSelect = document.getElementById('<?php echo $propertyId ?>');
+				if (fileSelect) {
+					var files = fileSelect.files;
+					for (var i = 0; i < files.length; i++) {
+						var file = files[i];
+						formData.append('<?php echo $propertyId ?>', file, file.name);
+					}
+				}
+
+	<?php else : ?>
+				formData.append('<?php echo $propertyId ?>', document.getElementById('<?php echo $propertyId ?>').value);
+
+	<?php endif ?>
+
+<?php endforeach ?>
+			}
+		}
+		if (validity) {
+			var xhttp = new XMLHttpRequest();
+			var route;
+			route = '<?php echo $this->url('testResult/update', array('type' => $type)) ?>/' + id;
+			if (action) route += '/' + action;
+			xhttp.open('POST', route, true);
+			// Set up a handler for when the request finishes.
+			xhttp.onload = function () {
+				if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+				if (xhttp.readyState == 4) {
+					document.getElementById(target).innerHTML = xhttp.responseText;
+					filterList();
+					connectUpdateForm(id, action, target);
+					$('.action-btn').removeClass('btn-primary').addClass('btn-default');
+				}
+			};
+			xhttp.send(formData);
+		}
+		else return false;
+	}
+}
+
+function getUpdate(id, action, target) {
+
+	var xhttp = new XMLHttpRequest();
+	var route = '<?php echo $this->url('testResult/update', array('type' => $type)) ?>/' + id;
+	if (action) route += '/' + action;
+
+	xhttp.open('GET', route, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+		if (xhttp.readyState == 4) {
+			document.getElementById(target).innerHTML = xhttp.responseText;
+			
+			$(function () {
+			    $('.tip').tooltip({
+			        content: function () {
+			            return $(this).prop('title');
+			        }
+			    });
+			});
+
+			<?php foreach ($updatePage['properties'] as $propertyId => $options) : ?>
+				<?php if (array_key_exists('autofocus', $options)) : ?>
+					$('#<?php echo $propertyId?>').focus();
+				<?php endif;?>
+			<?php endforeach;?>
+
+			if (id) {
+				$('#update-anchor').click(function () { getUpdate(id, 'update', target); });
+				$('#delete-anchor').click(function () { getUpdate(id, 'delete', target); });
+			}
+			else $('#add-anchor').click(function () { getUpdate(id, 'add', target); });
+			connectUpdateForm(id, action, target);
+		}
+	}
+	xhttp.send();
+
+	// Highlight the clicked button (and only it in its class)
+	$('.action-btn').removeClass("btn-primary").addClass("btn-default");
+	if (action == 'update') $('#update-anchor').removeClass("btn-default").addClass("btn-primary");
+	else if (action == 'delete') $('#delete-anchor').removeClass("btn-default").addClass("btn-primary");
+}
+
+// Load the detail panel
+function getDetail(id) {
+
+	// Ensure the target is displayed
+	$('.detail-row').hide();
+	$('#detail-row_' + id).show();
+
+	// Highlight the clicked button (and only it in its class)
+	$('.index-btn').removeClass("btn-primary").addClass("btn-default");
+	$('.index-btn').attr('disabled', 'disabled');
+	$('#detail-anchor_' + id).removeClass("btn-default").addClass("btn-primary");
+
+	// Anchor to the new panel
+	$(location).attr('hash', 'form_action');
+
+	var route = '<?php echo $this->url('testResult/detail', array('type' => $type)) ?>/' + id;
+
+	// Execute the ajax request
+	xhttp = new XMLHttpRequest();
+	xhttp.open("GET", route, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+			document.getElementById('detail-div_' + id).innerHTML = xhttp.responseText;
+			
+			connectAuditPanel();
+
+			$('#remove-anchor').click(function () {
+
+				// Highlight the clicked button (and only it in its class)
+				$('.index-btn').removeClass("btn-primary").addClass("btn-default");
+				$('.index-btn').attr('disabled', false);
+
+				$('#detail-row_' + id).hide();
+				filterList();
+			});
+
+			getUpdate(id, '', 'update-panel');
+		}
+	}
+	xhttp.send();
+
+	// Highlight the clicked button (and only it in its class)
+	$('.index-btn').removeClass("btn-primary").addClass("btn-default");
+	$('#detail-anchor_' + id).removeClass("btn-default").addClass("btn-primary");
+}
+
+function getSearch()
+{
+	// Hide the other panels
+	$('.ppit-panel').hide();
+	$('#index_action').show();
+	// Anchor to the main panel
+	$(location).attr('hash', '#');
+	var xhttp = new XMLHttpRequest();
+	xhttp.open("GET", '<?php echo $this->url('testResult/search', array('type' => $type)) ?>', false);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+				document.getElementById('index_action').innerHTML = xhttp.responseText;
+				$('#mode-text').text('<?php echo $context->localize($searchPage['todoTitle']) ?>');
+				connectSearchInputs();
+		}
+	}
+	xhttp.send();
+}
+
+function activateTestResult() {
+	getSearch();
+	getList('?', '<?php echo $major ?>', '<?php echo $dir?>');
+}
 
 activateTestResult();
 

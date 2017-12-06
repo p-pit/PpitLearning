@@ -10,6 +10,10 @@
 
 <style>
 //	.clock { position:fixed; top:10%; right:-70%; }
+p,
+    .navbar-search .search-query {
+      font-family: Georgia, "Times New Roman", Times, serif;
+    }
 </style>
 <!-- Load the common form javascript functions -->
 <?php echo $this->partial('/partials/common-form-js.phtml'); ?>
@@ -30,7 +34,7 @@ echo $this->partial('/partials/header');
 	
     <!--First row-->
     <div class="row">
-		<div class="col-md-7">
+		<div class="col-md-5">
 <?php
 $author = $result->testSession->test->getDescription()['author'];
 $content = array_key_exists($context->getLocale(), $author) ? $author[$context->getLocale()] : $author['default'];
@@ -41,7 +45,11 @@ $content = array_key_exists($context->getLocale(), $author) ? $author[$context->
 					src="<?php echo $this->basePath('img/'.$context->getInstance()->caption.'/'.$content['image']['src']) ?>"
 					class="img-fluid"
 <?php foreach ($content['image'] as $attrId => $attrValue) : ?>
+	<?php if ($attrId == 'alt') : ?>
+					<?php echo $attrId ?>="<?php echo $context->localize($attrValue) ?>" 
+	<?php else : ?>
 					<?php echo $attrId ?>="<?php echo $attrValue ?>" 
+	<?php endif;?>
 <?php endforeach;?>
  				/>
 				<div class="mask">
@@ -50,8 +58,8 @@ $content = array_key_exists($context->getLocale(), $author) ? $author[$context->
 		</div>
         
         <!--Main information-->
-        <div class="col-md-5">			
-			<div>
+        <div class="col-md-7">			
+			<div class="card-block" style="background-color: #FFFFFF; color: #686868">
 <?php 
 $title = $result->testSession->test->getDescription()['title'];
 $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getLocale()] : $title['default'];
@@ -90,7 +98,7 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 							<h4>
 								<?php echo $this->translate('The test has ended', 'ppit-learning', $context->getLocale()) ?>.
 	<?php if ($result->testSession->test->getDescription()['confidentiality'] == 'protected') : ?>
-								<?php echo $this->translate('You will soon be contacted for a presentation of your results', 'ppit-learning', $context->getLocale()) ?>
+								<?php echo '<br>'.$context->localize($result->testSession->test->getDescription()['end_message']) ?>
 	<?php else : ?>
 								<?php echo $this->translate('Your score is', 'ppit-learning', $context->getLocale()) ?>
 								<?php echo $axis['score'] * 100 ?>%.
@@ -135,7 +143,11 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 						src="<?php echo $this->basePath('img/'.$context->getInstance()->caption.'/'.$content['image']['src']) ?>"
 						class="img-fluid"
 					<?php foreach ($content['image'] as $attrId => $attrValue) : ?>
+						<?php if ($attrId == 'alt') : ?>
+						<?php echo $attrId ?>="<?php echo $context->localize($attrValue) ?>" 
+						<?php else : ?>
 						<?php echo $attrId ?>="<?php echo $attrValue ?>" 
+						<?php endif;?>
 					<?php endforeach;?>
 					/>
 
@@ -146,7 +158,7 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 			<?php endif;?>
 	
 	            <!--Card content-->
-	            <div class="card-block">
+	            <div class="card-block" style="color: #686868">
 					<?php echo $content['text'] ?>
 				</div>
 			</div>
@@ -173,7 +185,7 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 			<?php $content = array_key_exists($context->getLocale(), $part['content']) ? $part['content'][$context->getLocale()] : $part['content']['default'] ?>
 		
 				            <!--Card content-->
-				            <div class="card-block">
+				            <div class="card-block" style="color: #686868">
 				            	<h1 style="text-align: center"><?php echo array_key_exists($context->getLocale(), $part['title']) ? $part['title'][$context->getLocale()] : $part['title']['default'] ?></h1>
 								<div><?php echo $content['text'] ?></div>
 				            </div>
@@ -190,7 +202,7 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 	<?php foreach ($sections as $sectionId => $section) : ?>
 		            <div class="col-md-6">
 				        <!--Card-->
-				        <div class="card">
+				        <div class="card" style="color: #686868">
 	
 		<?php if ($section['type'] == 'formated') : ?>
 
@@ -219,9 +231,21 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 			<?php endif;?>
 		
 				            <!--Card content-->
-				            <div class="card-block">
+				            <div class="card-block" style="color: #686868">
 								<div><?php echo $content['text'] ?></div>
 				            </div>
+				            <!--/.Card content-->
+	
+		<?php elseif ($section['type'] == 'audio') : ?>
+
+			<?php $content = array_key_exists($context->getLocale(), $section['content']) ? $section['content'][$context->getLocale()] : $section['content']['default'] ?>
+				            <!--Card content-->
+				            <div class="card-block text-center" style="color: #686868">
+								<div><?php echo $content['text'] ?></div>
+								<audio controls>
+								  <source src="<?php echo $this->basePath('/audio/'.$context->getInstance()->caption.'/'.$section['src'])?>" type="audio/mpeg">
+								</audio>
+							</div>
 				            <!--/.Card content-->
 	
 		<?php elseif ($section['type'] == 'question') : ?>
@@ -251,16 +275,14 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 
 						<?php if ($result->status != 'performed') : ?>
 								<h5 class="radio">
-									<span>
-										<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?>
-									</span>
-									<input 	type="radio" 
-											name="<?php echo $questionId.'-'.$modalityId ?>" 
-											class="form-control <?php echo $questionId ?>" 
-											id="<?php echo $questionId.'-'.$modalityId ?>" 
-											<?php if ($disabled) echo 'disabled="disabled"' ?>
-											<?php if (array_key_exists($questionId, $result->answers) && $result->answers[$questionId] == $modalityId) echo 'checked="checked"' ?> 
-									/>
+										<input 	type="radio" 
+												name="<?php echo $questionId.'-'.$modalityId ?>" 
+												class="<?php echo $questionId ?>" 
+												id="<?php echo $questionId.'-'.$modalityId ?>" 
+												<?php if ($disabled) echo 'disabled="disabled"' ?>
+												<?php if (array_key_exists($questionId, $result->answers) && $result->answers[$questionId] == $modalityId) echo 'checked="checked"' ?> 
+										/>
+										&nbsp;&nbsp;<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?>
 								</h5>
 						<?php else : ?>
 							<?php

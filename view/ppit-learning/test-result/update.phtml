@@ -7,6 +7,7 @@
  * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
  */
 -->
+
 <?php if ($context->isDemoModeActive()) : ?>
 	<?php if (!$result->id) : ?>
 		<a class="tip" href="#" title="<?php echo $context->getConfig('demo')['testResult/add'][$context->getLocale()] ?>">
@@ -20,11 +21,11 @@
 <?php endif;?>
 
 <?php if ($result->id && !$action && !$message) : ?>
-		<button type="button" class="btn btn-default action-btn" id="test-result-update-anchor" title="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>">
+		<button type="button" class="btn btn-default action-btn" id="update-anchor" title="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>">
 			<span class="glyphicon glyphicon-edit"></span>
 		</button>
 
-		<button type="button" class="btn btn-default action-btn" id="test-result-delete-anchor" title="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>" <?php if (!$result->isDeletable()) echo 'disabled="disabled"' ?>>
+		<button type="button" class="btn btn-default action-btn" id="delete-anchor" title="<?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?>" <?php if (!$result->isDeletable()) echo 'disabled="disabled"' ?>>
 			<span class="glyphicon glyphicon-trash"></span>
 		</button>
 <?php endif;?>
@@ -82,29 +83,26 @@
 if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; else $isDisabled = false;
 ?>
 
-<?php foreach ($context->getConfig('testResult/update') as $propertyId => $options) : ?>
-	<?php 
-	$property = $context->getConfig('testResult')['properties'][$propertyId];
-	if ($property['type'] == 'specific') $property = $context->getConfig($property['definition']);
-	?>
+<?php foreach ($page['properties'] as $propertyId => $options) : ?>
 
-	<?php if ($property) : ?>
-	
+	<?php $property = $configProperties[$propertyId] ?>
+
+	<?php if ($property['type'] == 'separator') : ?>
+		<hr>
+		<div class="form-group">
+			<label class="col-sm-12 control-label">
+				<?php echo $context->localize($property['label']) ?>
+			</label>
+		</div>
+
+	<?php else : ?>
 		<div class="form-group" id="<?php echo (($property['type'] == 'date' || $property['type'] == 'number') ? 'input_' : '').$propertyId ?>_group">
 			<label class="col-sm-5 control-label">
 				<?php if ($options['mandatory']) echo '* ' ?><?php echo $property['labels'][$context->getLocale()] ?>
 			</label>
 			<div class="col-sm-7">
 				
-		<?php if ($propertyId == 'test_session_id') : ?>
-				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
-	    			<option />
-			<?php foreach ($learningSessions as $key => $learningSession) : ?>
-	    			<option value="<?php echo $key ?>" <?php if ($result->test_session_id == $key) echo 'selected="selected"' ?>><?php echo $learningSession->caption ?><?php if ($learningSession->expected_time) echo ' - '.$context->decodeTime($learningSession->expected_time) ?></option>
-			<?php endforeach;?>
-				</select>
-				
-		<?php elseif ($property['type'] == 'date') : ?>
+		<?php if ($property['type'] == 'date') : ?>
 				<input type="hidden" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" />
 				<input class="form-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->decodeDate($result->properties[$propertyId]) ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> />
 
@@ -114,19 +112,21 @@ if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; 
 
 		<?php elseif ($property['type'] == 'textarea') : ?>
 				<textarea class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?> <?php if ($isDisabled) echo 'disabled="disabled"'?>><?php echo $result->properties[$propertyId] ?></textarea>
+				
+		<?php elseif ($property['type'] == 'list') : ?>
+				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
+	    			<option />
+			<?php foreach ($lists[$propertyId] as $itemId => $item) : ?>
+	    			<option value="<?php echo $itemId ?>" <?php if ($result->properties[$propertyId] == $itemId) echo 'selected="selected"' ?>><?php echo $item->caption ?></option>
+			<?php endforeach;?>
+				</select>
 
 		<?php elseif ($property['type'] == 'select') : ?>
 				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
 	    			<option />
-			<?php if ($propertyId == 'place_id') : ?>
-				<?php foreach ($places as $placeId => $place) : ?>
-	    			<option value="<?php echo $placeId ?>" <?php if ($result->properties[$propertyId] == $placeId) echo 'selected="selected"' ?>><?php echo $place->caption ?></option>
-				<?php endforeach;?>
-			<?php else : ?>
-				<?php foreach ($property['modalities'] as $key => $labels) : ?>
-	    			<option value="<?php echo $key ?>" <?php if ($result->properties[$propertyId] == $key) echo 'selected="selected"' ?>><?php echo $labels[$context->getLocale()] ?></option>
-				<?php endforeach;?>
-			<?php endif;?>
+			<?php foreach ($property['modalities'] as $key => $labels) : ?>
+	    			<option value="<?php echo $key ?>" <?php if ($result->properties[$propertyId] == $key) echo 'selected="selected"' ?>><?php echo $context->localize($labels) ?></option>
+			<?php endforeach;?>
 				</select>
 	
 		<?php else : ?>
@@ -144,7 +144,7 @@ if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; 
 		<div class="form-group">
 			<label class="col-sm-5 control-label">&nbsp;</label>
 			<div class="col-sm-7">
-				<a target="_blank" href="<?php echo $this->url('testResult/perform', array('id' => $result->id)) ?>?hash=<?php echo $result->authentication_token ?>"><?php echo $this->translate('See the page', 'ppit-learning', $context->getLocale()) ?></a>
+				<a target="_blank" href="<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $result->id)) ?>?hash=<?php echo $result->authentication_token ?>"><?php echo $this->translate('See the page', 'ppit-learning', $context->getLocale()) ?></a>
 			</div>
 		</div>
 <?php endif;?>

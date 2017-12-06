@@ -21,15 +21,23 @@ class TestResult implements InputFilterAwareInterface
     public $test_session_id;
     public $next_result_id;
     public $authentication_token;
+    public $actual_date;
     public $actual_time;
+    public $time_zone;
+    public $location;
+    public $latitude;
+    public $longitude;
     public $actual_duration;
     public $answers;
     public $audit;
     public $update_time;
     
     // Joined properties
+    public $type;
     public $identifier;
+    public $place_identifier;
     public $place_caption;
+    public $test_id;
     public $n_title;
     public $n_first;
     public $n_last;
@@ -37,7 +45,9 @@ class TestResult implements InputFilterAwareInterface
     public $email;
     public $tel_cell;
     public $caption;
+    public $part_identifier;
     public $content;
+    public $expected_date;
     public $expected_time;
     public $expected_duration;
     
@@ -67,15 +77,23 @@ class TestResult implements InputFilterAwareInterface
         $this->test_session_id = (isset($data['test_session_id'])) ? $data['test_session_id'] : null;
         $this->next_result_id = (isset($data['next_result_id'])) ? $data['next_result_id'] : null;
         $this->authentication_token = (isset($data['authentication_token'])) ? $data['authentication_token'] : null;
+        $this->actual_date = (isset($data['actual_date'])) ? $data['actual_date'] : null;
         $this->actual_time = (isset($data['actual_time'])) ? $data['actual_time'] : null;
+        $this->time_zone = (isset($data['time_zone'])) ? $data['time_zone'] : null;
+        $this->location = (isset($data['location'])) ? $data['location'] : null;
+        $this->latitude = (isset($data['latitude'])) ? $data['latitude'] : null;
+        $this->longitude = (isset($data['longitude'])) ? $data['longitude'] : null;
         $this->actual_duration = (isset($data['actual_duration'])) ? $data['actual_duration'] : null;
         $this->answers = (isset($data['answers'])) ? json_decode($data['answers'], true) : null;
         $this->audit = (isset($data['audit'])) ? json_decode($data['audit'], true) : null;
         $this->update_time = (isset($data['update_time'])) ? $data['update_time'] : null;
         
         // Joined properties
+        $this->type = (isset($data['type'])) ? $data['type'] : null;
         $this->identifier = (isset($data['identifier'])) ? $data['identifier'] : null;
+        $this->place_identifier = (isset($data['place_identifier'])) ? $data['place_identifier'] : null;
         $this->place_caption = (isset($data['place_caption'])) ? $data['place_caption'] : null;
+        $this->test_id = (isset($data['test_id'])) ? $data['test_id'] : null;
         $this->n_title = (isset($data['n_title'])) ? $data['n_title'] : null;
         $this->n_first = (isset($data['n_first'])) ? $data['n_first'] : null;
         $this->n_last = (isset($data['n_last'])) ? $data['n_last'] : null;
@@ -83,7 +101,9 @@ class TestResult implements InputFilterAwareInterface
         $this->email = (isset($data['email'])) ? $data['email'] : null;
         $this->tel_cell = (isset($data['tel_cell'])) ? $data['tel_cell'] : null;
         $this->caption = (isset($data['caption'])) ? $data['caption'] : null;
+        $this->part_identifier = (isset($data['part_identifier'])) ? $data['part_identifier'] : null;
         $this->content = (isset($data['content'])) ? json_decode($data['content'], true) : null;
+        $this->expected_date = (isset($data['expected_date'])) ? $data['expected_date'] : null;
         $this->expected_time = (isset($data['expected_time'])) ? $data['expected_time'] : null;
         $this->expected_duration = (isset($data['expected_duration'])) ? $data['expected_duration'] : null;
     }
@@ -99,19 +119,25 @@ class TestResult implements InputFilterAwareInterface
     	$data['test_session_id'] = (int) $this->test_session_id;
     	$data['next_result_id'] = (int) $this->next_result_id;
     	$data['authentication_token'] =  $this->authentication_token;
+    	$data['actual_date'] =  ($this->actual_date) ? $this->actual_date : null;
     	$data['actual_time'] =  ($this->actual_time) ? $this->actual_time : null;
     	$data['actual_duration'] =  $this->actual_duration;
     	$data['answers'] = $this->answers;
     	$data['audit'] = $this->audit;
 
+    	$data['place_identifier'] = $this->place_identifier;
+    	$data['place_caption'] = $this->place_caption;
+    	$data['test_id'] = $this->test_id;
     	$data['identifier'] = $this->identifier;
     	$data['caption'] = $this->caption;
+    	$data['part_identifier'] = $this->part_identifier;
     	$data['n_title'] = $this->n_title;
     	$data['n_first'] = $this->n_first;
     	$data['n_last'] = $this->n_last;
     	$data['n_fn'] = $this->n_fn;
     	$data['email'] = $this->email;
     	$data['tel_cell'] = $this->tel_cell;
+    	$data['expected_date'] =  $this->expected_date;
     	$data['expected_time'] =  $this->expected_time;
     	$data['expected_duration'] =  $this->expected_duration;
     	 
@@ -121,14 +147,19 @@ class TestResult implements InputFilterAwareInterface
     public function toArray()
     {
     	$data = $this->getProperties();
+    	unset($data['place_identifier']);
+    	unset($data['place_caption']);
+    	unset($data['test_id']);
     	unset($data['identifier']);
     	unset($data['caption']);
+    	unset($data['part_identifier']);
     	unset($data['n_title']);
     	unset($data['n_first']);
     	unset($data['n_last']);
     	unset($data['n_fn']);
     	unset($data['email']);
     	unset($data['tel_cell']);
+    	unset($data['expected_date']);
     	unset($data['expected_time']);
     	unset($data['expected_duration']);
     	$data['answers'] = json_encode($this->answers);
@@ -136,32 +167,61 @@ class TestResult implements InputFilterAwareInterface
     	return $data;
     }
 
-    public static function getList($params, $major, $dir, $mode = 'todo')
+    public static function getList($type, $params, $major, $dir, $mode = 'todo')
     {
+    	$context = Context::getCurrent();
     	$select = TestResult::getTable()->getSelect()
-    		->join('learning_test_session', 'learning_test_result.test_session_id = learning_test_session.id', array('expected_time', 'expected_duration'), 'left')
-    		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('identifier', 'caption', 'content'), 'left')
+    		->join('learning_test_session', 'learning_test_result.test_session_id = learning_test_session.id', array('part_identifier', 'expected_date', 'expected_time', 'expected_duration'), 'left')
+    		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('type', 'test_id' => 'id', 'identifier', 'caption', 'content'), 'left')
     		->join('core_vcard', 'learning_test_result.vcard_id = core_vcard.id', array('n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_cell'), 'left')
-    		->join('core_place', 'learning_test_result.place_id = core_place.id', array('place_caption' => 'caption'), 'left')
+    		->join('core_place', 'learning_test_result.place_id = core_place.id', array('place_identifier' => 'identifier', 'place_caption' => 'caption'), 'left')
     		->order(array($major.' '.$dir, 'identifier'));
     	$where = new Where;
-    	$where->notEqualTo('learning_test_result.status', 'deleted');
-    
+		$where->notEqualTo('learning_test_result.status', 'deleted');
+    	if ($type) $where->equalTo('learning_test.type', $type);
+    	 
     	// Todo list vs search modes
     	if ($mode == 'todo') {
+    		$where->in('learning_test_result.status', array('new', 'in_progress'));
     	}
     	else {
-    		foreach ($params as $propertyId => $property) {
-    			if ($propertyId == 'identifier') $where->equalTo('learning_test.'.$propertyId, $params[$propertyId]);
-    			elseif ($propertyId == 'caption') $where->like('learning_test.'.$propertyId, '%'.$params[$propertyId].'%');
-    			elseif ($propertyId == 'n_fn') $where->like('core_vcard.'.$propertyId, '%'.$params[$propertyId].'%');
-    			elseif ($propertyId == 'min_expected_time') $where->greaterThanOrEqualTo('learning_test_session.'.substr($propertyId, 4), $params[$propertyId]);
-    			elseif ($propertyId == 'max_expected_time') $where->lessThanOrEqualTo('learning_test_session.'.substr($propertyId, 4), $params[$propertyId]);
-    			elseif ($propertyId == 'min_expected_duration') $where->greaterThanOrEqualTo('learning_test_session.'.substr($propertyId, 4), $params[$propertyId]);
-    			elseif ($propertyId == 'max_expected_duration') $where->lessThanOrEqualTo('learning_test_session.'.substr($propertyId, 4), $params[$propertyId]);
-    			elseif (substr($propertyId, 0, 4) == 'min_') $where->greaterThanOrEqualTo('learning_test_result.'.substr($propertyId, 4), $params[$propertyId]);
-    			elseif (substr($propertyId, 0, 4) == 'max_') $where->lessThanOrEqualTo('learning_test_result.'.substr($propertyId, 4), $params[$propertyId]);
-    			else $where->like('learning_test_result.'.$propertyId, '%'.$params[$propertyId].'%');
+    		foreach ($params as $propertyId => $value) {
+    			$property = $context->getConfig('testResult'.(($type) ? '/'.$type : ''))['properties'][$propertyId];
+    			if ($property['definition'] != 'inline') $property = $context->getConfig($property['definition']);
+    			
+    			// Properties with a name shared between tables have to be qualified by the table name
+    		    if ($propertyId == 'status') {
+    				if ($value == '*') $where->notEqualTo('learning_test_result.status', '');
+    				else $where->equalTo('learning_test_result.status', $value);
+    			}
+    			elseif ($propertyId == 'caption') {
+    				if ($value == '*') $where->notEqualTo('learning_test.caption', '');
+    				else $where->like('learning_test.caption', '%'.$value.'%');
+    			}
+    			// Properties that have been SQL-aliased have to be tested with their real database name
+    			elseif ($propertyId == 'place_identifier') {
+    				if ($value == '*') $where->notEqualTo('learning_test.place_id', '');
+    				else $where->like('core_place.identifier', '%'.$value.'%');
+    			}
+    			elseif ($propertyId == 'place_caption') {
+    				if ($value == '*') $where->notEqualTo('learning_test.place_id', '');
+    				else $where->like('core_place.caption', '%'.$value.'%');
+    			}
+    		    elseif ($propertyId == 'test_id') {
+    				if ($value == '*') $where->notEqualTo('learning_test_session.test_id', '');
+    				else $where->equalTo('learning_test.id', $value);
+    			}
+    		    elseif ($propertyId == 'test_session_id') {
+    				if ($value == '*') $where->notEqualTo('learning_test_result.test_session_id', '');
+    				else $where->equalTo('learning_test_session.id', $value);
+    			}
+    			// Other properties can be generically checked
+    			elseif (substr($propertyId, 0, 4) == 'min_') $where->greaterThanOrEqualTo(substr($propertyId, 4), $value);
+    			elseif (substr($propertyId, 0, 4) == 'max_') $where->lessThanOrEqualTo(substr($propertyId, 4), $value);
+    			elseif (strpos($value, ',')) $where->in($propertyId, array_map('trim', explode(', ', $value)));
+    			elseif ($value == '*') $where->notEqualTo($propertyId, '');
+    			elseif ($property['type'] == 'select') $where->equalTo($propertyId, $value);
+    			else $where->like($propertyId, '%'.$value.'%');
     		}
     	}
     	$select->where($where);
@@ -283,12 +343,34 @@ class TestResult implements InputFilterAwareInterface
     		if ($authentication_token == '' || strlen($authentication_token) > 255) return 'Integrity';
     		if ($this->authentication_token != $authentication_token) $auditRow['authentication_token'] = $this->authentication_token = $authentication_token;
     	}
-		if (array_key_exists('actual_time', $data)) {
-    		$actual_time = trim(strip_tags($data['actual_time']));
-    		if (strlen($actual_time) > 255) return 'Integrity';
+        if (array_key_exists('actual_date', $data)) {
+	    	$actual_date = $data['actual_date'];
+			if ($actual_date && !checkdate(substr($actual_date, 5, 2), substr($actual_date, 8, 2), substr($actual_date, 0, 4))) return 'Integrity';
+	    	if ($this->actual_date != $actual_date) $auditRow['actual_date'] = $this->actual_date = $actual_date;
+    	}
+        	if (array_key_exists('actual_time', $data)) {
+    		$actual_time = substr(trim(strip_tags($data['actual_time'])), 0, 19);
+			if ($actual_time && !TestSession::checktime($actual_time)) return 'Integrity';
     		if ($this->actual_time != $actual_time) $auditRow['actual_time'] = $this->actual_time = $actual_time;
     	}
-        if (array_key_exists('actual_duration', $data)) {
+        if (array_key_exists('time_zone', $data)) {
+			$time_zone = (int) $data['time_zone'];
+    		if ($this->time_zone != $time_zone) $auditRow['time_zone'] = $this->time_zone = $time_zone;
+		}
+        if (array_key_exists('location', $data)) {
+    		$location = trim(strip_tags($data['location']));
+    		if ($location == '' || strlen($location) > 255) return 'Integrity';
+    		if ($this->location != $location) $auditRow['location'] = $this->location = $location;
+    	}
+        if (array_key_exists('latitude', $data)) {
+			$latitude = (float) $data['latitude'];
+    		if ($this->latitude != $latitude) $auditRow['latitude'] = $this->latitude = $latitude;
+		}
+        if (array_key_exists('longitude', $data)) {
+			$longitude = (float) $data['longitude'];
+    		if ($this->longitude != $longitude) $auditRow['longitude'] = $this->longitude = $longitude;
+		}
+    	if (array_key_exists('actual_duration', $data)) {
 			$actual_duration = (int) $data['actual_duration'];
     		if ($this->actual_duration != $actual_duration) $auditRow['actual_duration'] = $this->actual_duration = $actual_duration;
 		}
