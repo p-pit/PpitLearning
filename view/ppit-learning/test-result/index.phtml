@@ -397,7 +397,6 @@ function connectUpdateForm(id, action, target)
 				if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
 				if (xhttp.readyState == 4) {
 					document.getElementById(target).innerHTML = xhttp.responseText;
-					filterList();
 					connectUpdateForm(id, action, target);
 					$('.action-btn').removeClass('btn-primary').addClass('btn-default');
 				}

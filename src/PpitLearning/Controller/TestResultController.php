@@ -9,6 +9,7 @@
 
 namespace PpitLearning\Controller;
 
+use PpitContact\Model\ContactMessage;
 use PpitCore\Model\Csrf;
 use PpitCore\Model\Context;
 use PpitCore\Model\Event;
@@ -334,17 +335,29 @@ class TestResultController extends AbstractActionController
     				if ($rc != 'OK') $error = $rc;
 	    			if ($error) $connection->rollback();
 	    			else {
-	    				$connection->commit();
 	    				$message = 'OK';
 
 						// Send the email to the user
 	    				if ($action != 'delete') {
 	    					$url = $context->getServiceManager()->get('viewhelpermanager')->get('url');
-							$email_body = $context->getConfig('testResult/message'.$type)['subscribeText'][$context->getLocale()];
-							$email_body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('id' => $result_id)).'?hash='.$result->authentication_token);
-							$email_title = $context->getConfig('testResult/message')['subscribeTitle'][$context->getLocale()];
-							Context::sendMail($result->email, $email_body, $email_title, null);
+	    					if (array_key_exists('email_template', $result->testSession->test)) {
+	    						$template = $result->testSession->test['email_template'];
+	    					}
+	    					else {
+	    						$template = $context->getConfig('testResult/message/'.$type);
+	    					}
+							$email = ContactMessage::instanciate($type);
+							$email->from_mail = $template['from_mail'];
+							$email->from_name = (array_key_exists('from_name', $template)) ? $template['from_name'] : $template['from_mail'];
+							$email->to = array($result->email => null);
+							if (array_key_exists('cc', $template)) $email->cc = $template['cc'];
+							if (array_key_exists('cci', $template)) $email->cci = $template['cci'];
+							$email->subject = $context->localize($template['subscribeTitle']);
+							$email_body = $template['subscribeText'][$context->getLocale()];
+							$email->body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('type' => $type, 'id' => $result_id)).'?hash='.$result->authentication_token);
+							$email->sendHtmlMail();
 	    				}
+	    				$connection->commit();
 	    			}
 	    		}
 	    		catch (\Exception $e) {

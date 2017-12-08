@@ -1085,15 +1085,21 @@ return array(
 	),
 		
 	'testResult/message/generic' => array(
+			'from_mail' => 'support@p-pit.fr',
+			'cci' => array('support@p-pit.fr' => null),
 			'subscribeTitle' => array(
 					'en_US' => 'Your P-Pit Learning lesson',
 					'fr_FR' => 'Votre leçon P-Pit Learning',
 			),
 			'subscribeText' => array(
-					'en_US' => 'Welcome in P-Pit Learning,
-In order to access to your lesson, please follow this link: %s',
-					'fr_FR' => 'Bienvenue sur P-Pit Learning,
-Afin d\'accéder à votre leçon, veuillez suivre ce lien : %s',
+					'en_US' => '
+<p>Hello</p>
+<p>Welcome in P-Pit Learning,</p>
+<p>In order to access to your lesson, please follow this link: %s</p>',
+					'fr_FR' => '
+<p>Bonjour,</p>
+<p>Bienvenue sur P-Pit Learning,</p>
+<p>Afin d\'accéder à votre leçon, veuillez suivre ce lien : %s</p>',
 			),
 	),
 		
