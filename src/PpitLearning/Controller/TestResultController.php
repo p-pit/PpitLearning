@@ -508,28 +508,24 @@ class TestResultController extends AbstractActionController
 		    				else {
 								$result->computeScores();
 
-		    					// Generate the global result event
+		    					// Generate the per-axis result event
 		    					$event = Event::instanciate();
 		    					$event->status = 'new';
 		    					$event->type = 'test_note';
-		    					$event->identifier = $result->testSession->test->caption.'_'.$result->actual_date.' '.$result->actual_time;
+		    					$event->identifier = $result->testSession->caption.'_'.$result->actual_date.' '.$result->actual_time;
 		    					$event->place_id = $result->place_id;
 		    					$event->vcard_id = $result->vcard_id;
-		    					$event->caption = $result->testSession->test->caption;
-		    					reset($result->axes);
-		    					$axis = current($result->axes);
-		    					$event->value = $axis['score'];
-		    					$event->property_1 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
-		    					$event->property_2 = $result->status;
-		    					$event->property_3 = $result->actual_date.' '.$result->actual_time;
-		    					$event->property_4 = $result->actual_duration;
-		    					$event->property_5 = json_encode($result->answers);
-		    					$event->property_7 = json_encode($axis['note']);
-		    					
-		    					$scorePerAxis = array();
-		    					foreach ($result->axes as $axisId => &$axis) $scorePerAxis[$axisId] = array_key_exists('score', $axis) ? $axis['score'] : null;
-		    					$event->property_6 = json_encode($scorePerAxis);
-		    					$event->add();
+		    					$event->caption = $result->testSession->caption;
+		    					foreach ($result->axes as $axisId => $axis) {
+//			    					$event->value = $axis['score'];
+			    					$event->property_1 = $axisId;
+			    					$event->property_2 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
+			    					$event->property_3 = $result->actual_date.' '.$result->actual_time;
+			    					$event->property_4 = $result->actual_duration;
+			    					$event->property_5 = json_encode($result->answers);
+//			    					$event->property_6 = $context->localize($axis['note']['label']);
+			    					$event->add();
+		    					}
 
 		    					// Generate the detailed result events
 		    					$event = Event::instanciate();

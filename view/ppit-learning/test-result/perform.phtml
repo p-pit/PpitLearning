@@ -10,6 +10,15 @@
 
 <style>
 //	.clock { position:fixed; top:10%; right:-70%; }
+.formated {
+	background-color: #FCE9DA;
+}
+.audio {
+	background-color: #FCE9DA;
+}
+.question {
+	background-color: #DBEEF3;
+}
 p,
     .navbar-search .search-query {
       font-family: Georgia, "Times New Roman", Times, serif;
@@ -22,6 +31,7 @@ p,
 <div>&nbsp;</div>
 
 <?php
+$description = $result->testSession->test->getDescription();
 $title = $result->testSession->test->caption;
 $this->headTitle($title);
 echo $this->partial('/partials/header');
@@ -36,7 +46,7 @@ echo $this->partial('/partials/header');
     <div class="row">
 		<div class="col-md-5">
 <?php
-$author = $result->testSession->test->getDescription()['author'];
+$author = $description['author'];
 $content = array_key_exists($context->getLocale(), $author) ? $author[$context->getLocale()] : $author['default'];
 ?>
 			<!--Featured image -->
@@ -61,7 +71,7 @@ $content = array_key_exists($context->getLocale(), $author) ? $author[$context->
         <div class="col-md-7">			
 			<div class="card-block" style="background-color: #FFFFFF; color: #686868">
 <?php 
-$title = $result->testSession->test->getDescription()['title'];
+$title = $description['title'];
 $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getLocale()] : $title['default'];
 ?>
 				<h2><?php echo $title ?></h2>
@@ -97,8 +107,8 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 	?>
 							<h4>
 								<?php echo $this->translate('The test has ended', 'ppit-learning', $context->getLocale()) ?>.
-	<?php if ($result->testSession->test->getDescription()['confidentiality'] == 'protected') : ?>
-								<?php echo '<br>'.$context->localize($result->testSession->test->getDescription()['end_message']) ?>
+	<?php if ($description['confidentiality'] == 'protected') : ?>
+								<?php echo '<br>'.$context->localize($description['end_message']) ?>
 	<?php else : ?>
 								<?php echo $this->translate('Your score is', 'ppit-learning', $context->getLocale()) ?>
 								<?php echo $axis['score'] * 100 ?>%.
@@ -169,12 +179,12 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 	    <div class="form-group">
 			<div class="col-sm-12">
 				<input name="action" id="action" type="hidden" />
-				<input name="start" type="submit" id="start-button" class="btn btn-danger" value="<?php echo $this->translate('Start now', 'ppit-learning', $context->getLocale()) ?>"/>
+				<input name="start" type="submit" id="start-button" class="btn btn-danger" value="<?php echo (array_key_exists('start_button', $description)) ? $context->localize($description['start_button']) : $this->translate('Start now', 'ppit-learning', $context->getLocale()) ?>"/>
 			</div>
 		</div>
 	</div>
 
-<?php elseif ($result->status != 'performed' || $result->testSession->test->getDescription()['confidentiality'] != 'protected') : ?>
+<?php elseif ($result->status != 'performed' || $description['confidentiality'] != 'protected') : ?>
 
 	
 	<div class="row">
@@ -202,7 +212,7 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 	<?php foreach ($sections as $sectionId => $section) : ?>
 		            <div class="col-md-6">
 				        <!--Card-->
-				        <div class="card" style="color: #686868">
+				        <div class="card <?php echo $section['type'] ?>" style="color: #686868; border-radius: 10px">
 	
 		<?php if ($section['type'] == 'formated') : ?>
 
@@ -252,10 +262,10 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 <!-- Question -->		
 				            <!--Card content-->
 				            <div class="card-block">
+								<?php echo $context->localize($section['title']) ?>
 			<?php foreach ($section['content'] as $questionId) : ?>
 				<?php $question = $result->testSession->test->getQuestions()[$questionId] ?>
 								<?php echo array_key_exists($context->getLocale(), $question['label']) ? $question['label'][$context->getLocale()] : $question['label']['default'] ?>
-								<hr>
 
 				<?php if ($question['type'] == 'select') : ?>
 <!-- Select -->
@@ -272,18 +282,16 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 					<?php endif;?>
 
 					<?php foreach ($question['modalities'] as $modalityId => $modality) : ?>
-
 						<?php if ($result->status != 'performed') : ?>
-								<h5 class="radio">
-										<input 	type="radio" 
-												name="<?php echo $questionId.'-'.$modalityId ?>" 
-												class="<?php echo $questionId ?>" 
-												id="<?php echo $questionId.'-'.$modalityId ?>" 
-												<?php if ($disabled) echo 'disabled="disabled"' ?>
-												<?php if (array_key_exists($questionId, $result->answers) && $result->answers[$questionId] == $modalityId) echo 'checked="checked"' ?> 
-										/>
-										&nbsp;&nbsp;<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?>
-								</h5>
+										<span>
+											<input 	type="radio" 
+													name="<?php echo $questionId.'-'.$modalityId ?>" 
+													class="<?php echo $questionId ?>" 
+													id="<?php echo $questionId.'-'.$modalityId ?>" 
+													<?php if ($disabled) echo 'disabled="disabled"' ?>
+													<?php if (array_key_exists($questionId, $result->answers) && $result->answers[$questionId] == $modalityId) echo 'checked="checked"' ?> 
+											/>&nbsp;<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?>
+										</span>
 						<?php else : ?>
 							<?php
 							$style = null;
@@ -306,7 +314,6 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 									<?php echo array_key_exists($context->getLocale(), $modality['explanation']) ? $modality['explanation'][$context->getLocale()] : $modality['explanation']['default'] ?>
 								</h5>
 						<?php endif;?>
-
 					<?php endforeach;?>
 
 				<?php elseif ($question['type'] == 'phpCode') : ?>

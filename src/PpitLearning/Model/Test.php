@@ -105,9 +105,9 @@ class Test implements InputFilterAwareInterface
     		foreach ($question['axes'] as $axisId => &$axis) {
     			foreach ($axis['categories'] as $categoryId => &$category) {
     				if (!array_key_exists('highest_score', $test->axes[$axisId])) $test->axes[$axisId]['highest_score'] = 0;
-    				$test->axes[$axisId]['highest_score'] += $category['weight'];
+    				$test->axes[$axisId]['highest_score'] += max($category['distribution']) * $category['weight'];
     				if (!array_key_exists('highest_score', $test->axes[$axisId]['categories'][$categoryId])) $test->axes[$axisId]['categories'][$categoryId]['highest_score'] = 0;
-    				$test->axes[$axisId]['categories'][$categoryId]['highest_score'] += $category['weight'];
+    				$test->axes[$axisId]['categories'][$categoryId]['highest_score'] += max($category['distribution']) * $category['weight'];
     			}
     		}
     		$test->highestScore++;

@@ -392,29 +392,29 @@ return array(
 	'event/value/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
-					'en_US' => 'Score in 1st axis',
-					'fr_FR' => 'Score sur le 1er axe',
+					'en_US' => 'Score on this axis',
+					'fr_FR' => 'Score sur cet axe',
 			),
 	),
 	'event/property_1/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
-					'en_US' => 'Test session expected time',
-					'fr_FR' => 'Date prévue de la session de test',
+					'en_US' => 'Axis',
+					'fr_FR' => 'Axe',
 			),
 	),
 	'event/property_2/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
-					'en_US' => 'Test result status',
-					'fr_FR' => 'Statut du résultat de test',
+					'en_US' => 'Expected time',
+					'fr_FR' => 'Heure prévue',
 			),
 	),
 	'event/property_3/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
-					'en_US' => 'Actual begin time',
-					'fr_FR' => 'Heure de début effective',
+					'en_US' => 'Actual time',
+					'fr_FR' => 'Heure réelle',
 			),
 	),
 	'event/property_4/test_note' => array(
@@ -434,15 +434,8 @@ return array(
 	'event/property_6/test_note' => array(
 			'type' => 'textarea',
 			'labels' => array(
-					'en_US' => 'Score per axis',
-					'fr_FR' => 'Score par axe',
-			),
-	),
-	'event/property_7/test_note' => array(
-			'type' => 'textarea',
-			'labels' => array(
-					'en_US' => 'Note in 1st axis',
-					'fr_FR' => 'Note sur le 1er axe',
+					'en_US' => 'Note on this axis',
+					'fr_FR' => 'Note sur cet axe',
 			),
 	),
 	'event/test_note' => array(
@@ -455,7 +448,6 @@ return array(
 					'place_id' => array('type' => 'specific', 'definition' => 'event/place_identifier'),
 					'place_identifier' => array('type' => 'specific', 'definition' => 'event/place_identifier'),
 					'place_caption' => array('type' => 'specific', 'definition' => 'event/place_caption'),
-					'community_name' => array('type' => 'specific', 'definition' => 'event/community_name'),
 					'n_fn' => array('type' => 'specific', 'definition' => 'event/n_fn'),
 					'caption' => array('type' => 'specific', 'definition' => 'event/caption/test_note'),
 					'description' => array('type' => 'specific', 'definition' => 'event/description'),
@@ -466,7 +458,6 @@ return array(
 					'property_4' => array('type' => 'specific', 'definition' => 'event/property_4/test_note'),
 					'property_5' => array('type' => 'specific', 'definition' => 'event/property_5/test_note'),
 					'property_6' => array('type' => 'specific', 'definition' => 'event/property_6/test_note'),
-					'property_7' => array('type' => 'specific', 'definition' => 'event/property_7/test_note'),
 					'update_time' => array('type' => 'specific', 'definition' => 'event/update_time'),
 			),
 			'indicators' => array(),
@@ -491,20 +482,24 @@ return array(
 					'fr_FR' => 'recherche'
 			),
 			'main'=> array(
-					'identifier' => 'contains',
+					'caption' => 'contains',
+					'property_1' => 'contains',
 					'n_fn' => 'contains',
-					'property_2' => 'contains',
 					'property_3' => 'range',
 					'value' => 'range',
-					'property_7' => array('rendering' => 'contains'),
+					'property_6' => array('rendering' => 'contains'),
 			)
 	),
 	'event/list/test_note'=> array(
-			'identifier' => array('rendering' => 'text'),
+			'caption' => array('rendering' => 'text'),
+			'property_1' => array('rendering' => 'text'),
 			'n_fn' => array('rendering' => 'text'),
-			'property_3' => array('rendering' => 'text'),
-			'property_4' => array('rendering' => 'text'),
+			'property_6' => array('rendering' => 'number'),
 			'value' => array('rendering' => 'number'),
+			'property_2' => array('rendering' => 'date'),
+			'property_3' => array('rendering' => 'date'),
+			'property_4' => array('rendering' => 'text'),
+			'property_5' => array('rendering' => 'text'),
 	),
 	'event/masked/test_note'=> array(
 	),
@@ -516,19 +511,17 @@ return array(
 			'displayAudit' => true
 	),
 	'event/update/test_note'=> array(
-			'identifier'=> array('mandatory' => true),
 			'place_id'=> array('mandatory' => true),
 			'n_fn'=> array('mandatory' => false),
 			'caption'=> array('mandatory' => false),
 			'description'=> array('mandatory' => false),
-			'value'=> array('mandatory' => false),
 			'property_1'=> array('mandatory' => false),
+			'value'=> array('mandatory' => false),
+			'property_6'=> array('mandatory' => false),
 			'property_2'=> array('mandatory' => false),
 			'property_3'=> array('mandatory' => false),
 			'property_4'=> array('mandatory' => false),
 			'property_5'=> array('mandatory' => false),
-			'property_6'=> array('mandatory' => false),
-			'property_7'=> array('mandatory' => false),
 	),
 	
 	'event/export/test_note'=> array(
@@ -537,14 +530,13 @@ return array(
 			'n_fn'=> 'C',
 			'caption'=> 'D',
 			'description'=> 'E',
-			'value'=> 'F',
-			'property_1'=> 'G',
-			'property_2'=> 'H',
-			'property_3'=> 'I',
-			'property_4'=> 'J',
-			'property_5'=> 'K',
-			'property_6'=> 'L',
-			'property_7'=> 'M',
+			'property_1'=> 'F',
+			'value'=> 'G',
+			'property_6'=> 'H',
+			'property_2'=> 'I',
+			'property_3'=> 'J',
+			'property_4'=> 'K',
+			'property_5'=> 'L',
 	),
 
 	// Detailed results
@@ -1085,7 +1077,8 @@ return array(
 	),
 		
 	'testResult/message/generic' => array(
-			'from_mail' => 'support@p-pit.fr',
+			'from_mail' => 'postmaster@p-pit.fr',
+			'from_name' => 'P-Pit',
 			'cci' => array('support@p-pit.fr' => null),
 			'subscribeTitle' => array(
 					'en_US' => 'Your P-Pit Learning lesson',

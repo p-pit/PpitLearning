@@ -243,29 +243,21 @@ class TestResult implements InputFilterAwareInterface
     {
     	$context = Context::getCurrent();
     	$this->axes = $this->testSession->test->getAxes();
-    	$this->score = 0;
-    	foreach ($this->testSession->test->content['questions'] as $questionId => $question) {
-	    	$value = 0;
-    		if (array_key_exists($questionId, $this->answers)) {
-    		 	$answer = $this->answers[$questionId];
-    		 	if ($question['type'] == 'select') $value = $question['modalities'][$answer]['value'];
-	    		elseif ($question['type'] == 'phpCode') {
-	    			if ($answer['result'] == $question['result']) $value = $question['value'];
-	    		}
-    		}
-    		$this->score += $value;
+    	foreach ($this->answers as $questionId => $answer) {
+    		$question = $this->testSession->test->content['questions'][$questionId];
     		foreach ($question['axes'] as $axisId => &$axis) {
     			foreach ($axis['categories'] as $categoryId => &$category) {
+    				$value = $category['distribution'][$answer] * $category['weight'];
     				if (!array_key_exists('score', $this->axes[$axisId])) $this->axes[$axisId]['score'] = 0;
-    				$this->axes[$axisId]['score'] += $value * $category['weight'];
+    				$this->axes[$axisId]['score'] += $value;
     				if (!array_key_exists('score', $this->axes[$axisId]['categories'][$categoryId])) $this->axes[$axisId]['categories'][$categoryId]['score'] = 0;
-    				$this->axes[$axisId]['categories'][$categoryId]['score'] += $value * $category['weight'];
+    				$this->axes[$axisId]['categories'][$categoryId]['score'] += $value;
     			}
     		}
     	}
     	foreach ($this->axes as $axisId => &$axis) {
     		if (array_key_exists('score', $axis)) {
-    			$axis['score'] = round($axis['score'] / $this->testSession->test->axes[$axisId]['highest_score'], 2);
+//    			$axis['score'] = round($axis['score'] / $this->testSession->test->axes[$axisId]['highest_score'], 2);
     			$axis['note'] = null;
     			foreach ($axis['segmentation'] as $segmentId => &$segment) {
     				if (!$axis['note'] && $axis['score'] <= $segment['limit']) $axis['note'] = $segment;
