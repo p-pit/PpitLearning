@@ -263,9 +263,15 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 				            <!--Card content-->
 				            <div class="card-block">
 								<?php echo $context->localize($section['title']) ?>
-			<?php foreach ($section['content'] as $questionId) : ?>
+			<?php $first = true; foreach ($section['content'] as $questionId) : ?>
 				<?php $question = $result->testSession->test->getQuestions()[$questionId] ?>
-								<?php echo array_key_exists($context->getLocale(), $question['label']) ? $question['label'][$context->getLocale()] : $question['label']['default'] ?>
+					<?php if (array_key_exists('save_space', $question) && $question['save_space']) : ?>
+								<a style="text-decoration: underline" class="text-primary" id="question-anchor_<?php echo $questionId ?>">
+					<?php endif;?>
+									<?php echo array_key_exists($context->getLocale(), $question['label']) ? $question['label'][$context->getLocale()] : $question['label']['default'] ?>
+					<?php if (array_key_exists('save_space', $question) && $question['save_space']) : ?>
+								</a>
+					<?php endif;?>
 
 				<?php if ($question['type'] == 'select') : ?>
 <!-- Select -->
@@ -281,17 +287,18 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 						<?php endif;?>
 					<?php endif;?>
 
+									<div id="question-area_<?php echo $questionId ?>">
 					<?php foreach ($question['modalities'] as $modalityId => $modality) : ?>
 						<?php if ($result->status != 'performed') : ?>
-										<span>
+										<h5 class="radio">
 											<input 	type="radio" 
 													name="<?php echo $questionId.'-'.$modalityId ?>" 
 													class="<?php echo $questionId ?>" 
 													id="<?php echo $questionId.'-'.$modalityId ?>" 
 													<?php if ($disabled) echo 'disabled="disabled"' ?>
 													<?php if (array_key_exists($questionId, $result->answers) && $result->answers[$questionId] == $modalityId) echo 'checked="checked"' ?> 
-											/>&nbsp;<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?>
-										</span>
+											/>&nbsp;&nbsp;<?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?>
+										</h5>
 						<?php else : ?>
 							<?php
 							$style = null;
@@ -302,19 +309,20 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 							}
 							else $style = 'style="font-style: italic"';
 							?>
-								<h5>
-									<span <?php if ($style) echo $style ?>><?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?></span>
+										<h5>
+											<span <?php if ($style) echo $style ?>><?php echo array_key_exists($context->getLocale(), $modality['label']) ? $modality['label'][$context->getLocale()] : $modality['label']['default'] ?></span>
 							<?php if ($modality['value'] == 1) : ?>
-									<?php echo $this->translate('is a correct answer', 'ppit-learning', $context->getLocale()) ?>.
+											<?php echo $this->translate('is a correct answer', 'ppit-learning', $context->getLocale()) ?>.
 							<?php elseif ($modality['value'] > 0) : ?>
-									<?php echo $this->translate('is an acceptable answer', 'ppit-learning', $context->getLocale()) ?>.
+											<?php echo $this->translate('is an acceptable answer', 'ppit-learning', $context->getLocale()) ?>.
 							<?php else : ?>
-									<?php echo $this->translate('is not a correct answer', 'ppit-learning', $context->getLocale()) ?>.
+											<?php echo $this->translate('is not a correct answer', 'ppit-learning', $context->getLocale()) ?>.
 							<?php endif;?>
-									<?php echo array_key_exists($context->getLocale(), $modality['explanation']) ? $modality['explanation'][$context->getLocale()] : $modality['explanation']['default'] ?>
-								</h5>
+											<?php echo array_key_exists($context->getLocale(), $modality['explanation']) ? $modality['explanation'][$context->getLocale()] : $modality['explanation']['default'] ?>
+										</h5>
 						<?php endif;?>
 					<?php endforeach;?>
+									</div>
 
 				<?php elseif ($question['type'] == 'phpCode') : ?>
 <!-- Code -->
@@ -361,7 +369,7 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 								</h5>
 					<?php endif;?>
 				<?php endif;?>
-			<?php endforeach;?>
+			<?php $first = false; endforeach;?>
 
 				            </div>
 				            <!--/.Card content-->
@@ -394,22 +402,23 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 </div>
 
 <script>
+
 <?php if ($result->status == 'new') : ?>
-var milliseconds = (new Date('<?php echo $beginTime ?>') - new Date());
+var seconds = '<?php echo (new DateTime($beginTime))->getTimeStamp() - (new DateTime(date('Y-m-d H:i:s')))->getTimeStamp() ?>';
 <?php else : ?>
-var milliseconds = (new Date('<?php echo $endTime ?>') - new Date());
+var seconds = '<?php echo (new DateTime($endTime))->getTimeStamp() - (new DateTime(date('Y-m-d H:i:s')))->getTimeStamp() ?>';
 <?php endif;?>
 
-if (milliseconds > 0) window.setTimeout(function() { 
+if (seconds > 0) window.setTimeout(function() { 
 <?php if ($result->status != 'new') : ?>
 	$('#action').val('submit');
-	$.post("<?php echo $this->url('testResult/perform', array('id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
+	$.post("<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
 <?php endif;?>
-$(location).attr('href', '<?php echo $this->url('testResult/perform', array('id' => $id)).'?hash='.$token ?>'); 
-}, milliseconds + 2000);
+$(location).attr('href', '<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>'); 
+}, seconds + 2000);
 
 <?php if ($beginTime && $result->status != 'performed') : ?>
-var clock = $('.clock').FlipClock(Math.max(milliseconds/1000, 0), {
+var clock = $('.clock').FlipClock(Math.max(seconds, 0), {
 	clockFace: 'MinuteCounter',
 	countdown: true
 });
@@ -426,8 +435,18 @@ $('.<?php echo $questionId ?>').click(function () {
 	$(this).prop('checked', true);
 	$('#action').val('save');
 	$.post("<?php echo $this->url('testResult/perform', array('id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
+<?php if (array_key_exists('save_space', $question) && $question['save_space']) : ?>
+	$('#question-area_<?php echo $questionId ?>').hide();
+<?php endif;?>
 });
-	
+
+<?php if (array_key_exists('save_space', $question) && $question['save_space']) : ?>
+$('#question-anchor_<?php echo $questionId ?>').click(function () {
+	if ($('#question-area_<?php echo $questionId ?>').is(":visible")) $('#question-area_<?php echo $questionId ?>').hide();
+	else $('#question-area_<?php echo $questionId ?>').show();
+});
+<?php endif;?>
+
 	<?php elseif ($question['type'] == 'phpCode') : ?>
 
 // PHP Code
