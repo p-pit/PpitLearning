@@ -8,6 +8,12 @@
  */
 -->
 
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Header -->
+<?php echo $this->partial('/partials/mdbootstrap-header') ?>
+
 <style>
 //	.clock { position:fixed; top:10%; right:-70%; }
 .formated {
@@ -400,6 +406,9 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 </form>
 	<?php endif;?>
 </div>
+
+<!-- Footer -->
+<?php echo $this->partial('/partials/mdbootstrap-footer') ?>
 
 <script>
 

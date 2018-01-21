@@ -1,7 +1,9 @@
 <?php
 namespace PpitLearning\Model;
 
+use PpitCore\Model\Account;
 use PpitCore\Model\Context;
+use PpitCore\Model\Generic;
 use PpitCore\Model\Place;
 use PpitCore\Model\Vcard;
 use PpitLearning\Model\TestSession;
@@ -17,7 +19,7 @@ class TestResult implements InputFilterAwareInterface
     public $instance_id;
     public $status;
     public $place_id;
-    public $vcard_id;
+    public $account_id;
     public $test_session_id;
     public $next_result_id;
     public $authentication_token;
@@ -37,6 +39,7 @@ class TestResult implements InputFilterAwareInterface
     public $identifier;
     public $place_identifier;
     public $place_caption;
+    public $account_identifier;
     public $test_id;
     public $n_title;
     public $n_first;
@@ -73,7 +76,7 @@ class TestResult implements InputFilterAwareInterface
         $this->instance_id = (isset($data['instance_id'])) ? $data['instance_id'] : null;
         $this->status = (isset($data['status'])) ? $data['status'] : null;
         $this->place_id = (isset($data['place_id'])) ? $data['place_id'] : null;
-        $this->vcard_id = (isset($data['vcard_id'])) ? $data['vcard_id'] : null;
+        $this->account_id = (isset($data['account_id'])) ? $data['account_id'] : null;
         $this->test_session_id = (isset($data['test_session_id'])) ? $data['test_session_id'] : null;
         $this->next_result_id = (isset($data['next_result_id'])) ? $data['next_result_id'] : null;
         $this->authentication_token = (isset($data['authentication_token'])) ? $data['authentication_token'] : null;
@@ -93,6 +96,7 @@ class TestResult implements InputFilterAwareInterface
         $this->identifier = (isset($data['identifier'])) ? $data['identifier'] : null;
         $this->place_identifier = (isset($data['place_identifier'])) ? $data['place_identifier'] : null;
         $this->place_caption = (isset($data['place_caption'])) ? $data['place_caption'] : null;
+        $this->account_identifier = (isset($data['account_identifier'])) ? $data['account_identifier'] : null;
         $this->test_id = (isset($data['test_id'])) ? $data['test_id'] : null;
         $this->n_title = (isset($data['n_title'])) ? $data['n_title'] : null;
         $this->n_first = (isset($data['n_first'])) ? $data['n_first'] : null;
@@ -115,7 +119,7 @@ class TestResult implements InputFilterAwareInterface
     	$data['instance_id'] = (int) $this->instance_id;
     	$data['status'] =  $this->status;
     	$data['place_id'] = (int) $this->place_id;
-    	$data['vcard_id'] = (int) $this->vcard_id;
+    	$data['account_id'] = (int) $this->account_id;
     	$data['test_session_id'] = (int) $this->test_session_id;
     	$data['next_result_id'] = (int) $this->next_result_id;
     	$data['authentication_token'] =  $this->authentication_token;
@@ -173,7 +177,8 @@ class TestResult implements InputFilterAwareInterface
     	$select = TestResult::getTable()->getSelect()
     		->join('learning_test_session', 'learning_test_result.test_session_id = learning_test_session.id', array('part_identifier', 'expected_date', 'expected_time', 'expected_duration'), 'left')
     		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('type', 'test_id' => 'id', 'identifier', 'caption', 'content'), 'left')
-    		->join('core_vcard', 'learning_test_result.vcard_id = core_vcard.id', array('n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_cell'), 'left')
+    		->join('core_account', 'learning_test_result.account_id = core_account.id', array('account_identifier' => 'identifier'), 'left')
+    		->join('core_vcard', 'core_account.contact_1_id = core_vcard.id', array('n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_cell'), 'left')
     		->join('core_place', 'learning_test_result.place_id = core_place.id', array('place_identifier' => 'identifier', 'place_caption' => 'caption'), 'left')
     		->order(array($major.' '.$dir, 'identifier'));
     	$where = new Where;
@@ -276,8 +281,10 @@ class TestResult implements InputFilterAwareInterface
     			if ($place) $result->place_caption = $place->caption;
     		}
 
-    		if ($result->vcard_id) {
-    			$vcard = Vcard::get($result->vcard_id);
+    		if ($result->account_id) {
+    			$account = Account::get($result->account_id);
+    			if ($account) $vcard = Vcard::get($account->contact_1_id);
+    			else $vcard = null;
     			if ($vcard) $result->n_title = $vcard->n_title;
     			if ($vcard) $result->n_first = $vcard->n_first;
     			if ($vcard) $result->n_last = $vcard->n_last;
@@ -318,9 +325,9 @@ class TestResult implements InputFilterAwareInterface
 			$place_id = (int) $data['place_id'];
     		if ($this->place_id != $place_id) $auditRow['place_id'] = $this->place_id = $place_id;
 		}
-    	if (array_key_exists('vcard_id', $data)) {
-			$vcard_id = (int) $data['vcard_id'];
-    		if ($this->vcard_id != $vcard_id) $auditRow['vcard_id'] = $this->vcard_id = $vcard_id;
+    	if (array_key_exists('account_id', $data)) {
+			$account_id = (int) $data['account_id'];
+    		if ($this->account_id != $account_id) $auditRow['account_id'] = $this->account_id = $account_id;
 		}
         if (array_key_exists('test_session_id', $data)) {
 			$test_session_id = (int) $data['test_session_id'];
@@ -397,7 +404,16 @@ class TestResult implements InputFilterAwareInterface
     
     	return 'OK';
     }
-   
+
+    public function isUsed($object)
+    {
+    	// Allow or not deleting an account
+    	if (get_class($object) == 'PpitCore\Model\Account') {
+    		if (Generic::getTable()->cardinality('learning_test_result', array('account_id' => $object->id)) > 0) return true;
+    	}
+    	return false;
+    }
+    
 	public function isDeletable() {
     	$config = Context::getCurrent()->getConfig();
     	foreach($config['ppitLearningDependencies'] as $dependency) {

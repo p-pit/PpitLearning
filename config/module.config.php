@@ -318,6 +318,10 @@ return array(
 	        ),
 		),
 	),
+
+	'ppitCoreDependencies' => array(
+			'test_result' => new \PpitLearning\Model\TestResult,
+	),
 		
 	'ppitLearningDependencies' => array(
 	),
@@ -339,6 +343,15 @@ return array(
 	),
 		
 	'menus/p-pit-learning' => array(
+					'test_account' => array(
+							'route' => 'account/index',
+							'params' => array('entry' => 'account', 'type' => 'generic', 'app' => 'p-pit-learning'),
+							'glyphicon' => 'glyphicon-user',
+							'label' => array(
+									'en_US' => 'Accounts',
+									'fr_FR' => 'Comptes',
+							),
+					),
 					'testResult' => array(
 							'route' => 'testResult/index',
 							'params' => array('type' => 'generic'),

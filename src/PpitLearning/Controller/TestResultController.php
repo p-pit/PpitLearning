@@ -10,6 +10,7 @@
 namespace PpitLearning\Controller;
 
 use PpitContact\Model\ContactMessage;
+use PpitCore\Model\Account;
 use PpitCore\Model\Csrf;
 use PpitCore\Model\Context;
 use PpitCore\Model\Event;
@@ -240,17 +241,22 @@ class TestResultController extends AbstractActionController
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) {
     		$result = TestResult::get($id);
-    		$vcard = Vcard::get($result->vcard_id);
-    		if (!$vcard) $vcard = Vcard::instanciate();
+    		$account = Account::get($result->account_id);
+    		if ($account) $vcard = Vcard::get($account->contact_1_id);
+    		else {
+    			$account = Account::instanciate('generic');
+    			$vcard = Vcard::instanciate();
+    		}
+    		
     	}
     	else {
     		$result = TestResult::instanciate();
     		$vcard = Vcard::instanciate();
+    		$account = Account::instanciate('generic');
     	}
     	$action = $this->params()->fromRoute('act', null);
     	$learningSessions = TestSession::getList(array(/*'status' => 'new'*/), 'expected_date', 'ASC', 'search');
     	$configProperties = $this->getConfigProperties($type);
-
     	// Instanciate the csrf form
     	$csrfForm = new CsrfForm();
     	$csrfForm->addCsrfElement('csrf');
@@ -265,72 +271,85 @@ class TestResultController extends AbstractActionController
     		$csrfForm->setData($request->getPost());
     		 
     		if ($csrfForm->isValid()) { // CSRF check
-    			// Load the input data
-		    	$data = array();
-		    	$data['status'] = 'new';
-		    	$data['actual_time'] = null;
-		    	$data['answers'] = array();
-		    	foreach($context->getConfig('testResult/update/'.$type)['properties'] as $propertyId => $unused) {
-		    		$data[$propertyId] = $request->getPost(($propertyId));
-		    	}
-		    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
-		    	unset($data['status']);
-		    	if ($vcard->loadData($data) != 'OK') throw new \Exception('View error');
+    			$data = array();
+    			if ($action == 'delete') {
+    				$data['contact_history'] = 'Annulation du test '.$result->testSession->caption;
+					if ($account->loadData($account->type, $data) != 'OK') throw new \Exception('View error');
+    			}
+    			else {
+    			
+    				// Load the input data
+			    	$data['status'] = 'new';
+			    	$data['actual_time'] = null;
+			    	$data['answers'] = array();
+			    	foreach($context->getConfig('testResult/update/'.$type)['properties'] as $propertyId => $unused) {
+			    		$data[$propertyId] = $request->getPost(($propertyId));
+			    	}
+			    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
+			    	unset($data['status']);
+			    	if ($vcard->loadData($data) != 'OK') throw new \Exception('View error');
+			    	$data['status'] = 'active';
+			    	unset($data['test_session_id']);
+			    	unset($data['actual_time']);
+			    	unset($data['answers']);
+			    	$data['contact_history'] = 'Inscription au test '.$result->caption;
+			    	if ($account->loadData($account->type, $data) != 'OK') throw new \Exception('View error');
+	    			if (!$account->name) $account->name = $account->contact_1->n_fn;
+    			}
 
 	    		// Atomically save
 	    		$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
 	    		$connection->beginTransaction();
 	    		try {
-	    			if ($result->vcard_id) {
-		    			Event::getTable()->multipleDelete(array('type' => 'test_note', 'vcard_id' => $result->vcard_id));
-		    			Event::getTable()->multipleDelete(array('type' => 'test_detail', 'vcard_id' => $result->vcard_id));
+	    			if ($result->account_id) {
+		    			Event::getTable()->multipleDelete(array('type' => 'test_note', 'account_id' => $result->account_id));
+		    			Event::getTable()->multipleDelete(array('type' => 'test_detail', 'account_id' => $result->account_id));
 	    			}
 	    			if (!$result->id) {
 	    				$rc = $vcard->add();
-	    				if ($rc == 'OK') {
-				    		$result->authentication_token = md5(uniqid(rand(), true));
-	    					$result->vcard_id = $vcard->id;
-    						$result->n_title = $vcard->n_title;
-    						$result->n_first = $vcard->n_first;
-    						$result->n_last = $vcard->n_last;
-    						$result->n_fn = $vcard->n_fn;
-    						$result->email = $vcard->email;
-    						$result->tel_cell = $vcard->tel_cell;
-    						$rc = $result->add();
-    						$result_id = $result->id;
-    						$resultIds = array();
-    						$session = TestSession::get($result->test_session_id);
-    						while ($rc =='OK' && $session->next_session_id) {
-    							$session = TestSession::get($session->next_session_id);
-    							$result->test_session_id = $session->id;
-    							$rc = $result->add();
-    							$resultIds[] = $result->id;
-    						}
-    						$result = TestResult::get($result_id);
-    						foreach ($resultIds as $id) {
-    							$result->next_result_id = $id;
-    							$result->update(null);
-    							$result = TestResult::get($id);
-    						}
-	    				}
+	    				$account->contact_1_id = $vcard->id;
+	    				$rc = $account->add();
+						$result->authentication_token = md5(uniqid(rand(), true));
+						$result->account_id = $account->id;
+						$result->n_title = $vcard->n_title;
+						$result->n_first = $vcard->n_first;
+						$result->n_last = $vcard->n_last;
+						$result->n_fn = $vcard->n_fn;
+						$result->email = $vcard->email;
+						$result->tel_cell = $vcard->tel_cell;
+						$rc = $result->add();
+						$result_id = $result->id;
+						$resultIds = array();
+						$session = TestSession::get($result->test_session_id);
+						while ($rc =='OK' && $session->next_session_id) {
+							$session = TestSession::get($session->next_session_id);
+							$result->test_session_id = $session->id;
+							$rc = $result->add();
+							$resultIds[] = $result->id;
+						}
+						$result = TestResult::get($result_id);
+						foreach ($resultIds as $id) {
+							$result->next_result_id = $id;
+							$result->update(null);
+							$result = TestResult::get($id);
+						}
 	    			}
 	    			elseif ($action == 'delete') {
-	    				$rc = $vcard->delete(null);
-	    				if ($rc == 'OK') $rc = $result->delete($request->getPost('test_result_update_time'));
+	    				$rc = $result->delete($request->getPost('test_result_update_time'));
+	    				$rc = $account->update(null);
 	    			}
 	    			else {
 	    				$rc = $vcard->update(null);
-	    				if ($rc == 'OK') {
-	    					$result->vcard_id = $vcard->id;
-    						$result->n_title = $vcard->n_title;
-    						$result->n_first = $vcard->n_first;
-    						$result->n_last = $vcard->n_last;
-    						$result->n_fn = $vcard->n_fn;
-    						$result->email = $vcard->email;
-    						$result->tel_cell = $vcard->tel_cell;
-	    					$rc = $result->update($request->getPost('test_result_update_time'));
-    						$result_id = $result->id;
-	    				}
+	    				$rc = $account->update(null);
+						$result->account_id = $account->id;
+						$result->n_title = $account->contact_1->n_title;
+						$result->n_first = $account->contact_1->n_first;
+						$result->n_last = $account->contact_1->n_last;
+						$result->n_fn = $account->contact_1->n_fn;
+						$result->email = $account->contact_1->email;
+						$result->tel_cell = $account->contact_1->tel_cell;
+						$rc = $result->update($request->getPost('test_result_update_time'));
+						$result_id = $result->id;
 	    			}
     				if ($rc != 'OK') $error = $rc;
 	    			if ($error) $connection->rollback();
@@ -376,7 +395,6 @@ class TestResultController extends AbstractActionController
     			'id' => $id,
     			'action' => $action,
     			'result' => $result,
-    			'vcard' => $vcard,
     			'learningSessions' => $learningSessions,
     			'csrfForm' => $csrfForm,
     			'error' => $error,
@@ -514,7 +532,7 @@ class TestResultController extends AbstractActionController
 		    					$event->type = 'test_note';
 		    					$event->identifier = $result->testSession->caption.'_'.$result->actual_date.' '.$result->actual_time;
 		    					$event->place_id = $result->place_id;
-		    					$event->vcard_id = $result->vcard_id;
+		    					$event->account_id = $result->account_id;
 		    					$event->caption = $result->testSession->caption;
 		    					foreach ($result->axes as $axisId => $axis) {
 //			    					$event->value = $axis['score'];
@@ -532,7 +550,7 @@ class TestResultController extends AbstractActionController
 		    					$event->status = 'new';
 		    					$event->type = 'test_detail';
 		    					$event->place_id = $result->place_id;
-		    					$event->vcard_id = $result->vcard_id;
+		    					$event->account_id = $result->account_id;
 			    				$event->property_1 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
 			    				$event->property_2 = $result->status;
 			    				$event->property_3 = $result->actual_date.' '.$result->actual_time;
@@ -578,8 +596,6 @@ class TestResultController extends AbstractActionController
 
     	$beginTime = ($result->testSession->expected_time) ? $result->testSession->expected_date.' '.$result->testSession->expected_time : $result->actual_date.' '.$result->actual_time;
     	$endTime = date('Y-m-d H:i:s', strtotime($beginTime.'+ '.$result->testSession->expected_duration.' seconds'));
-
-		$this->layout('/layout/public-layout');
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
@@ -596,6 +612,7 @@ class TestResultController extends AbstractActionController
     			'error' => $error,
 				'configProperties' => $configProperties,
     	));
+    	$view->setTerminal(true);
     	return $view;
     }
 }
