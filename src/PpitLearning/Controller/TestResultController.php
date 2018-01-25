@@ -516,6 +516,8 @@ class TestResultController extends AbstractActionController
 		    					if ($rc =='OK' && $result->status == 'performed' && $session->next_session_id) {
 		    						$nextResult = TestResult::get($result->next_result_id);
 		    						if ($nextResult->status == 'new') {
+					    				$nextResult->actual_date = date('Y-m-d');
+					    				$nextResult->actual_time = date('H:i:s');
 		    							$nextResult->status = 'in_progress';
 		    							$nextResult->update(null);
 		    						}
@@ -533,15 +535,17 @@ class TestResultController extends AbstractActionController
 		    					$event->identifier = $result->testSession->caption.'_'.$result->actual_date.' '.$result->actual_time;
 		    					$event->place_id = $result->place_id;
 		    					$event->account_id = $result->account_id;
+		    					$event->vcard_id = $result->vcard_id; // Deprecated
+		    					$event->n_fn = $result->n_fn;
 		    					$event->caption = $result->testSession->caption;
 		    					foreach ($result->axes as $axisId => $axis) {
-//			    					$event->value = $axis['score'];
+			    					$event->value = $axis['score'];
 			    					$event->property_1 = $axisId;
 			    					$event->property_2 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
 			    					$event->property_3 = $result->actual_date.' '.$result->actual_time;
 			    					$event->property_4 = $result->actual_duration;
 			    					$event->property_5 = json_encode($result->answers);
-//			    					$event->property_6 = $context->localize($axis['note']['label']);
+			    					$event->property_6 = $context->localize($axis['note']['label']);
 			    					$event->add();
 		    					}
 
@@ -551,7 +555,9 @@ class TestResultController extends AbstractActionController
 		    					$event->type = 'test_detail';
 		    					$event->place_id = $result->place_id;
 		    					$event->account_id = $result->account_id;
-			    				$event->property_1 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
+		    					$event->vcard_id = $result->vcard_id; // Deprecated
+		    					$event->n_fn = $result->n_fn;
+		    					$event->property_1 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
 			    				$event->property_2 = $result->status;
 			    				$event->property_3 = $result->actual_date.' '.$result->actual_time;
 			    				$event->property_4 = $result->actual_duration;

@@ -53,6 +53,7 @@ class TestResult implements InputFilterAwareInterface
     public $expected_date;
     public $expected_time;
     public $expected_duration;
+    public $vcard_id; // Deprecated
     
     // Transient properties
     public $testSession;
@@ -110,6 +111,7 @@ class TestResult implements InputFilterAwareInterface
         $this->expected_date = (isset($data['expected_date'])) ? $data['expected_date'] : null;
         $this->expected_time = (isset($data['expected_time'])) ? $data['expected_time'] : null;
         $this->expected_duration = (isset($data['expected_duration'])) ? $data['expected_duration'] : null;
+        $this->vcard_id = (isset($data['vcard_id'])) ? $data['vcard_id'] : null;
     }
 
     public function getProperties()
@@ -144,6 +146,7 @@ class TestResult implements InputFilterAwareInterface
     	$data['expected_date'] =  $this->expected_date;
     	$data['expected_time'] =  $this->expected_time;
     	$data['expected_duration'] =  $this->expected_duration;
+    	$data['vcard_id'] = $this->vcard_id;
     	 
     	return $data;
     }
@@ -166,6 +169,7 @@ class TestResult implements InputFilterAwareInterface
     	unset($data['expected_date']);
     	unset($data['expected_time']);
     	unset($data['expected_duration']);
+    	unset($data['vcard_id']);
     	$data['answers'] = json_encode($this->answers);
     	$data['audit'] = ($this->audit) ? json_encode($this->audit) : null;
     	return $data;
@@ -178,7 +182,7 @@ class TestResult implements InputFilterAwareInterface
     		->join('learning_test_session', 'learning_test_result.test_session_id = learning_test_session.id', array('part_identifier', 'expected_date', 'expected_time', 'expected_duration'), 'left')
     		->join('learning_test', 'learning_test_session.test_id = learning_test.id', array('type', 'test_id' => 'id', 'identifier', 'caption', 'content'), 'left')
     		->join('core_account', 'learning_test_result.account_id = core_account.id', array('account_identifier' => 'identifier'), 'left')
-    		->join('core_vcard', 'core_account.contact_1_id = core_vcard.id', array('n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_cell'), 'left')
+    		->join('core_vcard', 'core_account.contact_1_id = core_vcard.id', array('n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_cell', 'vcard_id' => 'id'), 'left')
     		->join('core_place', 'learning_test_result.place_id = core_place.id', array('place_identifier' => 'identifier', 'place_caption' => 'caption'), 'left')
     		->order(array($major.' '.$dir, 'identifier'));
     	$where = new Where;
@@ -199,6 +203,7 @@ class TestResult implements InputFilterAwareInterface
     				if ($value == '*') $where->notEqualTo('learning_test_result.status', '');
     				else $where->equalTo('learning_test_result.status', $value);
     			}
+    		    elseif ($propertyId == 'place_id') $where->equalTo('core_place.id', $value);
     			elseif ($propertyId == 'caption') {
     				if ($value == '*') $where->notEqualTo('learning_test.caption', '');
     				else $where->like('learning_test.caption', '%'.$value.'%');
@@ -291,6 +296,7 @@ class TestResult implements InputFilterAwareInterface
     			if ($vcard) $result->n_fn = $vcard->n_fn;
     			if ($vcard) $result->email = $vcard->email;
     			if ($vcard) $result->tel_cell = $vcard->tel_cell;
+    			if ($vcard) $result->vcard_id = $vcard->id; // Deprecated
     		}
     		
     		$result->testSession = TestSession::get($result->test_session_id);
