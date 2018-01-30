@@ -529,24 +529,41 @@ class TestResultController extends AbstractActionController
 								$result->computeScores();
 
 		    					// Generate the per-axis result event
-		    					$event = Event::instanciate();
-		    					$event->status = 'new';
-		    					$event->type = 'test_note';
-		    					$event->identifier = $result->testSession->caption.'_'.$result->actual_date.' '.$result->actual_time;
-		    					$event->place_id = $result->place_id;
-		    					$event->account_id = $result->account_id;
-		    					$event->vcard_id = $result->vcard_id; // Deprecated
-		    					$event->n_fn = $result->n_fn;
-		    					$event->caption = $result->testSession->caption;
 		    					foreach ($result->axes as $axisId => $axis) {
-			    					$event->value = $axis['score'];
-			    					$event->property_1 = $axisId;
-			    					$event->property_2 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
-			    					$event->property_3 = $result->actual_date.' '.$result->actual_time;
-			    					$event->property_4 = $result->actual_duration;
-			    					$event->property_5 = json_encode($result->answers);
-			    					$event->property_6 = $context->localize($axis['note']['label']);
-			    					$event->add();
+		    						foreach ($axis['categories'] as $categoryId => $category) {
+		    							if (array_key_exists('score', $category)) {
+
+		    								// Retrieve a possibly existing note event
+		    								$event = Event::get($result->testSession->test->caption.'_'.$result->account_id.'_'.$categoryId, 'identifier');
+		    								if ($event) {
+		    									$event->answers = json_decode($event->property_6, true);
+		    								}
+		    								else {
+						    					$event = Event::instanciate();
+						    					$event->status = 'new';
+						    					$event->type = 'test_note';
+						    					$event->identifier = $result->testSession->test->caption.'_'.$result->account_id.'_'.$categoryId;
+						    					$event->place_id = $result->place_id;
+						    					$event->account_id = $result->account_id;
+						    					$event->vcard_id = $result->vcard_id;
+						    					$event->n_fn = $result->n_fn;
+						    					$event->caption = $result->testSession->test->caption;
+		    									$event->value = 0;
+						    					$event->property_1 = $axisId;
+						    					$event->property_2 = $categoryId;
+						    					$event->property_3 = $result->testSession->expected_date.' '.$result->testSession->expected_time;
+						    					$event->property_4 = $result->actual_date.' '.$result->actual_time;
+						    					$event->property_5 = $result->actual_duration;
+						    					$event->answers = array();
+						    					$event->property_7 = $context->localize($axis['note']['label']);
+		    								}
+		    								$event->value += $category['score'];
+		    								$event->answers = array_merge($event->answers, $category['answers']);
+						    				$event->property_6 = json_encode($event->answers);
+		    								if (!$event->id) $event->add();
+						    				else $event->update(null);
+		    							}
+		    						}
 		    					}
 
 		    					// Generate the detailed result events

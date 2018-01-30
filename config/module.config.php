@@ -403,7 +403,9 @@ return array(
 			),
 	),
 	'event/value/test_note' => array(
-			'type' => 'input',
+			'type' => 'number',
+			'minValue' => 0,
+			'maxValue' => 1000,
 			'labels' => array(
 					'en_US' => 'Score on this axis',
 					'fr_FR' => 'Score sur cet axe',
@@ -419,36 +421,43 @@ return array(
 	'event/property_2/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
+					'en_US' => 'Category',
+					'fr_FR' => 'Catégorie',
+			),
+	),
+	'event/property_3/test_note' => array(
+			'type' => 'input',
+			'labels' => array(
 					'en_US' => 'Expected time',
 					'fr_FR' => 'Heure prévue',
 			),
 	),
-	'event/property_3/test_note' => array(
+	'event/property_4/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
 					'en_US' => 'Actual time',
 					'fr_FR' => 'Heure réelle',
 			),
 	),
-	'event/property_4/test_note' => array(
+	'event/property_5/test_note' => array(
 			'type' => 'input',
 			'labels' => array(
 					'en_US' => 'Actual duration',
 					'fr_FR' => 'Durée effective',
 			),
 	),
-	'event/property_5/test_note' => array(
+	'event/property_6/test_note' => array(
 			'type' => 'textarea',
 			'labels' => array(
 					'en_US' => 'Answers',
 					'fr_FR' => 'Réponses',
 			),
 	),
-	'event/property_6/test_note' => array(
+	'event/property_7/test_note' => array(
 			'type' => 'textarea',
 			'labels' => array(
-					'en_US' => 'Note on this axis',
-					'fr_FR' => 'Note sur cet axe',
+					'en_US' => 'Note on the category',
+					'fr_FR' => 'Note de la catégorie',
 			),
 	),
 	'event/test_note' => array(
@@ -471,6 +480,7 @@ return array(
 					'property_4' => array('type' => 'specific', 'definition' => 'event/property_4/test_note'),
 					'property_5' => array('type' => 'specific', 'definition' => 'event/property_5/test_note'),
 					'property_6' => array('type' => 'specific', 'definition' => 'event/property_6/test_note'),
+					'property_7' => array('type' => 'specific', 'definition' => 'event/property_7/test_note'),
 					'update_time' => array('type' => 'specific', 'definition' => 'event/update_time'),
 			),
 			'indicators' => array(),
@@ -497,15 +507,15 @@ return array(
 			'main'=> array(
 					'caption' => 'contains',
 					'property_1' => 'contains',
+					'property_2' => 'contains',
 					'n_fn' => 'contains',
-					'property_3' => 'range',
 					'value' => 'range',
-					'property_6' => array('rendering' => 'contains'),
 			)
 	),
 	'event/list/test_note'=> array(
 			'caption' => array('rendering' => 'text'),
 			'property_1' => array('rendering' => 'text'),
+			'property_2' => array('rendering' => 'text'),
 			'n_fn' => array('rendering' => 'text'),
 			'property_6' => array('rendering' => 'number'),
 			'value' => array('rendering' => 'number'),
@@ -529,6 +539,7 @@ return array(
 			'caption'=> array('mandatory' => false),
 			'description'=> array('mandatory' => false),
 			'property_1'=> array('mandatory' => false),
+			'property_2'=> array('mandatory' => false),
 			'value'=> array('mandatory' => false),
 			'property_6'=> array('mandatory' => false),
 			'property_2'=> array('mandatory' => false),
@@ -544,12 +555,13 @@ return array(
 			'caption'=> 'D',
 			'description'=> 'E',
 			'property_1'=> 'F',
-			'value'=> 'G',
-			'property_6'=> 'H',
-			'property_2'=> 'I',
-			'property_3'=> 'J',
-			'property_4'=> 'K',
-			'property_5'=> 'L',
+			'property_2'=> 'G',
+			'value'=> 'H',
+			'property_6'=> 'I',
+			'property_2'=> 'K',
+			'property_3'=> 'K',
+			'property_4'=> 'L',
+			'property_5'=> 'M',
 	),
 
 	// Detailed results
@@ -616,41 +628,6 @@ return array(
 					'fr_FR' => 'Numéro de réponse',
 			),
 	),
-	'event/property_8/test_detail' => array(
-			'type' => 'textarea',
-			'labels' => array(
-					'en_US' => 'Answer caption',
-					'fr_FR' => 'Libellé de réponse',
-			),
-	),
-	'event/property_9/test_detail' => array(
-			'type' => 'input',
-			'labels' => array(
-					'en_US' => 'Category 1 caption',
-					'fr_FR' => 'Libellé catégorie 1',
-			),
-	),
-	'event/property_10/test_detail' => array(
-			'type' => 'input',
-			'labels' => array(
-					'en_US' => 'Category 1 weight',
-					'fr_FR' => 'Poids catégorie 1',
-			),
-	),
-	'event/property_11/test_detail' => array(
-			'type' => 'input',
-			'labels' => array(
-					'en_US' => 'Category 2 caption',
-					'fr_FR' => 'Libellé catégorie 2',
-			),
-	),
-	'event/property_12/test_detail' => array(
-			'type' => 'input',
-			'labels' => array(
-					'en_US' => 'Category 2 weight',
-					'fr_FR' => 'Poids catégorie 2',
-			),
-	),
 	'event/test_detail' => array(
 			'dimensions' => array(
 			),
@@ -673,11 +650,6 @@ return array(
 					'property_5' => array('type' => 'specific', 'definition' => 'event/property_5/test_detail'),
 					'property_6' => array('type' => 'specific', 'definition' => 'event/property_6/test_detail'),
 					'property_7' => array('type' => 'specific', 'definition' => 'event/property_7/test_detail'),
-					'property_8' => array('type' => 'specific', 'definition' => 'event/property_8/test_detail'),
-					'property_9' => array('type' => 'specific', 'definition' => 'event/property_9/test_detail'),
-					'property_10' => array('type' => 'specific', 'definition' => 'event/property_10/test_detail'),
-					'property_11' => array('type' => 'specific', 'definition' => 'event/property_11/test_detail'),
-					'property_12' => array('type' => 'specific', 'definition' => 'event/property_12/test_detail'),
 					'update_time' => array('type' => 'specific', 'definition' => 'event/update_time'),
 			),
 			'indicators' => array(),
@@ -706,9 +678,6 @@ return array(
 					'n_fn' => 'contains',
 					'property_5' => 'contains',
 					'property_7' => 'contains',
-					'value' => 'range',
-					'property_9' => 'contains',
-					'property_11' => 'contains',
 			)
 	),
 	'event/list/test_detail'=> array(
@@ -716,9 +685,6 @@ return array(
 			'n_fn' => array('rendering' => 'text'),
 			'property_5' => array('rendering' => 'text'),
 			'property_7' => array('rendering' => 'text'),
-			'value' => array('rendering' => 'number'),
-			'property_9' => array('rendering' => 'text'),
-			'property_11' => array('rendering' => 'text'),
 	),
 	'event/masked/test_detail'=> array(
 	),
@@ -735,19 +701,12 @@ return array(
 			'n_fn'=> array('mandatory' => false),
 			'caption'=> array('mandatory' => false),
 			'description'=> array('mandatory' => false),
-			'value'=> array('mandatory' => false),
 			'property_1'=> array('mandatory' => false),
 			'property_2'=> array('mandatory' => false),
 			'property_3'=> array('mandatory' => false),
 			'property_4'=> array('mandatory' => false),
 			'property_5'=> array('mandatory' => false),
-			'property_6'=> array('mandatory' => false),
 			'property_7'=> array('mandatory' => false),
-			'property_8'=> array('mandatory' => false),
-			'property_9'=> array('mandatory' => false),
-			'property_10'=> array('mandatory' => false),
-			'property_11'=> array('mandatory' => false),
-			'property_12'=> array('mandatory' => false),
 	),
 	
 	'event/export/test_detail'=> array(
@@ -756,19 +715,12 @@ return array(
 			'n_fn'=> 'C',
 			'caption'=> 'D',
 			'description'=> 'E',
-			'value'=> 'F',
-			'property_1'=> 'G',
-			'property_2'=> 'H',
-			'property_3'=> 'I',
-			'property_4'=> 'J',
-			'property_5'=> 'K',
-			'property_6'=> 'L',
-			'property_7'=> 'M',
-			'property_8'=> 'N',
-			'property_9'=> 'O',
-			'property_10'=> 'P',
-			'property_11'=> 'Q',
-			'property_12'=> 'R',
+			'property_1'=> 'F',
+			'property_2'=> 'G',
+			'property_3'=> 'H',
+			'property_4'=> 'I',
+			'property_5'=> 'J',
+			'property_7'=> 'K',
 	),
 
 	// Test

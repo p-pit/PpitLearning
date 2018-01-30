@@ -262,6 +262,8 @@ class TestResult implements InputFilterAwareInterface
     				$this->axes[$axisId]['score'] += $value;
     				if (!array_key_exists('score', $this->axes[$axisId]['categories'][$categoryId])) $this->axes[$axisId]['categories'][$categoryId]['score'] = 0;
     				$this->axes[$axisId]['categories'][$categoryId]['score'] += $value;
+    				if (!array_key_exists('answers', $this->axes[$axisId]['categories'][$categoryId])) $this->axes[$axisId]['categories'][$categoryId]['answers'] = [];
+    				$this->axes[$axisId]['categories'][$categoryId]['answers'][$questionId] = $answer;
     			}
     		}
     	}

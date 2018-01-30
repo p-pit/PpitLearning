@@ -29,7 +29,7 @@ class SsmlTestResultViewHelper
 		
 		foreach($context->getConfig('testResult/export') as $propertyId => $unused) {
 			$property = $context->getConfig('testResult')['properties'][$propertyId];
-			if ($property['type'] == 'specific') $property = $context->getConfig($property['definition']);
+			if ($property['definition'] != 'inline') $property = $context->getConfig($property['definition']);
 			$i++;
 			$sheet->setCellValue($colNames[$i].'1', $property['labels'][$context->getLocale()]);
 		}
