@@ -428,7 +428,7 @@ class TestResultController extends AbstractActionController
     	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
     
     	$rc = $result->add();
-    	return $this->redirect()->toRoute('testResult/perform', array('id' => $result->id));
+    	return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $result->id));
     }
 
     public function performAction()
@@ -583,9 +583,8 @@ class TestResultController extends AbstractActionController
 									$event->id = 0;
 		    						$event->identifier = $result->testSession->test->caption.'_'.$result->n_fn.'_'.$answerId;
 			    					$event->caption = $answerId;
-			    					if ($question['type'] == 'select') $event->value = $question['modalities'][$answer]['value'];
-			    					elseif ($question['type'] == 'phpCode') $event->value = ($answer['result'] == $question['result']) ? $question['value'] : 0;
-			    					$event->property_5 = $answerId;
+			    					$event->value = 1;
+			    					$event->property_5 = $result->testSession->test->caption;
 			    					$event->property_6 = substr(json_encode($question['label']), 0, 255);
 			    					$event->property_7 = json_encode($answer);
 			    					if ($question['type'] == 'select') $event->property_8 = json_encode($question['modalities'][$answer]['label']);
@@ -622,6 +621,7 @@ class TestResultController extends AbstractActionController
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
+    			'template' => array(),
     			'type' => $type,
     			'token' => $token,
     			'place' => $place,

@@ -268,7 +268,9 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 <!-- Question -->		
 				            <!--Card content-->
 				            <div class="card-block">
+			<?php if (array_key_exists('title', $section)) : ?>
 								<?php echo $context->localize($section['title']) ?>
+			<?php endif;?>
 			<?php $first = true; foreach ($section['content'] as $questionId) : ?>
 				<?php $question = $result->testSession->test->getQuestions()[$questionId] ?>
 					<?php if (array_key_exists('save_space', $question) && $question['save_space']) : ?>
@@ -418,13 +420,14 @@ var seconds = '<?php echo (new DateTime($beginTime))->getTimeStamp() - (new Date
 var seconds = '<?php echo (new DateTime($endTime))->getTimeStamp() - (new DateTime(date('Y-m-d H:i:s')))->getTimeStamp() ?>';
 <?php endif;?>
 
-if (seconds > 0) window.setTimeout(function() { 
+if (seconds > 0) window.setTimeout(function() {
+alert('coucou');
 <?php if ($result->status != 'new') : ?>
 	$('#action').val('submit');
 	$.post("<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
 <?php endif;?>
 $(location).attr('href', '<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>'); 
-}, seconds + 2000);
+}, seconds + 1000);
 
 <?php if ($beginTime && $result->status != 'performed') : ?>
 var clock = $('.clock').FlipClock(Math.max(seconds, 0), {

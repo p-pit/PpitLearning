@@ -268,13 +268,12 @@ class TestResult implements InputFilterAwareInterface
     		}
     	}
     	foreach ($this->axes as $axisId => &$axis) {
-    		if (array_key_exists('score', $axis)) {
-//    			$axis['score'] = round($axis['score'] / $this->testSession->test->axes[$axisId]['highest_score'], 2);
-    			$axis['note'] = null;
-    			foreach ($axis['segmentation'] as $segmentId => &$segment) {
-    				if (!$axis['note'] && $axis['score'] <= $segment['limit']) $axis['note'] = $segment;
-    			}
-    		}
+    		if (!array_key_exists('score', $axis)) $axis['score'] = 0;
+			$axis['score'] = round($axis['score'] / $this->testSession->test->axes[$axisId]['highest_score'], 2);
+			$axis['note'] = null;
+				foreach ($axis['segmentation'] as $segmentId => &$segment) {
+				if (!$axis['note'] && $axis['score'] <= $segment['limit']) $axis['note'] = $segment;
+			}
     	}
     }
     
