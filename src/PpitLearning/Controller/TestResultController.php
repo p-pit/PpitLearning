@@ -54,7 +54,7 @@ class TestResultController extends AbstractActionController
     	$place = Place::get($context->getPlaceId());
     	
 		$applicationId = 'p-pit-learning';
-		$applicationName = 'Learning by 2Pit';
+		$applicationName = 'P-Pit Learning';
 		$currentEntry = $this->params()->fromQuery('entry', 'place');
 
 		$type = $this->params()->fromRoute('type', '');
@@ -65,7 +65,9 @@ class TestResultController extends AbstractActionController
     			'context' => $context,
     			'type' => $type,
     			'place' => $place,
-    			'applicationId' => $applicationId,
+    			'active' => 'application',
+				'applicationId' => $applicationId,
+				'applicationName' => $applicationName,
 				'personnalize' => $personnalize,
 				'page' => $context->getConfig('testResult/index/'.$type),
 				'searchPage' => $context->getConfig('testResult/search/'.$type),

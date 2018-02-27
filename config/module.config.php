@@ -343,7 +343,8 @@ return array(
 	),
 		
 	'menus/p-pit-learning' => array(
-					'test_account' => array(
+		'entries' => array(
+					'learning_account' => array(
 							'route' => 'account/index',
 							'params' => array('entry' => 'account', 'type' => 'generic', 'app' => 'p-pit-learning'),
 							'glyphicon' => 'glyphicon-user',
@@ -388,6 +389,11 @@ return array(
 									'fr_FR' => 'Résultats détaillés',
 							),
 					),
+		),
+		'labels' => array(
+			'default' => '2pit Learning',
+			'fr_FR' => 'P-Pit Learning',
+		),
 	),
 
 		// Teacher

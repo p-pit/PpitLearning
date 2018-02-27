@@ -40,7 +40,7 @@ class TestEventController extends AbstractActionController
     	$community = Community::get($context->getCommunityId());
     		 
 		$applicationId = 'p-pit-learning';
-		$applicationName = 'Learning by 2Pit';
+		$applicationName = 'P-Pit Learning';
 		$currentEntry = $this->params()->fromQuery('entry', 'place');
 		return new ViewModel(array(
     			'context' => $context,
