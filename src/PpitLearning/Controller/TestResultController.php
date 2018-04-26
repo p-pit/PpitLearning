@@ -623,7 +623,7 @@ class TestResultController extends AbstractActionController
     	$view = new ViewModel(array(
     			'context' => $context,
     			'config' => $context->getconfig(),
-    			'template' => array(),
+    			'template' => ['robots' => 'index, follow'],
     			'type' => $type,
     			'token' => $token,
     			'place' => $place,

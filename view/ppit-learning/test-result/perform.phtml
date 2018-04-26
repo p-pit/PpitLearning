@@ -421,7 +421,6 @@ var seconds = '<?php echo (new DateTime($endTime))->getTimeStamp() - (new DateTi
 <?php endif;?>
 
 if (seconds > 0) window.setTimeout(function() {
-alert('coucou');
 <?php if ($result->status != 'new') : ?>
 	$('#action').val('submit');
 	$.post("<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});

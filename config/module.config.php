@@ -5,7 +5,7 @@ return array(
     'controllers' => array(
         'invokables' => array(
             'PpitLearning\Controller\Test' => 'PpitLearning\Controller\TestController',
-        	'PpitLearning\Controller\TestEvent' => 'PpitLearning\Controller\TestEventController',
+//        	'PpitLearning\Controller\TestEvent' => 'PpitLearning\Controller\TestEventController',
         	'PpitLearning\Controller\TestResult' => 'PpitLearning\Controller\TestResultController',
             'PpitLearning\Controller\Evaluation' => 'PpitLearning\Controller\EvaluationController',
         ),
@@ -45,7 +45,7 @@ return array(
             				),
             		),
         	),
-        	'testEvent' => array(
+/*        	'testEvent' => array(
                 'type'    => 'literal',
                 'options' => array(
                     'route'    => '/test-event',
@@ -66,7 +66,7 @@ return array(
             						),
             				),
             		),
-        	),
+        	),*/
 	        'testResult' => array(
                 'type'    => 'literal',
                 'options' => array(
@@ -263,9 +263,9 @@ return array(
 
 				array('route' => 'test/deserialize', 'roles' => array('admin')),
 				array('route' => 'test/serialize', 'roles' => array('admin')),
-						
+/*						
 				array('route' => 'testEvent', 'roles' => array('sales_manager', 'admin')),
-				array('route' => 'testEvent/index', 'roles' => array('sales_manager', 'admin')),
+				array('route' => 'testEvent/index', 'roles' => array('sales_manager', 'admin')),*/
 						
 				array('route' => 'testResult', 'roles' => array('sales_manager', 'admin')),
 				array('route' => 'testResult/index', 'roles' => array('sales_manager', 'admin')),
@@ -372,8 +372,8 @@ return array(
 							),
 					),
 					'test_note' => array(
-							'route' => 'testEvent/index',
-							'params' => array('type' => 'test_note'),
+							'route' => 'event/index',
+							'params' => array('type' => 'test_note', 'app' => 'p-pit-learning'),
 							'glyphicon' => 'glyphicon-education',
 							'label' => array(
 									'en_US' => 'Global result',
@@ -381,8 +381,8 @@ return array(
 							),
 					),
 					'test_detail' => array(
-							'route' => 'testEvent/index',
-							'params' => array('type' => 'test_detail'),
+							'route' => 'event/index',
+							'params' => array('type' => 'test_detail', 'app' => 'p-pit-learning'),
 							'glyphicon' => 'glyphicon-education',
 							'label' => array(
 									'en_US' => 'Detailed results',
@@ -413,14 +413,14 @@ return array(
 						'fr_FR' => 'Statut',
 				),
 				'perspectives' => array(
-						'account' => array('new', 'active', 'gone'),
+						'account' => array('new', 'follow-up', 'answer', 'committed', 'active', 'gone'),
 				),
 		),
 		'core_account/teacher/property/name' => array(
 				'type' => 'input',
 				'labels' => array(
-						'en_US' => 'Training institution',
-						'fr_FR' => 'Organisme de formation',
+						'en_US' => 'Institution',
+						'fr_FR' => 'Organisme',
 				),
 		),
 		'core_account/teacher/property/callback_date' => array(
@@ -500,22 +500,32 @@ return array(
 								'definition' => 'inline',
 								'type' => 'title',
 								'labels' => array(
+										'en_US' => 'PLANIFICATION',
+										'fr_FR' => 'PLANIFICATION',
+								),
+						),
+						'title_3' => array(
+								'definition' => 'inline',
+								'type' => 'title',
+								'labels' => array(
 										'en_US' => 'COMMENTS',
 										'fr_FR' => 'COMMENTAIRES',
 								),
 						),
 						'status' => array('definition' => 'core_account/teacher/property/status', 'mandatory' => true),
 						'place_id' => array('definition' => 'core_account/generic/property/place_id'),
+						'identifier' => array('definition' => 'core_account/generic/property/identifier'),
 						'name' => array('definition' => 'core_account/teacher/property/name'),
 						'photo_link_id' => array('definition' => 'core_account/generic/property/photo_link_id'),
 						'basket' => array('definition' => 'core_account/generic/property/basket'),
 						'contact_1_id' => array('definition' => 'core_account/generic/property/contact_id'),
 						'contact_1_status' => array('definition' => 'core_account/generic/property/contact_status'),
 						'org' => array('definition' => 'core_account/generic/property/org'),
-						'n_title' => array('definition' => 'core_account/generic/property/n_title', 'mandatory' => true),
+						'n_title' => array('definition' => 'core_account/generic/property/n_title'),
 						'n_first' => array('definition' => 'core_account/generic/property/n_first', 'mandatory' => true),
 						'n_last' => array('definition' => 'core_account/generic/property/n_last', 'mandatory' => true),
-						'email' => array('definition' => 'core_account/generic/property/email', 'mandatory' => true),
+						'n_fn' => array('definition' => 'core_account/generic/property/n_fn'),
+						'email' => array('definition' => 'core_account/generic/property/email'),
 						'tel_work' => array('definition' => 'core_account/generic/property/tel_work'),
 						'tel_cell' => array('definition' => 'core_account/generic/property/tel_cell'),
 						'adr_street' => array('definition' => 'core_account/generic/property/adr_street'),
@@ -592,6 +602,11 @@ return array(
 						'origine' => array('definition' => 'core_account/generic/property/origine'),
 						'contact_history' => array('definition' => 'core_account/generic/property/contact_history'),
 						'notification_time' => array('definition' => 'core_account/generic/property/notification_time'),
+						'availability' => array('definition' => 'core_account/generic/property/availability'),
+						'availability_begin' => array('definition' => 'core_account/generic/property/availability_begin'),
+						'availability_end' => array('definition' => 'core_account/generic/property/availability_end'),
+						'availability_exceptions' => array('definition' => 'core_account/generic/property/availability_exceptions'),
+						'availability_constraints' => array('definition' => 'core_account/generic/property/availability_constraints'),
 						'property_1' => array('definition' => 'core_account/teacher/property/property_1'),
 						'property_2' => array('definition' => 'core_account/teacher/property/property_2'),
 						'property_3' => array('definition' => 'core_account/teacher/property/property_3'),
@@ -632,7 +647,7 @@ return array(
 				'properties' => array(
 						'place_id' => ['multiple' => true],
 						'status' => ['multiple' => true],
-						'name' => [],
+						'n_fn' => [],
 						'opening_date' => [],
 						'callback_date' => [],
 						'priority' => ['multiple' => true],
@@ -640,12 +655,14 @@ return array(
 						'property_3' => [],
 						'property_2' => [],
 						'json_property_1' => [],
+						'availability' => [],
 				),
 		),
 		'core_account/list/teacher' => array(
 				'properties' => array(
 						'status' => [],
-						'name' => [],
+						'n_last' => [],
+						'n_first' => [],
 						'property_3' => [],
 						'property_2' => [],
 						'opening_date' => [],
@@ -696,6 +713,11 @@ return array(
 				'property_2' => ['mandatory' => false],
 				'property_3' => ['mandatory' => false],
 				'json_property_1' => ['mandatory' => false],
+				'availability_begin' => ['mandatory' => false],
+				'availability_end' => ['mandatory' => false],
+				'availability_constraints' => ['mandatory' => false],
+				'availability_exceptions' => ['mandatory' => false],
+				'title_3' => ['mandatory' => false],
 				'contact_history' => ['mandatory' => false],
 		),
 		'core_account/updateContact/teacher' => array(
@@ -718,7 +740,7 @@ return array(
 				'status' => array('mandatory' => true),
 				'callback_date' => array('mandatory' => false),
 		),
-		'core_account/post/teacher' => array(
+/*		'core_account/post/teacher' => array(
 				'place_identifier' => array('mandatory' => false),
 				'name' => array('mandatory' => false),
 				'n_title' => array('mandatory' => false),
@@ -738,7 +760,7 @@ return array(
 				'adr_country' => array('mandatory' => false),
 				'place_identifier' => array('mandatory' => false),
 				'locale' => array('mandatory' => false),
-		),
+		),*/
 		'core_account/export/teacher' => array(
 				'status' => [],
 				'place_id' => [],

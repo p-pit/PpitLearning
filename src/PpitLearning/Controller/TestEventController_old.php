@@ -9,7 +9,7 @@
 
 namespace PpitLearning\Controller;
 
-use PpitCore\Model\App;
+//use PpitCore\Model\App;
 use PpitCore\Model\Community;
 use PpitCore\Model\Event;
 use PpitCore\Model\Generic;
@@ -25,7 +25,7 @@ use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
 use ZendDeveloperTools\Collector\EventCollectorInterface;
 
-class TestEventController extends AbstractActionController
+class TestEventController_old extends AbstractActionController
 {
     public function indexAction()
     {
