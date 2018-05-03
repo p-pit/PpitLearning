@@ -547,7 +547,16 @@ return array(
 	),
 	
 	'core_account/teacher/property/priority' => array('definition' => 'core_account/generic/property/priority'),
-	'core_account/teacher/property/origine' => array('definition' => 'core_account/generic/property/origine'),
+
+	'core_account/teacher/property/origine' => array(
+		'definition' => 'inline',
+		'type' => 'input',
+		'labels' => array(
+			'en_US' => 'Origine',
+			'fr_FR' => 'Origine',
+		),
+	),
+	
 	'core_account/teacher/property/contact_history' => array('definition' => 'core_account/generic/property/contact_history'),
 	'core_account/teacher/property/notification_time' => array('definition' => 'core_account/generic/property/notification_time'),
 	'core_account/teacher/property/availability' => array('definition' => 'core_account/generic/property/availability'),
@@ -585,7 +594,15 @@ return array(
 		),
 	),
 
-	'core_account/teacher/property/property_4' => array('definition' => 'core_account/generic/property/property_4'),
+	'core_account/teacher/property/property_4' => array(
+		'definition' => 'inline',
+		'type' => 'input',
+		'labels' => array(
+			'en_US' => 'Role',
+			'fr_FR' => 'Fonction',
+		),
+	),
+	
 	'core_account/teacher/property/property_5' => array('definition' => 'core_account/generic/property/property_5'),
 	'core_account/teacher/property/property_6' => array('definition' => 'core_account/generic/property/property_6'),
 	'core_account/teacher/property/property_7' => array('definition' => 'core_account/generic/property/property_7'),
@@ -677,6 +694,7 @@ return array(
 				'properties' => array(
 						'place_id' => ['multiple' => true],
 						'status' => ['multiple' => true],
+						'name' => [],
 						'n_fn' => [],
 						'opening_date' => [],
 						'callback_date' => [],
@@ -691,8 +709,8 @@ return array(
 		'core_account/list/teacher' => array(
 				'properties' => array(
 						'status' => [],
-						'n_last' => [],
-						'n_first' => [],
+						'name' => [],
+						'n_fn' => [],
 						'property_3' => [],
 						'property_2' => [],
 						'opening_date' => [],
@@ -732,6 +750,7 @@ return array(
 				'n_title' => ['mandatory' => false],
 				'n_first' => ['mandatory' => true],
 				'n_last' => ['mandatory' => true],
+				'property_4' => ['mandatory' => false],
 				'email' => ['mandatory' => false],
 				'tel_work' => ['mandatory' => false],
 				'tel_cell' => ['mandatory' => false],
@@ -742,6 +761,7 @@ return array(
 				'property_1' => ['mandatory' => false],
 				'property_2' => ['mandatory' => false],
 				'property_3' => ['mandatory' => false],
+				'property_4' => ['mandatory' => false],
 				'json_property_1' => ['mandatory' => false],
 				'availability_begin' => ['mandatory' => false],
 				'availability_end' => ['mandatory' => false],
@@ -770,27 +790,7 @@ return array(
 				'status' => array('mandatory' => true),
 				'callback_date' => array('mandatory' => false),
 		),
-/*		'core_account/post/teacher' => array(
-				'place_identifier' => array('mandatory' => false),
-				'name' => array('mandatory' => false),
-				'n_title' => array('mandatory' => false),
-				'n_last' => array('mandatory' => true),
-				'n_first' => array('mandatory' => true),
-				'email' => array('mandatory' => true),
-				'request' => array('mandatory' => true),
-				'request_comment' => array('mandatory' => false),
-				'tel_work' => array('mandatory' => false),
-				'tel_cell' => array('mandatory' => false),
-				'adr_street' => array('mandatory' => false),
-				'adr_extended' => array('mandatory' => false),
-				'adr_zip' => array('mandatory' => false),
-				'adr_post_office_box' => array('mandatory' => false),
-				'adr_city' => array('mandatory' => false),
-				'adr_state' => array('mandatory' => false),
-				'adr_country' => array('mandatory' => false),
-				'place_identifier' => array('mandatory' => false),
-				'locale' => array('mandatory' => false),
-		),*/
+
 		'core_account/export/teacher' => array(
 				'status' => [],
 				'place_id' => [],
@@ -803,6 +803,7 @@ return array(
 				'n_title' => [],
 				'n_first' => [],
 				'n_last' => [],
+				'property_4' => [],
 				'email' => [],
 				'tel_work' => [],
 				'tel_cell' => [],
@@ -837,6 +838,7 @@ return array(
 								'n_title' => [],
 								'n_first' => [],
 								'n_last' => [],
+								'property_4' => [],
 								'email' => [],
 								'tel_work' => [],
 								'tel_cell' => [],
