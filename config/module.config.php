@@ -372,7 +372,8 @@ return array(
 					),
 					'calendar' => array(
 							'route' => 'event/index',
-							'params' => array('type' => 'calendar', 'app' => 'p-pit-learning'),
+							'params' => array('type' => '2018_2019_M1', 'app' => 'p-pit-learning'),
+							'urlParams' => '?status=new',
 							'glyphicon' => 'glyphicon-calendar',
 							'label' => array(
 									'en_US' => 'Planning',
