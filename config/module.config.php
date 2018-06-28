@@ -364,7 +364,7 @@ return array(
 					),
 					'group' => array(
 							'route' => 'account/index',
-							'params' => array('entry' => 'contact', 'type' => 'group', 'app' => 'p-pit-learning'),
+							'params' => array('entry' => 'group', 'type' => 'group', 'app' => 'p-pit-learning'),
 							'label' => array(
 									'en_US' => 'Groups',
 									'fr_FR' => 'Groupes',
@@ -372,7 +372,7 @@ return array(
 					),
 					'calendar' => array(
 							'route' => 'event/index',
-							'params' => array('type' => '2018_2019_M1', 'app' => 'p-pit-learning'),
+							'params' => array('type' => 'planning', 'app' => 'p-pit-learning'),
 							'urlParams' => '?status=new',
 							'glyphicon' => 'glyphicon-calendar',
 							'label' => array(
