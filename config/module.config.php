@@ -326,20 +326,23 @@ return array(
 	'ppitLearningDependencies' => array(
 	),
 
+	'ppit_roles' => array(
+		'trainer' => array(
+			'show' => true,
+			'labels' => array(
+				'en_US' => 'Trainer',
+				'fr_FR' => 'Formateur',
+			)
+		),
+	),
+
+	'manageable_roles' => ['trainer'],
+	
 	'ppitApplications' => array(
-			'p-pit-learning' => array(
-					'labels' => array('fr_FR' => 'P-Pit Learning', 'en_US' => 'Learning by 2Pit'),
-					'default' => 'testResult',
-					'roles' => array(
-							'trainer' => array(
-									'show' => true,
-									'labels' => array(
-											'en_US' => 'Trainer',
-											'fr_FR' => 'Formateur',
-									)
-							),
-					),
-			),
+		'p-pit-learning' => array(
+			'labels' => array('fr_FR' => 'P-Pit Learning', 'en_US' => 'Learning by 2Pit'),
+			'default' => 'testResult',
+		),
 	),
 		
 	'menus/p-pit-learning' => array(
