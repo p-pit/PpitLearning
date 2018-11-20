@@ -342,6 +342,7 @@ return array(
 		'p-pit-learning' => array(
 			'labels' => array('fr_FR' => 'P-Pit Learning', 'en_US' => 'Learning by 2Pit'),
 			'default' => 'testResult',
+			'defaultRole' => 'trainer',
 		),
 	),
 		
@@ -975,24 +976,9 @@ table.note-report td {
 			'dimensions' => array(
 			),
 			'properties' => array(
-					'status' => array('type' => 'specific', 'definition' => 'event/status'),
-					'type' => array('type' => 'specific', 'definition' => 'event/type'),
-					'identifier' => array('type' => 'specific', 'definition' => 'event/identifier'),
-					'place_id' => array('type' => 'specific', 'definition' => 'event/place_identifier'),
-					'place_identifier' => array('type' => 'specific', 'definition' => 'event/place_identifier'),
-					'place_caption' => array('type' => 'specific', 'definition' => 'event/place_caption'),
-					'n_fn' => array('type' => 'specific', 'definition' => 'event/n_fn'),
-					'caption' => array('type' => 'specific', 'definition' => 'event/caption/test_note'),
-					'description' => array('type' => 'specific', 'definition' => 'event/description'),
-					'value' => array('type' => 'specific', 'definition' => 'event/value/test_note'),
-					'property_1' => array('type' => 'specific', 'definition' => 'event/property_1/test_note'),
-					'property_2' => array('type' => 'specific', 'definition' => 'event/property_2/test_note'),
-					'property_3' => array('type' => 'specific', 'definition' => 'event/property_3/test_note'),
-					'property_4' => array('type' => 'specific', 'definition' => 'event/property_4/test_note'),
-					'property_5' => array('type' => 'specific', 'definition' => 'event/property_5/test_note'),
-					'property_6' => array('type' => 'specific', 'definition' => 'event/property_6/test_note'),
-					'property_7' => array('type' => 'specific', 'definition' => 'event/property_7/test_note'),
-					'update_time' => array('type' => 'specific', 'definition' => 'event/update_time'),
+					'status', 'type', 'identifier', 'place_id', 'place_caption', 'n_fn',
+					'caption', 'description', 'value', 'property_1', 'property_2', 'property_3', 'property_4', 'property_5', 'property_6', 'property_7',
+					'update_time',
 			),
 			'indicators' => array(),
 			'options' => [],
@@ -1016,7 +1002,7 @@ table.note-report td {
 					'en_US' => 'search',
 					'fr_FR' => 'recherche'
 			),
-			'main'=> array(
+			'properties'=> array(
 					'caption' => 'contains',
 					'property_1' => 'contains',
 					'property_2' => 'contains',
@@ -1062,7 +1048,7 @@ table.note-report td {
 	
 	'event/export/test_note'=> array(
 			'identifier'=> 'A',
-			'place_identifier'=> 'B',
+			'place_id'=> 'B',
 			'n_fn'=> 'C',
 			'caption'=> 'D',
 			'description'=> 'E',
@@ -1143,25 +1129,10 @@ table.note-report td {
 			'dimensions' => array(
 			),
 			'properties' => array(
-					'status' => array('type' => 'specific', 'definition' => 'event/status'),
-					'type' => array('type' => 'specific', 'definition' => 'event/type'),
-					'identifier' => array('type' => 'specific', 'definition' => 'event/identifier'),
-					'place_id' => array('type' => 'specific', 'definition' => 'event/place_identifier'),
-					'place_identifier' => array('type' => 'specific', 'definition' => 'event/place_identifier'),
-					'place_caption' => array('type' => 'specific', 'definition' => 'event/place_caption'),
-					'community_name' => array('type' => 'specific', 'definition' => 'event/community_name'),
-					'n_fn' => array('type' => 'specific', 'definition' => 'event/n_fn'),
-					'caption' => array('type' => 'specific', 'definition' => 'event/caption/test_detail'),
-					'description' => array('type' => 'specific', 'definition' => 'event/description'),
-					'value' => array('type' => 'specific', 'definition' => 'event/value/test_detail'),
-					'property_1' => array('type' => 'specific', 'definition' => 'event/property_1/test_detail'),
-					'property_2' => array('type' => 'specific', 'definition' => 'event/property_2/test_detail'),
-					'property_3' => array('type' => 'specific', 'definition' => 'event/property_3/test_detail'),
-					'property_4' => array('type' => 'specific', 'definition' => 'event/property_4/test_detail'),
-					'property_5' => array('type' => 'specific', 'definition' => 'event/property_5/test_detail'),
-					'property_6' => array('type' => 'specific', 'definition' => 'event/property_6/test_detail'),
-					'property_7' => array('type' => 'specific', 'definition' => 'event/property_7/test_detail'),
-					'update_time' => array('type' => 'specific', 'definition' => 'event/update_time'),
+					'status', 'type', 'identifier', 'place_id', 'place_caption', 'n_fn',
+					'caption', 'description', 'value',
+					'property_1', 'property_2', 'property_3', 'property_4', 'property_5', 'property_6', 'property_7',
+					'update_time',
 			),
 			'indicators' => array(),
 			'options' => [],
@@ -1185,7 +1156,7 @@ table.note-report td {
 					'en_US' => 'search',
 					'fr_FR' => 'recherche'
 			),
-			'main'=> array(
+			'properties'=> array(
 					'identifier' => 'contains',
 					'n_fn' => 'contains',
 					'property_5' => 'contains',
@@ -1223,7 +1194,6 @@ table.note-report td {
 	
 	'event/export/test_detail'=> array(
 			'identifier'=> 'A',
-			'place_identifier'=> 'B',
 			'n_fn'=> 'C',
 			'property_5'=> 'D',
 			'caption'=> 'E',

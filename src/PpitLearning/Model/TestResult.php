@@ -398,6 +398,60 @@ class TestResult implements InputFilterAwareInterface
 
     	return ('OK');
     }
+
+    public function loadAndAdd($data, $configProperties)
+    {
+    	$context = Context::getCurrent();
+    
+    	if (!array_key_exists('status', $data)) $data['status'] = 'new';
+    	foreach ($configProperties as $propertyId => $property) {
+    		if (array_key_exists($propertyId, $data) && $data[$propertyId]) {
+    			if ($property['type'] == 'select') {
+    				foreach (explode(',', $data[$propertyId]) as $modalityId) {
+    					if (!array_key_exists($modalityId, $property['modalities'])) {
+    						return ['400', 'The modality '.$data[$propertyId].' does not exist in '.$propertyId];
+    					}
+    				}
+    			}
+    			elseif ($property['type'] == 'date' && $data[$propertyId] && (strlen($data[$propertyId] < 10) || !checkdate(substr($data[$propertyId], 5, 2), substr($data[$propertyId], 8, 2), substr($data[$propertyId], 0, 4)))) {
+    				return ['400', $data[$propertyId].' is not a valid date for '.$propertyId];
+    			}
+    		}
+    	}
+    
+    	// Load the data
+    	$rc = $this->loadData($data);
+    	if ($rc != 'OK') return ['500', $rc];
+    	
+    	$rc = $vcard->add();
+    	$account->contact_1_id = $vcard->id;
+    	$rc = $account->add();
+    	$this->authentication_token = md5(uniqid(rand(), true));
+    	$this->account_id = $account->id;
+    	$rc = $this->add();
+    	$result_id = $this->id;
+    	$resultIds = array();
+    	$session = TestSession::get($this->test_session_id);
+    	while ($rc =='OK' && $session->next_session_id) {
+    		$session = TestSession::get($session->next_session_id);
+    		$this->test_session_id = $session->id;
+    		$rc = $this->add();
+    		$resultIds[] = $this->id;
+    	}
+    	$result = TestResult::get($result_id);
+    	foreach ($resultIds as $id) {
+    		$result->next_result_id = $id;
+    		$result->update(null);
+    		$result = TestResult::get($id);
+    	}
+    	 
+    	// Save the data
+    	$this->add();
+    	if ($rc != 'OK') return ['500', 'event->add: '.$rc];
+    
+    	$this->properties = $this->getProperties();
+    	return ['200'];
+    }
     
     public function update($update_time)
     {
@@ -411,7 +465,35 @@ class TestResult implements InputFilterAwareInterface
     
     	return 'OK';
     }
-
+    
+    public function loadAndUpdate($data, $configProperties, $update_time = null)
+    {
+    	$context = Context::getCurrent();
+    
+    	foreach ($configProperties as $propertyId => $property) {
+    		if (array_key_exists($propertyId, $data)) {
+    			if ($property['type'] == 'select' && !array_key_exists($data[$propertyId], $property['modalities'])) {
+    				return ['400', 'The modality '.$data[$propertyId].' does not exist in '.$propertyId];
+    			}
+    			elseif ($property['type'] == 'date' && $data[$propertyId] && (strlen($data[$propertyId] < 10) || !checkdate(substr($data[$propertyId], 5, 2), substr($data[$propertyId], 8, 2), substr($data[$propertyId], 0, 4)))) {
+    				return ['400', $data[$propertyId].' is not a valid date for '.$propertyId];
+    			}
+    		}
+    	}
+    
+    	// Load the data
+    	$rc = $this->loadData($data);
+    	if ($rc != 'OK') return ['500', $rc];
+ 
+    	Event::getTable()->multipleDelete(array('type' => 'test_note', 'account_id' => $this->account_id));
+    	Event::getTable()->multipleDelete(array('type' => 'test_detail', 'account_id' => $this->account_id));
+    	 
+    	// Save the data
+    	$this->update($update_time);
+    	if ($rc != 'OK') return ['500', 'event->update: '.$rc];
+    	return ['200'];
+    }
+    
     public function isUsed($object)
     {
     	// Allow or not deleting an account

@@ -640,4 +640,184 @@ class TestResultController extends AbstractActionController
     	$view->setTerminal(true);
     	return $view;
     }
+    
+	/**
+	 * Restfull implementation
+	 * TODO : authorization + error description
+	 */
+	public function v1Action()
+	{
+		$context = Context::getCurrent();
+	
+		// Authentication
+		if (!$context->isAuthenticated() && !$context->wsAuthenticate($this->getEvent())) {
+			$this->getResponse()->setStatusCode('401');
+			return $this->getResponse();
+		}
+
+		// Parameters
+		$type = $this->params()->fromRoute('type');
+		$id = $this->params()->fromRoute('id');
+		$identifier = $this->params()->fromQuery('identifier');
+		
+		$content = array();
+
+		// Get
+		if ($this->request->isGet()) {
+			if ($id) {
+				
+				// Direct access mode
+		    	$testResult = TestResult::get($id);
+				if (!$testResult) {
+					$this->getResponse()->setStatusCode('400');
+					return $this->getResponse();
+				}
+		    	$content = $testResult->getProperties($type);
+			}
+			else {
+
+				// List mode
+				$filters = array();
+				foreach ($context->getConfig('test_result/search'.(($type) ? '/'.$type : ''))['properties'] as $propertyId => $unused) {
+					$property = ($this->params()->fromQuery($propertyId, null));
+					if ($property) $filters[$propertyId] = $property;
+				}
+		    	$limit = $this->params()->fromQuery('limit');
+				$order = $this->params()->fromQuery('order', '+n_fn');
+		    	$page = $this->params()->fromQuery('page');
+		    	$per_page = $this->params()->fromQuery('per_page');
+		    	$statusDef = $context->getConfig('event/'.$type.'/property/status');
+		    	$testResults = TestResult::getList($type, $filters, $order, $limit, null, $page, $per_page);
+		    	$content['data'] = array();
+		    	foreach ($testResults as $result) $content['data'][$testResult->id] = $testResult->getProperties();
+			}
+		}
+
+		// Put
+		elseif ($this->request->isPut()) {
+			if ($identifier) {
+				$testResult = TestResult::get($identifier, 'identifier');
+				if ($testResult) {
+					$this->getResponse()->setStatusCode('400');
+					echo json_encode(['Trial to register a subscription with an already existing identifier']);
+					return $this->getResponse();
+				}
+			}
+			$testResult = TestResult::instanciate($type);
+			$data = json_decode($this->request->getContent(), true);
+
+	    	// Database update
+	    	$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
+	    	$connection->beginTransaction();
+	    	try {
+				$rc = $testResult->loadAndAdd($data);
+	    		if ($rc[0] == '206') { // Partially accepted on an already existing account which is returned as rc[1]
+					$this->getResponse()->setStatusCode($rc[0]);
+					echo $rc[1]->id;
+					return $this->getResponse();
+				}
+				elseif ($rc[0] != '200') {
+					$this->getResponse()->setStatusCode($rc[0]);
+					echo $rc[1];
+					return $this->getResponse();
+				}
+				$connection->commit();
+	    	}
+			catch (\Exception $e) {
+				$connection->rollback();
+				return ['500', $rc];
+			}
+		}
+		
+		// Post
+		elseif ($this->request->isPost()) {
+
+			if (!$id) {
+				$this->getResponse()->setStatusCode('400');
+				return $this->getResponse();
+			}
+			$testResult = Account::get($id);
+			if (!$testResult) {
+				$this->getResponse()->setStatusCode('400');
+				return $this->getResponse();
+			}
+
+			$data = json_decode($this->request->getContent(), true);
+			$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
+			$connection->beginTransaction();
+			try {
+				$testResult->loadAndUpdate($data);
+				if ($rc != '200') {
+					$connection->rollback();
+				}
+				$connection->commit();
+			}
+			catch (\Exception $e) {
+				$connection->rollback();
+				$this->getResponse()->setStatusCode('500');
+				return $this->getResponse();
+			}
+		}
+
+		// Delete
+		elseif ($this->request->isDelete()) {
+		
+			if (!$id) {
+				$this->getResponse()->setStatusCode('400');
+				return $this->getResponse();
+			}
+			$testResult = TestResult::get($id);
+			if (!$testResult) {
+				$this->getResponse()->setStatusCode('400');
+				return $this->getResponse();
+			}
+
+			// Database update
+			$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
+			$connection->beginTransaction();
+			try {
+				$testResult->delete((array_key_exists('update_time', $data)) ? $data['update_time'] : null);
+				if ($rc == 'Isolation') {
+					$this->getResponse()->setStatusCode('409');
+					return $this->getResponse();
+				}
+				elseif ($rc != 'OK') {
+					$this->getResponse()->setStatusCode('500');
+					return $this->getResponse();
+				}
+				$connection->commit();
+				$content = $account->getProperties();
+			}
+			catch (\Exception $e) {
+				$connection->rollback();
+				$this->getResponse()->setStatusCode('500');
+				return $this->getResponse();
+			}
+		}
+
+		// Description
+		$content['description'] = array();
+		$content['description']['type'] = $type;
+		$content['description']['properties'] = TestResult::getConfig($type);
+		$content['description']['list'] = $context->getConfig('test_result/list/'.$type);
+
+		// Output
+		if ($this->request->getHeader('Content-Type')) $contentType = $this->request->getHeader('Content-Type')->getFieldValue();
+		else $contentType = 'application/json';
+		if ($contentType == 'text/html') {
+			$view = new ViewModel(array(
+	    			'context' => $context,
+	    			'type' => $type,
+					'content' => $content,
+			));
+			$view->setTerminal(true);
+			return $view;
+		}
+		elseif ($contentType == 'application/json') {
+	       	ob_start("ob_gzhandler");
+			echo json_encode($content, JSON_PRETTY_PRINT);
+			ob_end_flush();
+			return $this->response;
+		}
+	}
 }
