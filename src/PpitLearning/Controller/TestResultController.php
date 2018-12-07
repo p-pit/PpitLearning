@@ -32,6 +32,14 @@ class TestResultController extends AbstractActionController
 		$properties = array();
 		foreach($context->getConfig('testResult/'.$type)['properties'] as $propertyId => $property) {
 			if ($property['definition'] != 'inline') $property = $context->getConfig($property['definition']);
+			
+			if ($propertyId == 'account_id') {
+
+				// Retrieve the candidates
+				$accounts = Account::getList('generic', [], '+name', null);
+				foreach ($accounts as $account_id => $account) $property['modalities'][$account_id] = ['default' => $account->name];
+			}
+			
 			$properties[$propertyId] = $property;
 		}
 		return $properties;
@@ -259,6 +267,7 @@ class TestResultController extends AbstractActionController
     	$action = $this->params()->fromRoute('act', null);
     	$learningSessions = TestSession::getList(array(/*'status' => 'new'*/), 'expected_date', 'ASC', 'search');
     	$configProperties = $this->getConfigProperties($type);
+    	
     	// Instanciate the csrf form
     	$csrfForm = new CsrfForm();
     	$csrfForm->addCsrfElement('csrf');
@@ -288,37 +297,16 @@ class TestResultController extends AbstractActionController
 			    		$data[$propertyId] = $request->getPost(($propertyId));
 			    	}
 			    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
-			    	unset($data['status']);
-			    	if ($vcard->loadData($data) != 'OK') throw new \Exception('View error');
-			    	$data['status'] = 'active';
-			    	unset($data['test_session_id']);
-			    	unset($data['actual_time']);
-			    	unset($data['answers']);
-			    	$data['contact_history'] = 'Inscription au test '.$result->caption;
-			    	if ($account->loadData($account->type, $data) != 'OK') throw new \Exception('View error');
-	    			if (!$account->name) $account->name = $account->contact_1->n_fn;
     			}
 
 	    		// Atomically save
 	    		$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
 	    		$connection->beginTransaction();
 	    		try {
-	    			if ($result->account_id) {
-		    			Event::getTable()->multipleDelete(array('type' => 'test_note', 'account_id' => $result->account_id));
-		    			Event::getTable()->multipleDelete(array('type' => 'test_detail', 'account_id' => $result->account_id));
-	    			}
+	    			Event::getTable()->multipleDelete(array('type' => 'test_note', 'account_id' => $result->account_id));
+	    			Event::getTable()->multipleDelete(array('type' => 'test_detail', 'account_id' => $result->account_id));
 	    			if (!$result->id) {
-	    				$rc = $vcard->add();
-	    				$account->contact_1_id = $vcard->id;
-	    				$rc = $account->add();
 						$result->authentication_token = md5(uniqid(rand(), true));
-						$result->account_id = $account->id;
-						$result->n_title = $vcard->n_title;
-						$result->n_first = $vcard->n_first;
-						$result->n_last = $vcard->n_last;
-						$result->n_fn = $vcard->n_fn;
-						$result->email = $vcard->email;
-						$result->tel_cell = $vcard->tel_cell;
 						$rc = $result->add();
 						$result_id = $result->id;
 						$resultIds = array();
@@ -338,20 +326,9 @@ class TestResultController extends AbstractActionController
 	    			}
 	    			elseif ($action == 'delete') {
 	    				$rc = $result->delete($request->getPost('test_result_update_time'));
-	    				$rc = $account->update(null);
 	    			}
 	    			else {
-	    				$rc = $vcard->update(null);
-	    				$rc = $account->update(null);
-						$result->account_id = $account->id;
-						$result->n_title = $account->contact_1->n_title;
-						$result->n_first = $account->contact_1->n_first;
-						$result->n_last = $account->contact_1->n_last;
-						$result->n_fn = $account->contact_1->n_fn;
-						$result->email = $account->contact_1->email;
-						$result->tel_cell = $account->contact_1->tel_cell;
 						$rc = $result->update($request->getPost('test_result_update_time'));
-						$result_id = $result->id;
 	    			}
     				if ($rc != 'OK') $error = $rc;
 	    			if ($error) $connection->rollback();
@@ -360,7 +337,7 @@ class TestResultController extends AbstractActionController
 
 						// Send the email to the user
 	    				if ($action != 'delete') {
-	    					$url = $context->getServiceManager()->get('viewhelpermanager')->get('url');
+	    					$url = $this->url();
 	    					if (array_key_exists('email_template', $result->testSession->test)) {
 	    						$template = $result->testSession->test['email_template'];
 	    					}
@@ -375,7 +352,7 @@ class TestResultController extends AbstractActionController
 							if (array_key_exists('cci', $template)) $email->cci = $template['cci'];
 							$email->subject = $context->localize($template['subscribeTitle']);
 							$email_body = $template['subscribeText'][$context->getLocale()];
-							$email->body = sprintf($email_body, 'https://'.$context->getInstance()->fqdn.$url('testResult/perform', array('type' => $type, 'id' => $result_id)).'?hash='.$result->authentication_token);
+							$email->body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => $type, 'id' => $result_id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
 							$email->sendHtmlMail();
 	    				}
 	    				$connection->commit();
@@ -460,10 +437,6 @@ class TestResultController extends AbstractActionController
     		$result->status = 'new';
     	}
 
-    	require_once "vendor/dropbox/dropbox-sdk/lib/Dropbox/autoload.php";
-    	$dropbox = $context->getConfig('ppitDocument')['dropbox'];
-    	if ($dropbox) $dropboxClient = new \Dropbox\Client($dropbox['credential'], $dropbox['clientIdentifier']);
-    	else $dropboxClient = null;
     	$csrfForm = new CsrfForm();
     	$csrfForm->addCsrfElement('csrf');
     	$error = null;
@@ -628,7 +601,6 @@ class TestResultController extends AbstractActionController
     			'token' => $token,
     			'place' => $place,
     			'id' => $id,
-    			'dropboxClient' => $dropboxClient,
     			'result' => $result,
     			'part' => $part,
     			'beginTime' => $beginTime,

@@ -1338,6 +1338,14 @@ table.note-report td {
 					'fr_FR' => 'Statut',
 			),
 	),
+	'testResult/account_id/generic' => array(
+			'type' => 'select',
+			'modalities' => [],
+			'labels' => array(
+					'en_US' => 'Candidate',
+					'fr_FR' => 'Candidat',
+			),
+	),
 	'testResult/n_fn/generic' => array(
 			'type' => 'input',
 			'labels' => array(
@@ -1426,6 +1434,7 @@ table.note-report td {
 					'test_id' => array('definition' => 'testSession/test_id/generic'),
 					'test_session_id' => array('definition' => 'testResult/test_session_id/generic'),
 					'part_identifier' => array('definition' => 'test/part_identifier/generic'),
+					'account_id' => array('definition' => 'testResult/account_id/generic'),
 					'n_title' => array('definition' => 'coreVcard/n_title'),
 					'n_first' => array('definition' => 'coreVcard/n_first'),
 					'n_last' => array('definition' => 'coreVcard/n_last'),
@@ -1491,11 +1500,12 @@ table.note-report td {
 	'testResult/update/generic' => array(
 			'properties' => array(
 					'place_id' => array('mandatory' => true, 'focus' => true),
-					'n_title' => array('mandatory' => false),
+					'account_id' => array('mandatory' => true),
+/*					'n_title' => array('mandatory' => false),
 					'n_first' => array('mandatory' => true),
 					'n_last' => array('mandatory' => true),
 					'email' => array('mandatory' => true),
-					'tel_cell' => array('mandatory' => false),
+					'tel_cell' => array('mandatory' => false),*/
 					'test_session_id' => array('mandatory' => true),
 			),
 	),

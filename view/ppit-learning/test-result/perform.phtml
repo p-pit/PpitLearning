@@ -149,12 +149,6 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 			
 	            <!--Card image-->
 	            <div class="view overlay hm-white-slight">
-
-				<?php if (array_key_exists('type', $content['image']) && $content['image']['type'] == 'dropbox') : ?>
-					<?php $dropbox = $context->getConfig('ppitDocument')['dropbox']; ?>
-					<iframe src="<?php echo $dropboxClient->createTemporaryDirectLink($dropbox['folders']['learning'].'/'.$content['image']['src'])[0] ?>" style="width: <?php echo $content['image']['width'] ?>; border: none"></iframe>
-
-				<?php else : ?>
 					<img
 						src="<?php echo $this->basePath('img/'.$context->getInstance()->caption.'/'.$content['image']['src']) ?>"
 						class="img-fluid"
@@ -166,8 +160,6 @@ $title = array_key_exists($context->getLocale(), $title) ? $title[$context->getL
 						<?php endif;?>
 					<?php endforeach;?>
 					/>
-
-				<?php endif;?>
 				</div>
 				<!--/.Card image-->
 

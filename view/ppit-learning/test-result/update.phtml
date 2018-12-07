@@ -111,7 +111,7 @@ if ($result->id && $action != 'update' || $message == 'OK') $isDisabled = true; 
 				<input class="form-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->formatFloat($result->properties[$propertyId], 2) ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> />
 
 		<?php elseif ($property['type'] == 'textarea') : ?>
-				<textarea class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?> <?php if ($isDisabled) echo 'disabled="disabled"'?>><?php echo $result->properties[$propertyId] ?></textarea>
+				<textarea class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>><?php echo $result->properties[$propertyId] ?></textarea>
 				
 		<?php elseif ($property['type'] == 'list') : ?>
 				<select class="form-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?>>
