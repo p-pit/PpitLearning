@@ -399,7 +399,7 @@ class TestResult implements InputFilterAwareInterface
     	return ('OK');
     }
 
-    public function loadAndAdd($data, $configProperties)
+/*    public function loadAndAdd($data, $configProperties)
     {
     	$context = Context::getCurrent();
     
@@ -422,17 +422,12 @@ class TestResult implements InputFilterAwareInterface
     	// Load the data
     	$rc = $this->loadData($data);
     	if ($rc != 'OK') return ['500', $rc];
-    	
-    	$rc = $vcard->add();
-    	$account->contact_1_id = $vcard->id;
-    	$rc = $account->add();
-    	$this->authentication_token = md5(uniqid(rand(), true));
-    	$this->account_id = $account->id;
+       	$this->authentication_token = md5(uniqid(rand(), true));
     	$rc = $this->add();
     	$result_id = $this->id;
     	$resultIds = array();
     	$session = TestSession::get($this->test_session_id);
-    	while ($rc =='OK' && $session->next_session_id) {
+    	while ($rc == 'OK' && $session->next_session_id) {
     		$session = TestSession::get($session->next_session_id);
     		$this->test_session_id = $session->id;
     		$rc = $this->add();
@@ -451,7 +446,7 @@ class TestResult implements InputFilterAwareInterface
     
     	$this->properties = $this->getProperties();
     	return ['200'];
-    }
+    }*/
     
     public function update($update_time)
     {
@@ -466,7 +461,7 @@ class TestResult implements InputFilterAwareInterface
     	return 'OK';
     }
     
-    public function loadAndUpdate($data, $configProperties, $update_time = null)
+ /*   public function loadAndUpdate($data, $configProperties, $update_time = null)
     {
     	$context = Context::getCurrent();
     
@@ -492,7 +487,7 @@ class TestResult implements InputFilterAwareInterface
     	$this->update($update_time);
     	if ($rc != 'OK') return ['500', 'event->update: '.$rc];
     	return ['200'];
-    }
+    }*/
     
     public function isUsed($object)
     {

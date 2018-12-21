@@ -242,6 +242,63 @@ class TestResultController extends AbstractActionController
     	return $view;
     }
 
+	public static function subscribe($account, $test_session_id, $url)
+	{
+		$context = Context::getCurrent();
+
+		$result = TestResult::instanciate();
+		
+		// Load the input data
+		$data = array();
+		$data['status'] = 'new';
+		$data['place_id'] = $account->place_id;
+		$data['account_id'] = $account->id;
+		$data['test_session_id'] = $test_session_id;
+		$data['actual_time'] = null;
+		$data['answers'] = array();
+		if ($result->loadData($data) != 'OK') throw new \Exception('View error');
+		
+		// Atomically save
+		$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
+		$connection->beginTransaction();
+		try {
+			$result->authentication_token = md5(uniqid(rand(), true));
+			$rc = $result->add();
+			$result_id = $result->id;
+			$resultIds = array();
+			$session = TestSession::get($test_session_id);
+			while ($rc =='OK' && $session->next_session_id) {
+				$session = TestSession::get($session->next_session_id);
+				$result->test_session_id = $session->id;
+				$rc = $result->add();
+				$resultIds[] = $result->id;
+			}
+			$result = TestResult::get($result_id);
+			foreach ($resultIds as $id) {
+				$result->next_result_id = $id;
+				$result->update(null);
+				$result = TestResult::get($id);
+			}
+		
+			// Send the email to the user
+			if (array_key_exists('email_template', $result->testSession->test)) {
+				$template = $result->testSession->test['email_template'];
+			}
+			else {
+				$template = $context->getConfig('testResult/message/generic');
+			}
+			$email_subject = $context->localize($template['subscribeTitle']);
+			$email_body = $template['subscribeText'][$context->getLocale()];
+			$email_body = sprintf($email_body, 'https://cclam.p-pit.fr/test-result/perform/generic/' . $result_id .'?hash='.$result->authentication_token);
+			Context::sendMail($account->email, $email_body, $email_subject, (array_key_exists('cc', $template) ? $template['cc'] : ((array_key_exists('cci', $template)) ? $template['cci'] : null)));
+			$connection->commit();
+		}
+		catch (\Exception $e) {
+			$connection->rollback();
+			throw $e;
+		}
+	}
+    
     public function updateAction()
     {
     	// Retrieve the context
@@ -617,7 +674,7 @@ class TestResultController extends AbstractActionController
 	 * Restfull implementation
 	 * TODO : authorization + error description
 	 */
-	public function v1Action()
+/*	public function v1Action()
 	{
 		$context = Context::getCurrent();
 	
@@ -791,5 +848,5 @@ class TestResultController extends AbstractActionController
 			ob_end_flush();
 			return $this->response;
 		}
-	}
+	}*/
 }
