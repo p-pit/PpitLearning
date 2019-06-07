@@ -22,6 +22,7 @@
 		'Number of notes' => 'Nombre de notes',
 		'Ongoing test' => 'Test en cours',
 		'Period' => 'Période',
+		'Planned' => 'Planifié',
 		'Return to evaluation list' => 'Retour à la liste des évaluations',
 		'Return to learner list' => 'Retour à la liste des élèves',
 		'See the page' => 'Voir la page',
