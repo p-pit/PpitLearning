@@ -437,7 +437,7 @@ $('.<?php echo $questionId ?>').click(function () {
 	$('.<?php echo $questionId ?>').prop('checked', false);
 	$(this).prop('checked', true);
 	$('#action').val('save');
-	$.post("<?php echo $this->url('testResult/perform', array('id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
+	$.post("<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
 <?php if (array_key_exists('save_space', $question) && $question['save_space']) : ?>
 	$('#question-area_<?php echo $questionId ?>').hide();
 <?php endif;?>
@@ -468,7 +468,7 @@ $('#button_<?php echo $questionId ?>').click(function () {
 			$('#result_<?php echo $questionId ?>').val(xhttp.responseText);
 			$('#result_<?php echo $questionId ?>').attr('disabled', null);
 			$('#action').val('save');
-			$.post("<?php echo $this->url('testResult/perform', array('id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
+			$.post("<?php echo $this->url('testResult/perform', array('type' => $type, 'id' => $id)).'?hash='.$token ?>", $("#test-form").serialize(), function(data) {});
 			$('#result_<?php echo $questionId ?>').attr('disabled', 'disabled');
 
 	<?php if (!$config['isTraceActive']) : ?>

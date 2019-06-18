@@ -467,6 +467,66 @@ class TestResultController extends AbstractActionController
     	return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $result->id));
     }
 
+    public function sendMessage($type, $template_id, $account_id, $result)
+    {
+    	// Retrieve the context
+    	$context = Context::getCurrent();
+    
+    	// Retrieve the template
+    	if ($context->getConfig('event/send-message'.(($type) ? '/'.$type : ''))) {
+    		$template = $context->getConfig('event/send-message'.(($type) ? '/'.$type : ''))['templates'][$template_id];
+    		if ($template['definition'] != 'inline') $template = $context->getConfig($template['definition']);
+    	}
+    	else $template = $context->getConfig('event/template/generic');
+    
+    	$places = Place::getList([]);
+    
+    	$account = Account::get($account_id);
+    	if (array_key_exists($account->place_id, $places)) $place = $places[$account->place_id];
+    	else $place = null;
+    
+    	if ($account->email) {
+    		$data = array();
+    		if ($place->logo_src) {
+    			$logo_src = $place->logo_src;
+    		}
+    		else {
+    			$logo_src = $context->getConfig('headerParams')['logo'];
+    			$logo_height = $context->getConfig('headerParams')['logo-height'];
+    		}
+    		$basePath = $this->getRequest()->getUri()->getPath();
+    		$link = $context->getInstance()->fqdn.$basePath.'/logos/';
+    		$data['logo_src'] = $link.$context->getInstance()->caption.'/'.$logo_src;
+    		$data['noteRoute'] = $this->url()->fromRoute('event/export/test_note') . '?account_id=' . $account_id;
+    		$data['detailRoute'] = $this->url()->fromRoute('event/export/test_detail') . '?account_id=' . $account_id;
+    		$data['name'] = $account->name;
+    		$data['caption'] = $result->caption;
+    		$data['type'] = 'email';
+    		$data['to'] = [$email => $email];
+    		if (array_key_exists('cci', $template)) $data['cci'] = $template['cci'];
+    		$data['from_mail'] = ($place->support_email) ? $place->support_email : $template['from_mail'];
+    		$data['from_name'] = ($place->support_email) ? $place->caption : $template['from_name'];
+    		$data['subject'] = $template['subject'];
+    		$arguments = array();
+    		foreach ($template['subject']['params'] as $param) $arguments[] = $data[$param];
+    		$data['subject'] = vsprintf($context->localize($data['subject']['text']), $arguments);
+    
+    		$data['body'] = $context->localize($template['body']['text']);
+    		$arguments = array();
+    		foreach ($template['body']['params'] as $param) $arguments[] = $data[$param];
+    		$data['body'] = vsprintf($data['body'], $arguments);
+    
+    		if ($place && array_key_exists('core_account/sendMessage', $place->config)) $signature = $place->config['core_account/sendMessage']['signature'];
+    		else $signature = $context->getConfig('core_account/sendMessage')['signature'];
+    		if ($signature['definition'] != 'inline') {
+    			$signature = $context->getConfig($signature['definition']);
+    		}
+    		$data['body'] .= $context->localize($signature['body']);
+    
+    		return $data;
+    	}
+    }
+    
     public function performAction()
     {
     	// Retrieve the context
@@ -634,9 +694,23 @@ class TestResultController extends AbstractActionController
 		    						$event->add();
 		    					}
 
-		    					$connection->commit();
-		    					return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $id), array('query' => array('hash' => $token)));
-		    					$message = 'OK';
+		    					if (!$result->next_result_id) {
+		    						// The test is over, send the email
+		    						$data = $this->sendMessage($type, null, $result->account_id, $result);
+									$mail = ContactMessage::instanciate();
+									$mail->type = 'email';
+									if ($mail->loadData($data) != 'OK') throw new \Exception('View error');
+									$rc = $mail->add();
+									if ($rc != 'OK') {
+										$connection->rollback();
+										$error = $rc;
+									}
+		    					}
+		    					if (!$error) {
+			    					$connection->commit();
+			    					return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $id), array('query' => array('hash' => $token)));
+			    					$message = 'OK';
+		    					}
 		    				}
 		    			}
 		    			catch (\Exception $e) {

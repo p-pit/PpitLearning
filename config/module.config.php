@@ -341,29 +341,20 @@ return array(
 	'ppitApplications' => array(
 		'p-pit-learning' => array(
 			'labels' => array('fr_FR' => 'P-Pit Learning', 'en_US' => 'Learning by 2Pit'),
-			'default' => 'testResult',
+			'default' => 'teacher',
 			'defaultRole' => 'trainer',
 		),
 	),
 		
 	'menus/p-pit-learning' => array(
 		'entries' => array(
-					'learning_account' => array(
-							'route' => 'account/indexAlt',
-							'params' => array('entry' => 'account', 'type' => 'generic', 'app' => 'p-pit-learning'),
-							'glyphicon' => 'glyphicon-user',
-							'label' => array(
-									'en_US' => 'Accounts',
-									'fr_FR' => 'Comptes',
-							),
-					),
 					'teacher' => array(
 							'route' => 'account/indexAlt',
 							'params' => array('entry' => 'account', 'type' => 'teacher', 'app' => 'p-pit-learning'),
 							'glyphicon' => 'glyphicon-user',
 							'label' => array(
-									'en_US' => 'Teachers',
-									'fr_FR' => 'Professeurs',
+									'en_US' => 'Speakers',
+									'fr_FR' => 'Intervenants',
 							),
 					),
 					'group' => array(
@@ -375,14 +366,14 @@ return array(
 							),
 					),
 					'calendar' => array(
-							'route' => 'event/index',
-							'params' => array('type' => 'planning', 'app' => 'p-pit-learning'),
-							'urlParams' => '?status=new',
-							'glyphicon' => 'glyphicon-calendar',
-							'label' => array(
-									'en_US' => 'Planning',
-									'fr_FR' => 'Planning',
-							),
+						'route' => 'event/calendar',
+						'params' => array('type' => 'calendar', 'category' => 'calendar', 'app' => 'p-pit-learning'),
+						'urlParams' => '?status=new',
+						'glyphicon' => 'glyphicon-calendar',
+						'label' => array(
+							'en_US' => 'Planning',
+							'fr_FR' => 'Planning',
+						),
 					),
 					'testResult' => array(
 							'route' => 'testResult/index',
@@ -424,8 +415,8 @@ return array(
 		'definition' => 'inline',
 		'type' => 'title',
 		'labels' => array(
-			'en_US' => 'TEACHER IDENTIFICATION',
-			'fr_FR' => 'IDENTIFICATION DU PROFESSEUR',
+			'en_US' => 'SPEAKER IDENTIFICATION',
+			'fr_FR' => 'IDENTIFICATION DE L’INTERVENANT',
 		),
 	),
 	'core_account/teacher/property/title_2' => array(
@@ -723,6 +714,7 @@ return array(
 
 	'core_account/event_account_search/teacher' => array(
 		'properties' => array(
+			'groups' => [],
 			'status' => [],
 			'n_fn' => [],
 			'property_3' => [],
@@ -992,7 +984,7 @@ table.note-report td {
 			'dimensions' => array(
 			),
 			'properties' => array(
-					'status', 'type', 'identifier', 'place_id', 'place_caption', 'n_fn',
+					'status', 'type', 'identifier', 'place_id', 'place_caption', 'account_id', 'n_fn',
 					'caption', 'description', 'value', 'property_1', 'property_2', 'property_3', 'property_4', 'property_5', 'property_6', 'property_7',
 					'update_time',
 			),
@@ -1019,11 +1011,12 @@ table.note-report td {
 					'fr_FR' => 'recherche'
 			),
 			'properties'=> array(
-					'caption' => 'contains',
-					'property_1' => 'contains',
-					'property_2' => 'contains',
-					'n_fn' => 'contains',
-					'value' => 'range',
+					'caption' => [],
+					'property_1' => [],
+					'property_2' => [],
+					'account_id' => [],
+					'n_fn' => [],
+					'value' => [],
 			)
 	),
 	'event/list/test_note'=> array(
@@ -1145,7 +1138,7 @@ table.note-report td {
 			'dimensions' => array(
 			),
 			'properties' => array(
-					'status', 'type', 'identifier', 'place_id', 'place_caption', 'n_fn',
+					'status', 'type', 'identifier', 'place_id', 'place_caption', 'account_id', 'n_fn',
 					'caption', 'description', 'value',
 					'property_1', 'property_2', 'property_3', 'property_4', 'property_5', 'property_6', 'property_7',
 					'update_time',
@@ -1173,10 +1166,11 @@ table.note-report td {
 					'fr_FR' => 'recherche'
 			),
 			'properties'=> array(
-					'identifier' => 'contains',
-					'n_fn' => 'contains',
-					'property_5' => 'contains',
-					'caption' => 'contains',
+					'identifier' => [],
+					'account_id' => [],
+					'n_fn' => [],
+					'property_5' => [],
+					'caption' => [],
 			)
 	),
 	'event/list/test_detail'=> array(
