@@ -561,8 +561,8 @@ class TestResultController extends AbstractActionController
 		$data['caption'] = $result->caption;
 		$data['email'] = $account->email;
 		$data['type'] = 'email';
-		$data['to'] = [];
-		foreach ($template['to'] as $to_email => $to_name) $data['to'][$to_email] = $to_name;
+		$data['to'] = ($place->support_email) ? [$place->support_email => $place->caption] : [];
+		if (!$data['to']) foreach ($template['to'] as $to_email => $to_name) $data['to'][$to_email] = $to_name;
 		if (array_key_exists('cci', $template)) $data['cci'] = $template['cci'];
 		$data['from_mail'] = ($place->support_email) ? $place->support_email : $template['from_mail'];
 		$data['from_name'] = ($place->support_email) ? $place->caption : $template['from_name'];
