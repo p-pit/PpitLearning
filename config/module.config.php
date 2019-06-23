@@ -1562,7 +1562,31 @@ table.note-report td {
 <p>Afin d\'accéder à votre leçon, veuillez suivre ce lien : %s</p>',
 			),
 	),
-		
+
+	'testResult/message/result/generic' => [
+		'from_mail' => 'postmaster@2pit.io',
+		'from_name' => 'P-Pit',
+		'to' => ['contact@2pit.io' => null],
+		'subject' => [
+			'text' => [
+				'default' => '%s a réalisé le test %s - Résultats à analyser',
+			],
+			'params' => ['name', 'caption'],
+		],
+		'body' => [
+			'text' => [
+				'default' => '
+<p>Bonjour,</p>
+<p>%s a réalisé le test %s. Il vous revient d’analyser le résultat et lui répondre à l’adresse email %s</p>
+<p>Pour accéder à la synthèse de son résultat : %s</p>
+<p>Pour accéder à la liste des questions et réponses unitaires : %s</p>
+<p>Bien cordialement</p>
+',
+			],
+			'params' => ['name', 'caption', 'email', 'noteRoute', 'detailRoute'],
+		],
+	],
+	
 	'demo' => array(
 			'testResult/search/title' => array(
 					'en_US' => '

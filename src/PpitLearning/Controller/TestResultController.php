@@ -10,6 +10,7 @@
 namespace PpitLearning\Controller;
 
 use PpitContact\Model\ContactMessage;
+use PpitCommitment\Model\CommitmentMessage;
 use PpitCore\Model\Account;
 use PpitCore\Model\Csrf;
 use PpitCore\Model\Context;
@@ -467,64 +468,122 @@ class TestResultController extends AbstractActionController
     	return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $result->id));
     }
 
-    public function sendMessage($type, $template_id, $account_id, $result)
+    public function sendResultMail($result)
     {
     	// Retrieve the context
     	$context = Context::getCurrent();
     
     	// Retrieve the template
-    	if ($context->getConfig('event/send-message'.(($type) ? '/'.$type : ''))) {
-    		$template = $context->getConfig('event/send-message'.(($type) ? '/'.$type : ''))['templates'][$template_id];
-    		if ($template['definition'] != 'inline') $template = $context->getConfig($template['definition']);
-    	}
-    	else $template = $context->getConfig('event/template/generic');
+    	$template = $context->getConfig('testResult/message/result/generic');
     
     	$places = Place::getList([]);
     
-    	$account = Account::get($account_id);
+    	$account = Account::get($result->account_id);
     	if (array_key_exists($account->place_id, $places)) $place = $places[$account->place_id];
     	else $place = null;
-    
-    	if ($account->email) {
-    		$data = array();
-    		if ($place->logo_src) {
-    			$logo_src = $place->logo_src;
-    		}
-    		else {
-    			$logo_src = $context->getConfig('headerParams')['logo'];
-    			$logo_height = $context->getConfig('headerParams')['logo-height'];
-    		}
-    		$basePath = $this->getRequest()->getUri()->getPath();
-    		$link = $context->getInstance()->fqdn.$basePath.'/logos/';
-    		$data['logo_src'] = $link.$context->getInstance()->caption.'/'.$logo_src;
-    		$data['noteRoute'] = $this->url()->fromRoute('event/export/test_note') . '?account_id=' . $account_id;
-    		$data['detailRoute'] = $this->url()->fromRoute('event/export/test_detail') . '?account_id=' . $account_id;
-    		$data['name'] = $account->name;
-    		$data['caption'] = $result->caption;
-    		$data['type'] = 'email';
-    		$data['to'] = [$email => $email];
-    		if (array_key_exists('cci', $template)) $data['cci'] = $template['cci'];
-    		$data['from_mail'] = ($place->support_email) ? $place->support_email : $template['from_mail'];
-    		$data['from_name'] = ($place->support_email) ? $place->caption : $template['from_name'];
-    		$data['subject'] = $template['subject'];
-    		$arguments = array();
-    		foreach ($template['subject']['params'] as $param) $arguments[] = $data[$param];
-    		$data['subject'] = vsprintf($context->localize($data['subject']['text']), $arguments);
-    
-    		$data['body'] = $context->localize($template['body']['text']);
-    		$arguments = array();
-    		foreach ($template['body']['params'] as $param) $arguments[] = $data[$param];
-    		$data['body'] = vsprintf($data['body'], $arguments);
-    
-    		if ($place && array_key_exists('core_account/sendMessage', $place->config)) $signature = $place->config['core_account/sendMessage']['signature'];
-    		else $signature = $context->getConfig('core_account/sendMessage')['signature'];
-    		if ($signature['definition'] != 'inline') {
-    			$signature = $context->getConfig($signature['definition']);
-    		}
-    		$data['body'] .= $context->localize($signature['body']);
-    
-    		return $data;
+
+    	// Generate the per-axis SSML message
+    	$description = Event::getDescription('test_note');
+    	$ssmlContent = ['title' => ['default' => $result->testSession->test->caption . ' - ' . $result->n_fn]];
+    	
+    	// Generate the Ssml column headers
+    	$ssmlRow = [];
+    	foreach ($description['export'] as $propertyId => $property) {
+    		$ssmlRow[$property['column']] = $property['labels'];
     	}
+    	$ssmlContent['sheet'] = [];
+    	$ssmlContent['sheet'][] = $ssmlRow;
+    	// Generate the per-axis rows
+    	foreach ($result->axes as $axisId => $axis) {
+    		foreach ($axis['categories'] as $categoryId => $category) {
+    	
+				// Retrieve the existing note event
+				$event = Event::get($result->testSession->test->caption.'_'.$result->account_id.'_'.$categoryId, 'identifier');
+
+				// Add an Ssml content row
+				$ssmlRow = [];
+				foreach ($description['export'] as $propertyId => $property) {
+				$ssmlRow[$property['column']] = ['default'  => $event->properties[$propertyId]];
+					if ($property['type'] == 'number') $ssmlRow[$property['column']]['format'] = 'number';
+				}
+				$ssmlContent['sheet'][] = $ssmlRow;
+    		}
+    	}
+
+    	$messageNote = CommitmentMessage::instanciate('SSML');
+    	$messageNote->status = 'new';
+    	$messageNote->authentication_token = md5(uniqid(rand(), true));
+    	$messageNote->identifier = $context->getInstance()->fqdn.'_test_note_'.$event->id;
+    	$messageNote->direction = 'O';
+    	$messageNote->format = 'application/json';
+    	$messageNote->content = json_encode($ssmlContent, JSON_PRETTY_PRINT);
+    	$rc = $messageNote->add();
+    	if ($rc != 'OK') throw new \Exception($error);
+
+    	// Generate the detailed result SSML message
+    	$description = Event::getDescription('test_detail');
+    	$ssmlContent = ['title' => ['default' => $result->testSession->test->caption . ' - ' . $result->n_fn]];
+    	
+    	// Generate the Ssml column headers
+    	$ssmlRow = [];
+    	foreach ($description['export'] as $propertyId => $property) {
+    		$ssmlRow[$property['column']] = $property['labels'];
+    	}
+    	$ssmlContent['sheet'] = [];
+    	$ssmlContent['sheet'][] = $ssmlRow;
+
+    	// Generate the detailed result events
+    	$events = Event::getList('test_detail', ['account_id' => $result->account_id]);
+    	foreach ($events as $eventId => $event) {
+    		foreach ($description['export'] as $propertyId => $property) {
+    			$ssmlRow[$property['column']] = ['default'  => $event->properties[$propertyId]];
+    			if ($property['type'] == 'number') $ssmlRow[$property['column']]['format'] = 'number';
+    		}
+    		$ssmlContent['sheet'][] = $ssmlRow;
+    	}
+    	$messageDetail = CommitmentMessage::instanciate('SSML');
+    	$messageDetail->status = 'new';
+    	$messageDetail->authentication_token = md5(uniqid(rand(), true));
+    	$messageDetail->identifier = $context->getInstance()->fqdn.'_test_detail_'.$event->id;
+    	$messageDetail->direction = 'O';
+    	$messageDetail->format = 'application/json';
+    	$messageDetail->content = json_encode($ssmlContent, JSON_PRETTY_PRINT);
+    	$rc = $messageDetail->add();
+    	if ($rc != 'OK') throw new \Exception($error);
+
+    	// Generate the email with a link to the results for the examinator
+		$data = array();
+		$basePath = $this->getRequest()->getUri()->getPath();
+		$link = $context->getInstance()->fqdn.$basePath.'/logos/';
+		$data['noteRoute'] = $this->url()->fromRoute('commitmentMessage/guestDownloadSsml', ['id' => $messageNote->id], ['query' => ['hash' => $messageNote->authentication_token], 'force_canonical' => true]);
+		$data['detailRoute'] = $this->url()->fromRoute('commitmentMessage/guestDownloadSsml', ['id' => $messageDetail->id], ['query' => ['hash' => $messageDetail->authentication_token], 'force_canonical' => true]);
+		$data['name'] = $account->name;
+		$data['caption'] = $result->caption;
+		$data['email'] = $account->email;
+		$data['type'] = 'email';
+		$data['to'] = [];
+		foreach ($template['to'] as $to_email => $to_name) $data['to'][$to_email] = $to_name;
+		if (array_key_exists('cci', $template)) $data['cci'] = $template['cci'];
+		$data['from_mail'] = ($place->support_email) ? $place->support_email : $template['from_mail'];
+		$data['from_name'] = ($place->support_email) ? $place->caption : $template['from_name'];
+		$data['subject'] = $template['subject'];
+		$arguments = array();
+		foreach ($template['subject']['params'] as $param) $arguments[] = $data[$param];
+		$data['subject'] = vsprintf($context->localize($data['subject']['text']), $arguments);
+
+		$data['body'] = $context->localize($template['body']['text']);
+		$arguments = array();
+		foreach ($template['body']['params'] as $param) $arguments[] = $data[$param];
+		$data['body'] = vsprintf($data['body'], $arguments);
+
+		if ($place && array_key_exists('core_account/sendMessage', $place->config)) $signature = $place->config['core_account/sendMessage']['signature'];
+		else $signature = $context->getConfig('core_account/sendMessage')['signature'];
+		if ($signature['definition'] != 'inline') {
+			$signature = $context->getConfig($signature['definition']);
+		}
+		$data['body'] .= $context->localize($signature['body']);
+
+		return $data;
     }
     
     public function performAction()
@@ -621,7 +680,7 @@ class TestResultController extends AbstractActionController
 								$result->computeScores();
 
 		    					// Generate the per-axis result event
-		    					foreach ($result->axes as $axisId => $axis) {
+								foreach ($result->axes as $axisId => $axis) {
 		    						foreach ($axis['categories'] as $categoryId => $category) {
 		    							if (array_key_exists('score', $category)) {
 
@@ -657,7 +716,7 @@ class TestResultController extends AbstractActionController
 		    							}
 		    						}
 		    					}
-
+		    					
 		    					// Generate the detailed result events
 		    					$event = Event::instanciate();
 		    					$event->status = 'new';
@@ -692,11 +751,11 @@ class TestResultController extends AbstractActionController
 				    					$event->property_12 = $category['weight'];
 		    						}
 		    						$event->add();
-		    					}
-
+			    				}
+			    				 
 		    					if (!$result->next_result_id) {
 		    						// The test is over, send the email
-		    						$data = $this->sendMessage($type, null, $result->account_id, $result);
+		    						$data = $this->sendResultMail($result);
 									$mail = ContactMessage::instanciate();
 									$mail->type = 'email';
 									if ($mail->loadData($data) != 'OK') throw new \Exception('View error');
