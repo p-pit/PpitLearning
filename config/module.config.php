@@ -714,14 +714,12 @@ return array(
 
 	'core_account/event_account_search/teacher' => array(
 		'properties' => array(
-			'groups' => [],
-			'status' => [],
 			'n_fn' => [],
 			'property_3' => [],
 		),
 	),
 
-	'core_account/event_account_list/generic' => array(
+	'core_account/event_account_list/teacher' => array(
 		'properties' => array(
 			'n_fn' => [],
 			'property_3' => [],
