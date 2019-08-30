@@ -341,7 +341,7 @@ return array(
 	'ppitApplications' => array(
 		'p-pit-learning' => array(
 			'labels' => array('fr_FR' => 'P-Pit Learning', 'en_US' => 'Learning by 2Pit'),
-			'default' => 'testResult',
+			'default' => 'teacher',
 			'defaultRole' => 'trainer',
 		),
 	),
