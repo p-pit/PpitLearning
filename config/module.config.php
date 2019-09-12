@@ -608,7 +608,7 @@ return array(
 		),
 	),
 	
-	'core_account/teacher/property/property_5' => array('definition' => 'core_account/generic/property/property_5'),
+	'core_account/teacher/property/property_5' => array('definition' => 'student/property/school_subject', 'type' => 'multiselect'),
 	'core_account/teacher/property/property_6' => array('definition' => 'core_account/generic/property/property_6'),
 	'core_account/teacher/property/property_7' => array('definition' => 'core_account/generic/property/property_7'),
 	'core_account/teacher/property/property_8' => array('definition' => 'core_account/generic/property/property_8'),
@@ -706,6 +706,7 @@ return array(
 						'priority' => ['multiple' => true],
 						'origine' => ['multiple' => true],
 						'property_3' => [],
+						'property_5' => [],
 						'property_2' => [],
 //						'json_property_1' => [],
 						'availability' => [],
@@ -716,6 +717,7 @@ return array(
 		'properties' => array(
 			'n_fn' => [],
 			'property_3' => [],
+			'property_5' => [],
 		),
 	),
 
@@ -782,7 +784,7 @@ return array(
 				'property_1' => ['mandatory' => false],
 				'property_2' => ['mandatory' => false],
 				'property_3' => ['mandatory' => false],
-				'property_4' => ['mandatory' => false],
+				'property_5' => ['mandatory' => false],
 //				'json_property_1' => ['mandatory' => false],
 				'availability_begin' => ['mandatory' => false],
 				'availability_end' => ['mandatory' => false],
