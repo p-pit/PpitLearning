@@ -620,7 +620,7 @@ return array(
 	'core_account/teacher/property/property_14' => array('definition' => 'core_account/generic/property/property_14'),
 	'core_account/teacher/property/property_15' => array('definition' => 'core_account/generic/property/property_15'),
 	'core_account/teacher/property/property_16' => array('definition' => 'core_account/generic/property/property_16'),
-
+/*
 	'core_account/teacher/property/json_property_1' => array(
 		'definition' => 'inline',
 		'type' => 'structure',
@@ -653,7 +653,7 @@ return array(
 				'en_US' => 'Courses',
 				'fr_FR' => 'Cours',
 		),
-	),
+	),*/
 	
 	'core_account/teacher/property/json_property_2' => array('definition' => 'core_account/generic/property/json_property_2'),
 	'core_account/teacher/property/json_property_3' => array('definition' => 'core_account/generic/property/json_property_3'),
@@ -707,7 +707,7 @@ return array(
 						'origine' => ['multiple' => true],
 						'property_3' => [],
 						'property_2' => [],
-						'json_property_1' => [],
+//						'json_property_1' => [],
 						'availability' => [],
 				),
 		),
@@ -777,12 +777,13 @@ return array(
 				'adr_street' => ['mandatory' => false],
 				'adr_zip' => ['mandatory' => false],
 				'adr_city' => ['mandatory' => false],
+				'groups' => ['readonly' => true],
 				'title_2' => ['mandatory' => false],
 				'property_1' => ['mandatory' => false],
 				'property_2' => ['mandatory' => false],
 				'property_3' => ['mandatory' => false],
 				'property_4' => ['mandatory' => false],
-				'json_property_1' => ['mandatory' => false],
+//				'json_property_1' => ['mandatory' => false],
 				'availability_begin' => ['mandatory' => false],
 				'availability_end' => ['mandatory' => false],
 				'availability_constraints' => ['mandatory' => false],
@@ -838,7 +839,7 @@ return array(
 				'tel_work_2' => [],
 				'tel_cell_2' => [],
 
-				'json_property_1' => [],
+//				'json_property_1' => [],
 				
 				'contact_history' => [],
 				'notification_time' => [],
