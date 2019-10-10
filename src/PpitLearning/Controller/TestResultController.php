@@ -410,7 +410,7 @@ class TestResultController extends AbstractActionController
 							if (array_key_exists('cci', $template)) $email->cci = $template['cci'];
 							$email->subject = $context->localize($template['subscribeTitle']);
 							$email_body = $template['subscribeText'][$context->getLocale()];
-							$email->body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => $type, 'id' => $result_id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
+							$email->body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => $type, 'id' => $result->id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
 							$email->sendHtmlMail();
 	    				}
 	    				$connection->commit();
