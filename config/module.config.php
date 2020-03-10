@@ -758,6 +758,10 @@ return array(
 								'params' => array('type' => '', 'contactNumber' => 2),
 								'labels' => array('en_US' => 'Payment', 'fr_FR' => 'Règlement'),
 						),
+					'account-document' => array(
+							'definition' => 'inline',
+							'labels' => array('en_US' => 'Documents', 'fr_FR' => 'Documents'),
+					),
 				),
 		),
 		'core_account/update/teacher' => array(
@@ -841,6 +845,7 @@ return array(
 				'tel_work_2' => [],
 				'tel_cell_2' => [],
 
+				'property_3' => [],
 //				'json_property_1' => [],
 				
 				'contact_history' => [],

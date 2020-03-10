@@ -643,11 +643,11 @@ class TestResultController extends AbstractActionController
 								}
 							}
 						}
-						elseif ($question['type'] == 'phpCode') {
+/*						elseif ($question['type'] == 'phpCode') {
 							$res = $request->getPost('result_'.$questionId);
 							$proposition = $request->getPost('proposition_'.$questionId);
 							$answers[$questionId] = array('result' => $res, 'proposition' => $proposition);
-						}
+						}*/
 					}
 					$data['answers'] = $answers;
 					if ($result->loadData($data) != 'OK') throw new \Exception('View error');
