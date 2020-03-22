@@ -1548,27 +1548,26 @@ table.note-report td {
 					'actual_duration' => null,
 			),
 	),
-		
-	'testResult/message/generic' => array(
-			'from_mail' => 'postmaster@p-pit.fr',
-			'from_name' => 'P-Pit',
-			'cci' => array('support@p-pit.fr' => null),
-			'subscribeTitle' => array(
-					'en_US' => 'Your P-Pit Learning lesson',
-					'fr_FR' => 'Votre leçon P-Pit Learning',
-			),
-			'subscribeText' => array(
-					'en_US' => '
-<p>Hello</p>
-<p>Welcome in P-Pit Learning,</p>
-<p>In order to access to your lesson, please follow this link: %s</p>',
-					'fr_FR' => '
-<p>Bonjour,</p>
-<p>Bienvenue sur P-Pit Learning,</p>
-<p>Afin d\'accéder à votre leçon, veuillez suivre ce lien : %s</p>',
-			),
-	),
 
+	'testResult/message/generic' => array(
+		'from_mail' => 'postmaster@p-pit.fr',
+		'from_name' => 'P-Pit',
+		'cci' => array('support@p-pit.fr' => null),
+		'subscribeTitle' => array(
+			'en_US' => 'Your CCLAM test',
+			'fr_FR' => 'Votre test CCLAM',
+		),
+		'subscribeText' => array(
+			'default' => '
+<p>Bonjour,</p>
+<p>Bienvenue sur le test ALPHA de la Chambre de Commerce Latino-Américaine,</p>
+<p>Nous avons bien reçu votre inscription au test ALPHA. Afin d\'accéder à votre évaluation, veuillez suivre ce lien et suivre les instructions : %s</p>
+<p>Bien cordialement</p>
+<p>&nbsp;</p>
+<p>Francisco</p>',
+		),
+	),
+	
 	'testResult/message/result/generic' => [
 		'from_mail' => 'postmaster@2pit.io',
 		'from_name' => 'P-Pit',

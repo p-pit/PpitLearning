@@ -1,0 +1,68 @@
+<form id="registerForm" method="POST">
+  <div class="modal-header text-center">
+    <h4 class="modal-title w-100 font-weight-bold"><?php echo $this->translate('Subscribe', 'ppit-core', $locale) ?></h4>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div id="modalRegisterInputs"></div>
+  <div class="modal-body mx-3">
+
+<!--  CSRF protection -->
+<?php $element = $csrfForm->get('csrf') ?>
+    <div class="form-group">
+      <?php echo $this->formElement($element) ?>
+<?php if ($this->formElementErrors($element)) : ?>
+      <div class="alert alert-danger" style="text-align: center">
+        <strong><?php echo $this->translate('The form has expired, please input again', 'ppit-core', $locale) ?></strong>
+      </div>
+<?php endif;?>
+    </div>
+            
+<?php if ($requestType == 'POST' && $statusCode == '200') : ?>
+    <div class="alert alert-success" style="text-align: center">
+	   <strong><?php echo $this->translate('Your request has been registered. To finalize the registration, please check you emails with an activation link to follow.', 'ppit-core', $context->getLocale()) ?></strong>
+    </div>
+
+<?php elseif ($statusCode == '206') : ?>
+    <div class="alert alert-danger" style="text-align: center">
+      <strong><?php echo $this->translate('An account already exists for this name or email address', 'ppit-core', $locale) ?></strong>
+    </div>
+
+<?php elseif ($statusCode == '500') : ?>
+    <div class="alert alert-danger" style="text-align: center">
+      <strong><?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $locale) ?></strong>
+    </div>
+
+<?php endif;?>
+
+<?php if ($requestType == 'POST') $isDisabled = true; else $isDisabled = false ?>
+
+    <div class="md-form mb-3">
+      <input type="email" id="register-email" class="form-control validate modal_input" required="required" value="<?php echo $data['email'] ?>" <?php if ($isDisabled) echo 'disabled="disabled"' ?>>
+      <label for="register-email">* <?php echo $this->translate('Email', 'ppit-core', $locale) ?></label>
+    </div>
+  
+    <div class="md-form mb-3">
+      <input type="text" id="register-n_first" class="form-control validate modal_input" required="required" value="<?php echo $data['n_first'] ?>" <?php if ($isDisabled) echo 'disabled="disabled"' ?>>
+      <label for="register-n_first">* <?php echo $this->translate('First name', 'ppit-core', $locale) ?></label>
+    </div>
+  
+    <div class="md-form mb-3">
+      <input type="text" id="register-n_last" class="form-control validate modal_input" required="required" value="<?php echo $data['n_last'] ?>" <?php if ($isDisabled) echo 'disabled="disabled"' ?>>
+      <label for="register-n_last">* <?php echo $this->translate('Last name', 'ppit-core', $locale) ?></label>
+    </div>
+  
+    <div class="md-form mb-3">
+      <input type="text" id="register-tel_cell" class="form-control validate modal_input" value="<?php echo $data['tel_cell'] ?>" <?php if ($isDisabled) echo 'disabled="disabled"' ?>>
+      <label for="register-n_last"><?php echo $this->translate('Phone', 'ppit-core', $locale) ?></label>
+    </div>
+
+  </div>
+  <div class="modal-footer d-flex justify-content-center">
+<?php if (!$isDisabled) : ?>
+    <button type="submit" class="btn btn-danger btn-rounded"><?php echo $this->translate('Submit', 'ppit-core', $locale) ?></button>
+<?php endif;?>
+  </div>
+</form>
+    

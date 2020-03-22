@@ -242,63 +242,6 @@ class TestResultController extends AbstractActionController
     	$view->setTerminal(true);
     	return $view;
     }
-
-	public static function subscribe($account, $test_session_id, $url)
-	{
-		$context = Context::getCurrent();
-
-		$result = TestResult::instanciate();
-		
-		// Load the input data
-		$data = array();
-		$data['status'] = 'new';
-		$data['place_id'] = $account->place_id;
-		$data['account_id'] = $account->id;
-		$data['test_session_id'] = $test_session_id;
-		$data['actual_time'] = null;
-		$data['answers'] = array();
-		if ($result->loadData($data) != 'OK') throw new \Exception('View error');
-		
-		// Atomically save
-		$connection = TestResult::getTable()->getAdapter()->getDriver()->getConnection();
-		$connection->beginTransaction();
-		try {
-			$result->authentication_token = md5(uniqid(rand(), true));
-			$rc = $result->add();
-			$result_id = $result->id;
-			$resultIds = array();
-			$session = TestSession::get($test_session_id);
-			while ($rc =='OK' && $session->next_session_id) {
-				$session = TestSession::get($session->next_session_id);
-				$result->test_session_id = $session->id;
-				$rc = $result->add();
-				$resultIds[] = $result->id;
-			}
-			$result = TestResult::get($result_id);
-			foreach ($resultIds as $id) {
-				$result->next_result_id = $id;
-				$result->update(null);
-				$result = TestResult::get($id);
-			}
-		
-			// Send the email to the user
-			if (array_key_exists('email_template', $result->testSession->test)) {
-				$template = $result->testSession->test['email_template'];
-			}
-			else {
-				$template = $context->getConfig('testResult/message/generic');
-			}
-			$email_subject = $context->localize($template['subscribeTitle']);
-			$email_body = $template['subscribeText'][$context->getLocale()];
-			$email_body = sprintf($email_body, 'https://cclam.p-pit.fr/test-result/perform/generic/' . $result_id .'?hash='.$result->authentication_token);
-			Context::sendMail($account->email, $email_body, $email_subject, (array_key_exists('cc', $template) ? $template['cc'] : ((array_key_exists('cci', $template)) ? $template['cci'] : null)));
-			$connection->commit();
-		}
-		catch (\Exception $e) {
-			$connection->rollback();
-			throw $e;
-		}
-	}
     
     public function updateAction()
     {
@@ -442,30 +385,136 @@ class TestResultController extends AbstractActionController
     	$view->setTerminal(true);
     	return $view;
     }
-
+   
     public function subscribeAction()
     {
-    	// Retrieve the context
+    	// Retrieve the context and the parameters
     	$context = Context::getCurrent();
-    	$type = $this->params()->fromRoute('type', '');
+    	$type = $this->params()->fromRoute('type', 'generic');
+    	$test_session_id = $this->params()->fromRoute('test_session_id', 3);
+    	$locale = $this->params()->fromQuery('locale');
+    	$place = Place::get($context->getPlaceId());
+    	
+    	$data = ['email' => null, 'n_first' => null, 'n_last' => null, 'tel_cell' => null];
     	 
-    	$test_session_id = (int) $this->params()->fromRoute('test_session_id', 0);
-    	$learningSession = TestSession::getTable()->get($test_session_id);
-    	if (!$learningSession) return $this->redirect()->toRoute('user/expired');
+    	// CSRF protection
+    	$csrfForm = new CsrfForm();
+    	$csrfForm->addCsrfElement('csrf');
+    
+    	// Process the post data after input
+    	if ($this->request->isPost()) {
+    
+    		$csrfForm->setInputFilter((new Csrf('csrf'))->getInputFilter());
+    		$csrfForm->setData($this->request->getPost());
+    
+    		if ($csrfForm->isValid()) { // CSRF check
+    
+    			// Atomicity
+    			$connection = Account::getTable()->getAdapter()->getDriver()->getConnection();
+    			$connection->beginTransaction();
+    			try {
+    				$vcard = Vcard::instanciate();
+    				$data['email'] = $this->request->getPost('register-email');
+    				$data['n_first'] = $this->request->getPost('register-n_first');
+    				$data['n_last'] = $this->request->getPost('register-n_last');
+    				$data['tel_cell'] = $this->request->getPost('register-tel_cell');
+    				
+    				$rc = $vcard->loadDataV2($data);
+    				if ($rc != 'OK') {
+    					$this->response->setStatusCode('500');
+    					$this->response->setReasonPhrase($rc);
+    					return $this->response();
+    				}
 
-    	$result = TestResult::instanciate();
+					$rc = $vcard->add();
+					if ($rc != 'OK') {
+						$this->response->setStatusCode('500');
+						$this->response->setReasonPhrase($rc);
+						return $this->response();
+					}
+
+					$account = Account::instanciate($type);
+					$account->place_id = $place->id;
+					$account->contact_1_id = $vcard->id;
+					$rc = $account->add();
+					if ($rc != 'OK') {
+						$this->response->setStatusCode('500');
+						$this->response->setReasonPhrase($rc);
+    					return $this->response();
+					}
+
+					$result = TestResult::instanciate();
+					$resultData = array();
+					$resultData['status'] = 'new';
+					$resultData['place_id'] = $account->place_id;
+					$resultData['account_id'] = $account->id;
+					$resultData['test_session_id'] = $test_session_id;
+					$resultData['actual_time'] = null;
+					$resultData['answers'] = array();
+					if ($result->loadData($resultData) != 'OK') throw new \Exception('View error');
+
+					$result->authentication_token = md5(uniqid(rand(), true));
+					$rc = $result->add();
+    				if ($rc != 'OK') {
+						$this->response->setStatusCode('500');
+						$this->response->setReasonPhrase($rc);
+    					return $this->response();
+					}
+					
+					$result_id = $result->id;
+					$resultIds = array();
+					$session = TestSession::get($test_session_id);
+					while ($session->next_session_id) {
+						$session = TestSession::get($session->next_session_id);
+						$result->test_session_id = $session->id;
+						$rc = $result->add();
+					    if ($rc != 'OK') {
+							$this->response->setStatusCode('500');
+							$this->response->setReasonPhrase($rc);
+	    					return $this->response();
+						}
+						$resultIds[] = $result->id;
+					}
+					$result = TestResult::get($result_id);
+					foreach ($resultIds as $id) {
+						$result->next_result_id = $id;
+						$result->update(null);
+						if ($rc != 'OK') {
+							$this->response->setStatusCode('500');
+							$this->response->setReasonPhrase($rc);
+	    					return $this->response();
+						}
+						$result = TestResult::get($id);
+					}
+
+					$connection->commit();
+
+					$template = $context->getConfig('testResult/message/generic');
+					$email_subject = $context->localize($template['subscribeTitle']);
+					$email_body = $context->localize($template['subscribeText']);
+					$email_body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => 'generic', 'id' => $result->id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
+					Context::sendMail($account->email, $email_body, $email_subject, (array_key_exists('cc', $template) ? $template['cc'] : ((array_key_exists('cci', $template)) ? $template['cci'] : null)));
+    			}
+    			catch (\Exception $e) {
+    				$connection->rollback();
+			    	$this->response->setStatusCode('500');
+    			}
+    		}
+    	}
     
-    	// Load the input data
-    	$data = array();
-   		$data['status'] = 'in_progress';
-    	$data['test_session_id'] = $test_session_id;
-    	$actual_datetime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s').'+ '.'60'.' seconds'));
-    	$result->actual_date = substr($actual_datetime, 0, 10);
-    	$result->actual_time = substr($actual_datetime, 11, 8);
-    	if ($result->loadData($data) != 'OK') throw new \Exception('View error');
-    
-    	$rc = $result->add();
-    	return $this->redirect()->toRoute('testResult/perform', array('type' => $type, 'id' => $result->id));
+    	// Return the view
+    	$view = new ViewModel(array(
+    		'context' => $context,
+    		'locale' => $locale,
+    		'place' => $place,
+    		'data' => $data,
+    		'csrfForm' => $csrfForm,
+    		'requestType' => ($this->request->isPost()) ? 'POST' : 'GET',
+    		'statusCode' => $this->response->getStatusCode(),
+    		'reasonPhrase' => $this->response->getReasonPhrase(),
+    	));
+    	$view->setTerminal(true);
+    	return $view;
     }
 
     public function sendResultMail($result)
@@ -592,7 +641,7 @@ class TestResultController extends AbstractActionController
     	$context = Context::getCurrent();
     	$type = $this->params()->fromRoute('type', '');
 
-    	$place = Place::get($context->getPlaceId());
+    	$place = Place::get('cclam', 'caption');
     	
     	$id = (int) $this->params()->fromRoute('id', 0);
     	if ($id) $result = TestResult::get($id);
