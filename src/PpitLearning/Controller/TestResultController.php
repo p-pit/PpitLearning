@@ -508,13 +508,13 @@ class TestResultController extends AbstractActionController
 						$error = $rc;
 					}*/
 
-					$connection->commit();
-
 					$template = $context->getConfig('testResult/message/generic');
 					$email_subject = $context->localize($template['subscribeTitle']);
 					$email_body = $context->localize($template['subscribeText']);
 					$email_body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => 'generic', 'id' => $result_id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
 					Context::sendMail($account->email, $email_body, $email_subject, (array_key_exists('cc', $template) ? $template['cc'] : ((array_key_exists('cci', $template)) ? $template['cci'] : null)));
+
+					$connection->commit();
     			}
     			catch (\Exception $e) {
     				$connection->rollback();
