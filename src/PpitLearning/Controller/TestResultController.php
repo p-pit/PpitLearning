@@ -487,12 +487,12 @@ class TestResultController extends AbstractActionController
 						}
 						$result = TestResult::get($id);
 					}
-
+/*
 					$template = $context->getConfig('testResult/message/generic');
 					$emailData = array();
 					$emailData['email'] = $data['email'];
 					$emailData['type'] = 'email';
-					$emailData['to'][$data['email']] = [$data['email']];
+					$emailData['to'][$data['email']] = $data['email'];
 					if (array_key_exists('cci', $template)) $emailData['cci'] = $template['cci'];
 					$emailData['from_mail'] = 'no-reply@p-pit.fr';
 					$emailData['from_name'] = 'P-Pit';
@@ -506,9 +506,15 @@ class TestResultController extends AbstractActionController
 					if ($rc != 'OK') {
 						$connection->rollback();
 						$error = $rc;
-					}
+					}*/
 
 					$connection->commit();
+
+					$template = $context->getConfig('testResult/message/generic');
+					$email_subject = $context->localize($template['subscribeTitle']);
+					$email_body = $context->localize($template['subscribeText']);
+					$email_body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => 'generic', 'id' => $result_id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
+					Context::sendMail($account->email, $email_body, $email_subject, (array_key_exists('cc', $template) ? $template['cc'] : ((array_key_exists('cci', $template)) ? $template['cci'] : null)));
     			}
     			catch (\Exception $e) {
     				$connection->rollback();
