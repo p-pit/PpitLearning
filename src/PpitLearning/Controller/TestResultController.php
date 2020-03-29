@@ -492,10 +492,10 @@ class TestResultController extends AbstractActionController
 					$emailData = array();
 					$emailData['email'] = $data['email'];
 					$emailData['type'] = 'email';
-					$emailData['to'] = $data['email'];
+					$emailData['to'] = [$data['email']];
 					if (array_key_exists('cci', $template)) $emailData['cci'] = $template['cci'];
-					$emailData['from_mail'] = 'P-Pit';
-					$emailData['from_name'] = 'no-reply@p-pit.fr';
+					$emailData['from_mail'] = 'no-reply@p-pit.fr';
+					$emailData['from_name'] = 'P-Pit';
 					$emailData['subject'] = $context->localize($template['subscribeTitle']);
 					$emailData['body'] = $context->localize($template['subscribeText']);
 					$emailData['body'] = sprintf($emailData['body'], $this->url()->fromRoute('testResult/perform', ['type' => 'generic', 'id' => $result_id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
@@ -627,8 +627,8 @@ class TestResultController extends AbstractActionController
 		$data['to'] = ($place->support_email) ? [$place->support_email => $place->caption] : [];
 		if (!$data['to']) foreach ($template['to'] as $to_email => $to_name) $data['to'][$to_email] = $to_name;
 		if (array_key_exists('cci', $template)) $data['cci'] = $template['cci'];
-		$emailData['from_mail'] = 'P-Pit';
-		$emailData['from_name'] = 'no-reply@p-pit.fr';
+		$emailData['from_mail'] = 'no-reply@p-pit.fr';
+		$emailData['from_name'] = 'P-Pit';
 		$data['subject'] = $template['subject'];
 		$arguments = array();
 		foreach ($template['subject']['params'] as $param) $arguments[] = $data[$param];
