@@ -150,7 +150,7 @@ return array(
             				'subscribe' => array(
 	        						'type' => 'segment',
 	        						'options' => array(
-	        								'route' => '/subscribe[/:type][/:test_session_id]',
+	        								'route' => '/subscribe[/:place_identifier][/:type][/:test_session_id]',
             								'constraints' => array(
             										'test_session_id'     => '[0-9]*',
             								),

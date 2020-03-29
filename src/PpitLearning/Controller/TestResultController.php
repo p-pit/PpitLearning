@@ -393,8 +393,9 @@ class TestResultController extends AbstractActionController
     	$type = $this->params()->fromRoute('type', 'generic');
     	$test_session_id = $this->params()->fromRoute('test_session_id', 3);
     	$locale = $this->params()->fromQuery('locale');
-    	$place = Place::get($context->getPlaceId());
-    	
+    	$place_identifier = $this->params()->fromRoute('place_identifier');
+		if ($place_identifier) $place = Place::get($place_identifier, 'identifier');
+    	else $place = Place::get($context->getPlaceId());
     	$data = ['email' => null, 'n_first' => null, 'n_last' => null, 'tel_cell' => null];
     	 
     	// CSRF protection
@@ -414,11 +415,10 @@ class TestResultController extends AbstractActionController
     			$connection->beginTransaction();
     			try {
     				$vcard = Vcard::instanciate();
-    				$data['email'] = $this->request->getPost('register-email');
-    				$data['n_first'] = $this->request->getPost('register-n_first');
-    				$data['n_last'] = $this->request->getPost('register-n_last');
-    				$data['tel_cell'] = $this->request->getPost('register-tel_cell');
-    				
+    				$data['email'] = $this->request->getPost('email');
+    				$data['n_first'] = $this->request->getPost('n_first');
+    				$data['n_last'] = $this->request->getPost('n_last');
+    				$data['tel_cell'] = $this->request->getPost('tel_cell');
     				$rc = $vcard->loadDataV2($data);
     				if ($rc != 'OK') {
     					$this->response->setStatusCode('500');
@@ -436,6 +436,7 @@ class TestResultController extends AbstractActionController
 					$account = Account::instanciate($type);
 					$account->place_id = $place->id;
 					$account->contact_1_id = $vcard->id;
+					$account->name = $vcard->n_fn;
 					$rc = $account->add();
 					if ($rc != 'OK') {
 						$this->response->setStatusCode('500');
@@ -487,13 +488,27 @@ class TestResultController extends AbstractActionController
 						$result = TestResult::get($id);
 					}
 
-					$connection->commit();
-
 					$template = $context->getConfig('testResult/message/generic');
-					$email_subject = $context->localize($template['subscribeTitle']);
-					$email_body = $context->localize($template['subscribeText']);
-					$email_body = sprintf($email_body, $this->url()->fromRoute('testResult/perform', ['type' => 'generic', 'id' => $result->id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
-					Context::sendMail($account->email, $email_body, $email_subject, (array_key_exists('cc', $template) ? $template['cc'] : ((array_key_exists('cci', $template)) ? $template['cci'] : null)));
+					$emailData = array();
+					$emailData['email'] = $data['email'];
+					$emailData['type'] = 'email';
+					$emailData['to'] = ($place->support_email) ? [$place->support_email => $place->caption] : [];
+					if (array_key_exists('cci', $template)) $emailData['cci'] = $template['cci'];
+					$emailData['from_mail'] = 'P-Pit';
+					$emailData['from_name'] = 'no-reply@p-pit.fr';
+					$emailData['subject'] = $context->localize($template['subscribeTitle']);
+					$emailData['body'] = $context->localize($template['subscribeText']);
+					$emailData['body'] = sprintf($emailData['body'], $this->url()->fromRoute('testResult/perform', ['type' => 'generic', 'id' => $result_id], ['force_canonical' => true]).'?hash='.$result->authentication_token);
+					$mail = ContactMessage::instanciate();
+					$mail->type = 'email';
+					if ($mail->loadData($emailData) != 'OK') throw new \Exception('View error');
+					$rc = $mail->add();
+					if ($rc != 'OK') {
+						$connection->rollback();
+						$error = $rc;
+					}
+
+					$connection->commit();
     			}
     			catch (\Exception $e) {
     				$connection->rollback();
@@ -607,14 +622,13 @@ class TestResultController extends AbstractActionController
 		$data['noteRoute'] = $this->url()->fromRoute('commitmentMessage/guestDownloadSsml', ['id' => $messageNote->id], ['query' => ['hash' => $messageNote->authentication_token], 'force_canonical' => true]);
 		$data['detailRoute'] = $this->url()->fromRoute('commitmentMessage/guestDownloadSsml', ['id' => $messageDetail->id], ['query' => ['hash' => $messageDetail->authentication_token], 'force_canonical' => true]);
 		$data['name'] = $account->name;
-		$data['caption'] = $result->caption;
 		$data['email'] = $account->email;
 		$data['type'] = 'email';
 		$data['to'] = ($place->support_email) ? [$place->support_email => $place->caption] : [];
 		if (!$data['to']) foreach ($template['to'] as $to_email => $to_name) $data['to'][$to_email] = $to_name;
 		if (array_key_exists('cci', $template)) $data['cci'] = $template['cci'];
-		$data['from_mail'] = ($place->support_email) ? $place->support_email : $template['from_mail'];
-		$data['from_name'] = ($place->support_email) ? $place->caption : $template['from_name'];
+		$emailData['from_mail'] = 'P-Pit';
+		$emailData['from_name'] = 'no-reply@p-pit.fr';
 		$data['subject'] = $template['subject'];
 		$arguments = array();
 		foreach ($template['subject']['params'] as $param) $arguments[] = $data[$param];
