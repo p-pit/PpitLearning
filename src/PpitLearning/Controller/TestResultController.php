@@ -492,7 +492,7 @@ class TestResultController extends AbstractActionController
 					$emailData = array();
 					$emailData['email'] = $data['email'];
 					$emailData['type'] = 'email';
-					$emailData['to'] = ($place->support_email) ? [$place->support_email => $place->caption] : [];
+					$emailData['to'] = $data['email'];
 					if (array_key_exists('cci', $template)) $emailData['cci'] = $template['cci'];
 					$emailData['from_mail'] = 'P-Pit';
 					$emailData['from_name'] = 'no-reply@p-pit.fr';
