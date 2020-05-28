@@ -730,7 +730,13 @@ return array(
 	
 		'core_account/list/teacher' => array(
 				'properties' => array(
-						'status' => [],
+						'status' => [
+							'background-color' => array(
+								'LightGreen' => ['status' => 'active'],
+								'Orange' => ['status' => 'contrat_envoye'],
+								'OrangeRed' => ['status' => 'committed'],
+							),
+						],
 						'name' => [],
 						'n_fn' => [],
 						'property_3' => [],
