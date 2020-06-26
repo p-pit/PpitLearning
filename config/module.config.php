@@ -768,6 +768,12 @@ return array(
 							'definition' => 'inline',
 							'labels' => array('en_US' => 'Documents', 'fr_FR' => 'Documents'),
 					),
+					'user' => array(
+							'definition' => 'inline',
+							'route' => 'account/updateUser',
+							'params' => array('type' => 'teacher'),
+							'labels' => array('en_US' => 'User account', 'fr_FR' => 'Compte utilisateur'),
+					),
 				),
 		),
 		'core_account/update/teacher' => array(
@@ -789,8 +795,8 @@ return array(
 				'adr_street' => ['mandatory' => false],
 				'adr_zip' => ['mandatory' => false],
 				'adr_city' => ['mandatory' => false],
-				'groups' => ['readonly' => true],
 				'title_2' => ['mandatory' => false],
+				'groups' => ['readonly' => true],
 				'property_1' => ['mandatory' => false],
 				'property_2' => ['mandatory' => false],
 				'property_3' => ['mandatory' => false],
