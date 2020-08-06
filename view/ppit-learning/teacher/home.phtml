@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <title>P-Pit - Transition numérique pour les petites entreprises</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="description" content="TPE, PME, associations, maîtrisez votre transition numérique en conformité avec la protection des données personnelles (RGPD) que vous gérez dans vos applications numériques">
+  <meta name="robots" content="index, follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <!-- Favicon -->      
+  <link rel="shortcut icon" href="<?php echo $this->basePath('/img/favicon.ico') ?>">
+
+  <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+    <!-- Bootstrap core CSS -->
+    <link href="<?php echo $this->basePath('/bootstrap-4-2/css/bootstrap.min.css') ?>" rel="stylesheet">
+    <!-- Material Design Bootstrap -->
+    <link href="<?php echo $this->basePath('MDB-Pro/css/mdb.min.css') ?>" rel="stylesheet">
+     <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar/fullcalendar.css') ?>" />
+
+    <!-- FullCalendar -->
+    <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/core/main.min.css') ?>" />
+    <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/daygrid/main.min.css') ?>" />
+    <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/timegrid/main.min.css') ?>" />
+
+  <!-- Custom style cart-v1-->
+   <style>
+  html,
+  body,
+  header,
+ 
+    #intro {
+      height: 50%;
+      max-width: 100%;
+    }
+
+  <?php
+  $home_intro_background = $place->getConfig('home_intro_background');
+  $home_intro_background = ($home_intro_background) ? '/img/' . $context->getInstance()->caption . '/' . $home_intro_background : '/img/2pit.io/learning-petit.jpg';
+  ?>  
+  #intro {
+      background: url("<?php //echo $this->basePath($home_intro_background) ?>") no-repeat center center;
+      -webkit-background-size: contain;
+      -moz-background-size: contain;
+      -o-background-size: contain;
+      background-size: contain;
+  }
+   
+  <style>
+    .navbar { background-color: transparent; }
+    .top-nav-collapse { background-color: #ffffff; }
+    body.modal-open {
+      overflow: hidden;
+      position: fixed;
+    }
+  </style>
+        
+<body>
+
+    <!--Main Navigation-->
+    <header>
+    
+      <!--Navbar-->
+
+        <nav class="navbar navbar-expand-lg fixed-top scrolling-navbar">
+
+                <!-- Navbar brand -->
+                <a href="<?php echo $this->url('home') ?>" class="navbar-brand">
+                  <img height="<?php echo $logo_height ?>" src="<?php echo $this->basePath($logo) ?>" alt="<?php echo $context->getInstance()->caption ?> logo" />
+                </a>
+    
+                  <!-- Collapsible content -->
+                  <!-- Links -->
+                  <ul class="nav navbar-nav nav-flex-icons ml-auto">
+                   
+<?php if ($context->isAuthenticated()) : ?>
+                    <li class="nav-item">
+                      <a class="nav-link dark-grey-text font-weight-bold" id="login-anchor" data-toggle="modal" data-target="#modalLogoutForm">
+                        <i class="fa fa-sign-out-alt blue-text" aria-hidden="true"></i>
+                        <span class="clearfix d-none d-sm-inline-block">Se déconnecter</span>
+                      </a>
+                    </li>
+
+<?php else : ?>
+                    <li class="nav-item">
+                      <a class="nav-link dark-grey-text font-weight-bold" id="register-anchor" data-toggle="modal" data-target="#modalRegisterForm">
+                        <i class="fa fa-user blue-text" aria-hidden="true"></i>
+                        <span class="clearfix d-none d-sm-inline-block">Créer un compte</span>
+                      </a>
+                    </li>
+
+                    <li class="nav-item">
+                      <a class="nav-link dark-grey-text font-weight-bold" id="login-anchor" data-toggle="modal" data-target="#modalLoginForm">
+                        <i class="fa fa-sign-in-alt blue-text" aria-hidden="true"></i>
+                        <span class="clearfix d-none d-sm-inline-block">Se connecter</span>
+                      </a>
+                    </li>
+
+<?php endif;?>
+                  </ul>
+                  <!-- Links -->
+
+
+        </nav>
+        <!--/.Navbar-->    
+ 
+    <!-- Mask -->
+    <div id="intro" class="view h-100"> 
+      <div class="d-block h-100 w-lg-100 rgba-alpha">
+        <div class="full-bg-img flex-center">
+          <div class="col-md-8 justify-content-center text-center">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/Mask-->
+
+    </header>
+    
+  <!--Main Layout-->
+  <main style="padding-top: 0.5rem">
+
+    <!-- Main Container -->
+    <div class="container mt-3">
+
+<section>
+     
+    <div class="row">
+
+      <!--Grid column-->
+      <div class="col-md-9 card-block ppit-panel" id="main-panel">
+    
+<?php if (false) : //array_key_exists('alert', $template)) : ?>
+        <div class="alert <?php echo $template['alert']['class'] ?>" role="alert">
+          <span><?php echo $context->localize($template['alert']['html']) ?></span>
+        </div>
+<?php endif;?>
+    
+        <ul class="nav nav-tabs md-tabs nav-justified primary-color">
+<?php $first = true; foreach ($template['content'] as $tabId => $tab) : ?>
+          <li class="nav-item" id="<?php echo $tabId ?>-tab">
+            <a class="nav-link <?php if ($first) echo 'active' ?>" data-toggle="tab" href="#<?php echo $tabId ?>-panel" role="tab"><?php echo $context->localize($tab['label']) ?></a>
+          </li>
+<?php $first = false; endforeach;?>
+        </ul>
+
+        <div class="tab-content card">
+<?php $first = true; foreach ($template['content'] as $tabId => $tab) : ?>    
+          <div class="tab-pane fade <?php if ($first) echo 'in show active' ?>" id="<?php echo $tabId ?>-panel" role="tabpanel"></div>
+<?php $first = false; endforeach;?>
+        </div>
+
+      </div>
+
+      <div class="col-md-3">
+        <div id="dashboard">
+
+          <!--Card-->
+          <div class="card card-cascade narrower mt-5">
+
+              <!--Card image-->
+              <div class="view view-cascade gradient-card-header primary-color">
+  <?php if ($profile->photo_link_id) : ?>
+                <div class="avatar mx-auto"><i class="img-fluid fas fa-user fa-5x"></i></div>
+  <?php else : ?>
+                <div class="avatar mx-auto"><img class="rounded-circle z-depth-1 img-fluid" src="<?php echo $this->basePath('photos/' . $profile->contact_1_id.'.jpg') ?>"/></div>
+  <?php endif;?>
+              </div>
+              <!--/Card image-->
+
+              <!--Card content-->
+              <div class="card-body card-body-cascade text-center">
+  
+              <div class="h6 text-center text-muted my-4"><?php echo $profile->n_fn ?></div>
+<?php 
+if ($profile->groups) {
+  $studentGroups = [];
+  foreach (explode(',', $profile->groups) as $group_id) $studentGroups[] = $groups[$group_id]->name;
+  $studentGroups = implode(',', $studentGroups);
+}
+elseif ($profile->property_7) $studentGroups = $context->localize($configProperties['property_7']['modalities'][$profile->property_7]);
+else $studentGroups = null;
+?>
+              <div class="h6 text-center text-muted my-4"><?php echo $profile->property_16 ?><?php if ($studentGroups) : ?> &mdash; <?php echo $studentGroups ?><?php endif;?></div>
+<?php if ($global_average) : ?>
+              <div class="text-center text-muted my-4"><strong><?php echo $this->translate('Global average', 'ppit-studies', $context->getLocale()) ?>:</strong> <?php echo $context->formatFloat($global_average, 2) ?></div>
+<?php endif;?>
+  
+              </div>
+              <!--/.Card content-->
+
+            </div>
+            <!--/.Card-->
+        </div>
+      </div>
+    </div>
+
+</section>
+
+    </div>
+    
+  </main>
+
+<!-- Modals -->
+
+<!-- Form opening tag -->
+<div class="modal fade" id="modalForm" tabindex="-1" role="dialog" data-backdrop="static" aria-labelledby="modalFormLabel" aria-hidden="true"></div>
+
+<div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" id="modalLoginContent"></div>
+    </div>
+</div>
+  
+<div class="modal fade" id="modalLostPasswordForm" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold"><?php echo $this->translate('Lost password', 'ppit-core', $context->getLocale()) ?></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="lost-password-form">
+              <span id="login-csrf"></span>
+              <div class="modal-body mx-3">
+                  <div class="md-form mb-5">
+                      <i class="fa fa-envelope prefix grey-text"></i>
+                      <input type="text" id="lost_password-identity" class="form-control validate modal_input" required="required">
+                      <label data-error="<?php echo $this->translate('Invalid', 'ppit-core', $context->getLocale()) ?>" for="lost_password-identity"><?php echo $this->translate('Email', 'ppit-core', $context->getLocale()) ?></label>
+                  </div>
+  
+              </div>
+              <div class="modal-footer d-flex justify-content-center">
+                <button type="submit" class="btn btn-primary"><?php echo $this->translate('Send', 'ppit-core', $context->getLocale()) ?></button>
+              </div>
+          </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalInitPasswordForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold"><?php echo $this->translate('New password', 'ppit-core', $context->getLocale()) ?></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="init-password-form">
+              <div class="modal-body mx-3">
+                  <div class="md-form mb-5">
+                      <input type="email" id="init_password-identity" class="form-control validate modal_input" required="required">
+                      <label data-error="<?php echo $this->translate('Invalid', 'ppit-core', $context->getLocale()) ?>" for="init_password-identity">* <?php echo $this->translate('Email', 'ppit-core', $context->getLocale()) ?></label>
+                  </div>
+                    
+                  <div class="md-form mb-4">
+                      <input type="password" id="init_password-password" class="form-control validate modal_input" required="required">
+                      <label data-error="<?php echo $this->translate('Invalid', 'ppit-core', $context->getLocale()) ?>" for="lost_password-password">* <?php echo $this->translate('Choose a password', 'ppit-core', $context->getLocale()) ?></label>
+                  </div>
+  
+                  <div class="md-form mb-4">
+                      <input type="password" id="init_password-password2" class="form-control validate modal_input" required="required">
+                      <label data-error="<?php echo $this->translate('Invalid', 'ppit-core', $context->getLocale()) ?>" for="lost_password-password2">* <?php echo $this->translate('Confirm the password', 'ppit-core', $context->getLocale()) ?></label>
+                  </div>
+              </div>
+              <div class="modal-footer d-flex justify-content-center">
+                  <button type="submit" class="btn btn-primary"><?php echo $this->translate('Submit', 'ppit-core', $context->getLocale()) ?></button>
+              </div>
+            </form>
+        </div>
+    </div>
+</div>
+  
+<div class="modal fade" id="modalLogoutForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form id="logout-form">
+              <div class="modal-header text-center">
+                  <h4 class="modal-title w-100 font-weight-bold"><?php echo $this->translate('Log Out', 'ppit-flow', $context->getLocale()) ?></h4>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-footer d-flex justify-content-center">
+                  <button class="btn btn-primary btn-rounded btn-sm" id="logout-button">Confirmer la déconnexion</button>
+              </div>
+      </form>
+        </div>
+    </div>
+</div>
+
+    <!--Footer-->
+    <footer class="page-footer stylish-color pt-4 mt-4 text-center text-md-left">
+
+      <!--Footer Links-->
+      <div class="container">
+        <div class="row">
+
+          <!--First column-->
+          <div class="col-md-3">
+            <h5 class="title">Resources</h5>
+            <ul class="list-unstyled">
+
+          <hr class="w-100 clearfix d-md-none">
+
+              <li>
+             <a data-toggle="modal" data-target="#modalShowGtouForm">Mentions légales</a>
+
+              </li>
+            </ul>
+          </div>
+          <!--/First column-->
+
+        </div>
+      </div>
+
+      <!--Copyright-->
+      <div class="footer-copyright py-3 text-center container-fluid">
+        © 2018 Copyright: <a href="https://www.p-pit.fr"> www.p-pit.fr </a>&nbsp;&nbsp;|&nbsp;&nbsp;Graphisme <a href="https://illustration-lopresti.com" target="_blank">illustration-lopresti.com</a>
+      </div>
+      <!--/Copyright-->
+ 
+    </footer>
+    <!--/ Footer -->
+
+<div class="modal fade" id="modalShowGtouForm" tabindex="-1" role="dialog" aria-labelledby="generalTermsOfUse" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+              <div class="modal-header text-center">
+                  <h4 class="modal-title w-100 font-weight-bold"></h4>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body mx-3">
+                  <div id="show_gtou_content"></div>
+              </div>
+              <div class="modal-footer d-flex justify-content-center">
+            <button type="button" class="btn btn-link" data-dismiss="modal" aria-label="Close">Fermer</button>
+              </div>
+        </div>
+    </div>
+</div>
+
+    <!-- SCRIPTS -->
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="<?php echo $this->basePath('MDB-Pro/js/jquery-3.3.1.min.js') ?>"></script>
+
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="<?php echo $this->basePath('MDB-Pro/js/popper.min.js') ?>"></script>
+
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="<?php echo $this->basePath('/bootstrap-4-2/js/bootstrap.min.js') ?>"></script>
+
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="<?php echo $this->basePath('MDB-Pro/js/mdb.min.js') ?>"></script>
+
+    <script src="<?php echo $this->basePath('/js/moment-with-locales.min.js') ?>"></script>
+ 
+    <!-- FullCalendar -->
+    <script src="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/core/main.min.js') ?>"></script>
+    <script src="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/daygrid/main.min.js') ?>"></script>
+    <script src="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/timegrid/main.min.js') ?>"></script>
+    <script src="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/interaction/main.min.js') ?>"></script>
+
+    <script>
+        //Animation init
+        new WOW().init();
+
+        // MDB Lightbox Init
+        $(function () {
+          $("#mdb-lightbox-ui").load("mdb-addons/mdb-lightbox-ui.html");
+        });
+
+        //Modal
+        $('#myModal').on('shown.bs.modal', function () {
+            $('#myInput').focus()
+        })
+
+        // Material Select Initialization
+        $(document).ready(function () {
+            $('.mdb-select').material_select();
+        });
+
+        // Tooltips Initialization
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+
+<!-- Medium editor -->
+<script src="<?php echo $this->basePath('medium-editor-master/dist/js/medium-editor.js') ?>"></script>
+<script>
+  //Returns a function, that, as long as it continues to be invoked, will not
+  //be triggered. The function will be called after it stops being called for
+  //N milliseconds. If `immediate` is passed, trigger the function on the
+  //leading edge, instead of the trailing.
+  function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+    var context = this, args = arguments;
+    var later = function() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
+    };
+  };
+  var editor = new MediumEditor('.editable', {
+    buttonLabels: 'fontawesome'
+  });
+  function triggerAutoSave(event, editable) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", '<?php echo $this->url('document/update') ?>/' + editable.id, true);
+    xhttp.onreadystatechange = function() {
+      if (xhttp.readyState == 4 && xhttp.status == 200) {
+      }
+    }
+    var content = { content: {} };
+    content.content[editable.id] = editable.innerHTML;
+    xhttp.send(JSON.stringify(content));
+  }
+  var throttledAutoSave = debounce(triggerAutoSave, 1000);
+  editor.subscribe('editableInput', throttledAutoSave);
+</script>
+<!--/ medium editor -->
+
+<?php echo $this->partial($viewController) ?>
+
+</body>
+
+</html>

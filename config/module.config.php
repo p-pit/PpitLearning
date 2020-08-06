@@ -8,6 +8,7 @@ return array(
 //        	'PpitLearning\Controller\TestEvent' => 'PpitLearning\Controller\TestEventController',
         	'PpitLearning\Controller\TestResult' => 'PpitLearning\Controller\TestResultController',
             'PpitLearning\Controller\Evaluation' => 'PpitLearning\Controller\EvaluationController',
+        	'PpitLearning\Controller\Teacher' => 'PpitLearning\Controller\TeacherController',
         ),
     ),
  
@@ -254,7 +255,47 @@ return array(
             				),
             		),
             	),
-           ),
+        	'teacher' => array(
+                'type'    => 'literal',
+                'options' => array(
+                    'route'    => '/teacher',
+                    'defaults' => array(
+                        'controller' => 'PpitLearning\Controller\Teacher',
+                        'action'     => 'home',
+                    ),
+                ),
+           		'may_terminate' => true,
+	       		'child_routes' => array(
+        						'home' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/home[/:account_id]',
+        										'defaults' => array(
+        												'action' => 'home',
+        										),
+        								),
+        						),
+        						'planning' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/planning[/:id]',
+        										'defaults' => array(
+        												'action' => 'planning',
+        										),
+        								),
+        						),
+	       						'evaluation' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/evaluation[/:type][/:id]',
+        										'defaults' => array(
+        												'action' => 'evaluation',
+        										),
+        								),
+        						),
+	       		),
+        	),
+        ),
     ),
 	'bjyauthorize' => array(
 		// Guard listeners to be attached to the application event manager
@@ -286,6 +327,12 @@ return array(
 				array('route' => 'learningEvaluation/update', 'roles' => array('trainer', 'admin')), 
             	array('route' => 'learningEvaluation/detail', 'roles' => array('trainer', 'admin')), 
             	array('route' => 'learningEvaluation/delete', 'roles' => array('trainer', 'admin')),
+						
+				// Teacher
+            	array('route' => 'teacher', 'roles' => array('teacher', 'manager')),
+            	array('route' => 'teacher/home', 'roles' => array('teacher', 'manager')),
+            	array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
 			)
 		)
 	),
@@ -409,6 +456,26 @@ return array(
 		),
 	),
 
+	'teacher/home/tabs' => array(
+		'content' => array(
+			'planning' => array(
+				'type' => 'calendar',
+				'level' => 'community',
+				'route' => 'student/planningV2',
+				'label' => array('en_US' => 'Planning', 'fr_FR' => 'Planning'),
+			),
+			'evaluation' => array(
+				'label' => array('en_US' => 'Evaluations', 'fr_FR' => 'Évaluations'),
+			),
+			'schooling' => array(
+				'type' => 'static',
+				'level' => 'subject',
+				'route' => 'student/reportV2',
+				'label' => array('en_US' => 'School reports', 'fr_FR' => 'Bulletins scolaires'),
+			),
+		),
+	),
+	
 	// Account teacher
 	
 	'core_account/teacher/property/title_1' => array(
@@ -1704,4 +1771,9 @@ table.note-report td {
 					',
 			),
 	),
+	
+	'teacher/evaluation/account/search' => [
+		'groups' => [],
+		'n_fn' => [],
+	],
 );

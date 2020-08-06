@@ -1,0 +1,123 @@
+<!-- 
+/**
+ * PpitCore V1.0 (https://github.com/p-pit/PpitCore)
+ *
+ * @link      https://github.com/p-pit/PpitCore
+ * @copyright Copyright (c) 2016 Bruno Lartillot
+ * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
+ */
+-->
+
+<?php $isDisabled = true ?>
+
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalFormLabel"><?php echo (false) ? $event->caption : $this->translate('Detail', 'ppit-core', $context->getLocale()) ?></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" title="<?php echo $this->translate('Cancel', 'ppit-core', $context->getLocale()) ?>">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="modalFormBody">
+        <div class="container">
+      
+          <div class="event-nav-target" id="event-nav-target-appointment">
+ 
+      <ul class="nav nav-tabs md-tabs nav-justified primary-color">
+        <li class="nav-item"><a class="nav-link active" id="detail-tab-md" data-toggle="tab" href="#detail-md" role="tab" aria-controls="detail-md"><?php echo $this->translate('Slot', 'ppit-core', $context->getLocale())?></a></li>
+        <li class="nav-item"><a class="nav-link" id="schedule-tab-md" data-toggle="tab" href="#schedule-md" role="tab" aria-controls="schedule-md"><?php echo $this->translate('Attendance', 'ppit-core', $context->getLocale())?></a></li>
+        <li class="nav-item"><a class="nav-link" id="document-tab-md" data-toggle="tab" href="#document-md" role="tab" aria-controls="document-md"><?php echo $this->translate('Documents', 'ppit-core', $context->getLocale())?></a></li>
+      </ul>
+
+      <div class="tab-content card">
+        <div class="tab-pane fade show active" id="detail-md" role="tabpanel" aria-labelledby="detail-tab-md">
+
+<?php foreach ($description['update'] as $propertyId => $property) : ?>
+  <?php 
+  if (array_key_exists('options', $property) && array_key_exists('readonly', $property['options']) && $property['options']['readonly']) $readonly = true;
+  elseif ($propertyId == 'identifier' && $internalIdentifier) $readonly = true;
+  else $readonly = false;
+  $default = $property['default'];
+  ?>
+
+  <?php if (!$readonly || $event->properties[$propertyId]) : ?>
+
+  <?php if ($property['type'] == 'separator') : ?>
+  <hr>
+  <div class="form-group row">
+    <label class="col-sm-12 control-label">
+      <?php echo $context->localize($options['label']) ?>
+    </label>
+  </div>
+    
+  <?php else : ?>
+  
+    <?php if ($property) : ?>
+  
+  <div class="form-group row" id="<?php echo (($property['type'] == 'date' || $property['type'] == 'number') ? 'input_' : '').$propertyId ?>_group">
+    <label class="col-sm-5 col-form-label col-form-label-sm" for="<?php echo $propertyId ?>">
+      <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo '* ' ?><?php echo $context->localize($property['labels']) ?>
+    </label>
+    <div class="col-sm-7">
+
+      <?php if ($property['type'] == 'date') : ?>
+      <input type="hidden" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" />
+      <input class="form-control form-control-sm update_date updatable-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->decodeDate($event->properties[$propertyId]) ?>" <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?> />
+
+            <?php elseif ($property['type'] == 'time') : ?>
+            <input class="form-control form-control-sm update_time updatable-control" id="<?php echo $propertyId ?>" value="<?php echo $event->properties[$propertyId] ?>" <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?> />
+
+      <?php elseif ($property['type'] == 'number') : ?>
+      <input type="hidden" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" />
+      <input class="form-control form-control-sm updatable-control" id="input_<?php echo $propertyId ?>" name="input_<?php echo $propertyId ?>" value="<?php echo $context->formatFloat($event->properties[$propertyId], 2) ?>" <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?> />
+
+      <?php elseif ($property['type'] == 'textarea') : ?>
+      <textarea class="form-control form-control-sm updatable-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?>><?php echo $event->properties[$propertyId] ?></textarea>
+
+      <?php elseif ($property['type'] == 'select') : ?>
+      <select class="form-control form-control-sm browser-default updatable-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?>>
+          <option />
+        <?php foreach ($property['modalities'] as $key => $labels) : ?>
+          <option value="<?php echo $key ?>" <?php if ($event->properties[$propertyId] == $key || $key == $default) echo 'selected="selected"' ?>><?php echo $context->localize($labels) ?></option>
+        <?php endforeach;?>
+      </select>
+
+            <?php elseif ($property['type'] == 'multiselect') : ?>
+           <?php $values = explode(',', $event->properties[$propertyId]) ?>
+          <select class="form-control form-control-sm update_selectpicker updatable-control" id="<?php echo $propertyId ?>" name="<?php echo $propertyId ?>" multiple <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?>>
+             <?php foreach ($property['modalities'] as $key => $labels) : ?>
+             <option value="<?php echo $key ?>" <?php if (in_array($key, $values)) echo 'selected="selected"' ?>><?php echo $context->localize($labels) ?></option>
+             <?php endforeach;?>
+          </select>
+    
+           <?php elseif ($property['type'] == 'log') : ?>
+           <textarea class="form-control  form-control-sm" id="<?php echo $propertyId ?>" <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?>></textarea>
+
+      <?php else : ?>
+      <input class="form-control form-control-sm updatable-control" id="<?php echo $propertyId ?>" value="<?php echo $event->properties[$propertyId] ?>" <?php if (array_key_exists('mandatory', $property) && $property['mandatory']) echo 'required' ?> <?php if ($isDisabled || $readonly) echo 'disabled="disabled"'?> />
+
+      <?php endif;?>
+    </div>
+
+    <div class="col-sm-12"><p class="help-block" id="<?php echo (($property['type'] == 'date' || $property['type'] == 'number') ? 'input_' : '').$propertyId ?>_error"></p></div>
+  </div>
+
+    <?php endif;?>
+  <?php endif;?>
+  <?php endif;?>
+<?php endforeach;?>
+
+        </div>
+
+        <div class="tab-pane fade" id="schedule-md" role="tabpanel" aria-labelledby="schedule-tab-md"></div>
+
+        <div class="tab-pane fade" id="document-md" role="tabpanel" aria-labelledby="document-tab-md"></div>
+
+      </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+      

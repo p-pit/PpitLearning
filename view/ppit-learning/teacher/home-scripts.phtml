@@ -1,0 +1,495 @@
+<?php echo $this->partial('/ppit-core/event/schedule-scripts') ?>
+
+<script>
+var viewBeginDate = '<?php echo date('Y-m-d') ?>';
+
+function getEvents(calendar) {
+
+  calendar.getEvents().forEach(function (event, id) { event.remove(); });
+
+  getHomework(calendar);
+  getAbsence(calendar);
+	
+  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&property_1=<?php echo $context->getConfig('student/property/school_year/default') ?>';
+
+//Filter on place
+<?php if ($place) : ?>
+	  route += '&place_id=<?php echo $place->id ?>';
+<?php endif; ?>
+
+// Filter on groups
+<?php if ($profile->groups) : ?>
+	  route += '&groups=';
+  <?php $first = true; foreach (explode(',', $profile->groups) as $group_id) : ?>
+  	  <?php if (!$first) : ?>route += ',';<?php endif;?>
+      <?php $first = false ?>
+      route += '<?php echo $group_id ?>';
+  <?php endforeach;?>
+
+// Filter on class
+<?php elseif ($profile->property_7) : ?>
+      route += '&property_2=' + '<?php echo $profile->property_7 ?>';
+<?php endif;?>
+
+    var xhttp = new XMLHttpRequest();
+	xhttp.open("GET", route, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+			let obj = jQuery.parseJSON(xhttp.responseText);
+
+			jQuery.each(obj, function (name, value) {
+		      calendar.addEvent({
+                  entryType: 'planning',
+		          entryId: value.id,
+                  category: 'event',
+	              allDay: false,
+		          title: value.formatted,
+		          color: 'white',
+	              textColor: 'black',
+				  start: value.begin_date + ' ' + value.begin_time,
+				  end: value.begin_date + ' ' + value.end_time
+              });
+			});
+
+            calendar.render();
+		}
+	}
+	xhttp.send();
+}
+
+let schoolSubjectsLabels = {
+<?php $first = true; foreach ($context->getConfig('student/property/school_subject')['modalities'] as $modalityId => $modality) : ?>
+  <?php if (!$first) : ?>,<?php endif; ?>
+  <?php $first = false ?>
+  '<?php echo $modalityId ?>': '<?php echo $context->localize($modality) ?>'
+<?php endforeach; ?>
+}
+
+let absenceMotiveLabels = {
+<?php $first = true; foreach ($context->getConfig('absence/property/motive')['modalities'] as $modalityId => $modality) : ?>
+  <?php if (!$first) : ?>,<?php endif; ?>
+  <?php $first = false ?>
+  '<?php echo $modalityId ?>': '<?php echo $context->localize($modality) ?>'
+<?php endforeach; ?>
+}
+
+function getHomework(calendar) {
+
+  // Retrieve the homework events
+  let xhttp = new XMLHttpRequest();
+  xhttp.open("GET", '<?php echo $this->url('note/get', ['category' => 'homework']) ?>?account_id=<?php echo $profile->id ?>', true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      let obj = jQuery.parseJSON(xhttp.responseText);
+      Object.keys(obj).forEach(function (homeworkId) {
+        let homework = obj[homeworkId];
+        let color, textColor, title;
+        if (homework.type == 'done-work') {
+            color = '<?php echo $context->getConfig('note/colour')['done-work'] ?>', textColor = 'black';
+        }
+        else if (homework.type == 'todo-work') {
+            color = '<?php echo $context->getConfig('note/colour')['todo-work'] ?>', textColor = 'black';
+        }
+        else if (homework.type == 'event') {
+            color = '<?php echo $context->getConfig('note/colour')['event'] ?>', textColor = 'black';
+        }
+
+        if (homework.type == 'done-work') date = homework.date;
+        else date = homework.target_date;
+        calendar.addEvent({
+          entryType: 'homework',
+          id: homeworkId,
+          category: 'homework',
+          type: homework.type,
+          subject: homework.subject,
+          target_date: date,
+          allDay: true,
+          title: schoolSubjectsLabels[homework.subject],
+          observations: homework.observations,
+          color: color,
+          textColor: textColor,
+          start: date, 
+          end: date
+        });
+      });
+    }
+  }
+  xhttp.send();
+}
+
+function getAbsence(calendar) {
+
+  // Retrieve the homework events
+  let xhttp = new XMLHttpRequest();
+  xhttp.open("GET", '<?php echo $this->url('absence/get') ?>?account_id=<?php echo $profile->id ?>', true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      let obj = jQuery.parseJSON(xhttp.responseText);
+      obj.forEach(function (absence, absenceId) {
+
+        let title = '';
+        title += schoolSubjectsLabels[absence.subject] + ' (' + absenceMotiveLabels[absence.motive] + ')';
+         
+        calendar.addEvent({
+          entryType: 'absence',
+          id: absenceId,
+          category: absence.category,
+          subject: absence.subject,
+          start: absence.begin_date,
+          end: (absence.end_date) ? absence.end_date : absence.begin_date,
+          allDay: true,
+          title: title,
+          color: (absence.category == 'absence') ? 'red' : 'orange',
+          textColor: 'white',
+        });
+      });
+    }
+  }
+  xhttp.send();
+}
+
+function createCalendar(callback) {
+
+	let calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+      plugins: [ 'interaction', 'timeGrid' ],
+      defaultView: 'timeGridWeek',
+
+      lang: '<?php echo substr($context->getLocale(), 0, 2) ?>',
+      locale: '<?php echo substr($context->getLocale(), 0, 2) ?>',
+      firstDay: 1,
+      minTime: '08:00:00',
+      maxTime: '20:00:00',
+      contentHeight: 'auto',
+      
+      businessHours: {
+        dow: [ 1, 2, 3, 4, 5], // Monday - Thursday
+        startTime: '08:00', // a start time (10am in this example)
+        endTime: '18:00' // an end time (6pm in this example)
+      },
+      weekends: false,
+
+      buttonText: {
+        today: '<?php echo $this->translate('Today', 'ppit-core', $context->getLocale()) ?>',
+      },
+
+      allDaySlot: true,
+      allDayText: '<?php echo $this->translate('Day', 'ppit-core', $context->getLocale()) ?>',
+    	    		  
+      eventClick: callback
+    });
+
+    calendar.render();
+    
+  getEvents(calendar);
+}
+
+function showEvaluationDetail() {
+  // Execute the ajax request
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?group_id=13852&accounts=13850', true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+	    $('#modalForm').html(xhttp.responseText);
+      
+        $('#modalForm').modal('toggle');
+    }
+  }
+  xhttp.send();
+}
+
+function showEvaluation(target) {
+  // Execute the ajax request
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>', true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      document.getElementById(target).innerHTML = xhttp.responseText;
+      $('.note-detail-anchor').click(showEvaluationDetail);
+    }
+  }
+  xhttp.send();
+}
+
+function showStatic(route, target) {
+  // Execute the ajax request
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", route, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      document.getElementById(target).innerHTML = xhttp.responseText;
+    }
+  }
+  xhttp.send();
+}
+
+function showCalendar(route, target) {
+  // Execute the ajax request
+  let xhttp = new XMLHttpRequest();
+  xhttp.open("GET", route, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      document.getElementById(target).innerHTML = xhttp.responseText;
+
+      $('#absence-statement-anchor').click(function () {
+    	let route = '<?php echo $this->url('student/absenceV2', ['account_id' => $profile->id]) ?>?';
+        let xhttp2 = new XMLHttpRequest();
+        xhttp2.open("GET", route, true);
+        xhttp2.onreadystatechange = function() {
+          if (xhttp2.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+          if (xhttp2.readyState == 4 && xhttp2.status == 200) {
+            $('#student-homework-content').html(xhttp2.responseText);
+            $('#student-homework-modal').modal('show');
+          }
+        }
+        xhttp2.send();
+      });
+
+      createCalendar(function (info) {
+        let entry = info.event.extendedProps;
+	        let route = '<?php echo $this->url('teacher/planning') ?>/' + entry.entryId;
+	        let xhttp2 = new XMLHttpRequest();
+	        xhttp2.open("GET", route, true);
+	        xhttp2.onreadystatechange = function() {
+	          if (xhttp2.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+	          if (xhttp2.readyState == 4 && xhttp2.status == 200) {
+                $('#modalForm').html(xhttp2.responseText);
+                $('#modalForm').modal('toggle');
+	          }
+	        }
+            xhttp2.send();
+            
+            getSchedule(entry.entryId, 'schedule-md');
+      });
+    }
+  }
+  xhttp.send();
+}
+
+<?php foreach ($template['content'] as $tabId => $tab) : ?>
+	<?php if ($tabId == 'evaluation') : ?>
+$('#' + '<?php echo $tabId ?>-tab').click(function () {
+   showEvaluation('<?php echo $tabId ?>-panel');
+});
+    <?php elseif ($tab['type'] == 'static') : ?>
+      <?php
+      if (array_key_exists('params', $tab)) $params = $tab['params']; else $params = [];
+      if (array_key_exists('query', $tab)) $query = $tab['query']; else $query = [];
+      $route = $this->url($tab['route'], $params, ['query' => $query]);
+      ?>
+$('#' + '<?php echo $tabId ?>-tab').click(function () {
+	showStatic('<?php echo $route ?>', '<?php echo $tabId ?>-panel');
+});
+    <?php elseif ($tab['type'] == 'calendar') : ?>
+showCalendar('<?php echo $this->url($tab['route'], array('id' => $profile->id)) ?>', '<?php echo $tabId ?>-panel');
+
+	<?php endif;?>
+<?php endforeach;?>
+
+$('.alert').click(function () { $(this).hide(); });
+
+<?php if ($message == 'Already activated') : ?>
+toastr.success('<?php echo $this->translate('This account has already been activated, you can log in now.', 'ppit-core', $context->getLocale()) ?>');
+$('#modalLoginForm').modal('show');
+showLogin();
+
+<?php elseif ($error == 'Authentication') : ?>
+toastr.error('<?php echo $this->translate('Invalid authentication', 'ppit-core', $context->getLocale()) ?>');
+<?php endif; ?>
+
+// Login
+
+function login() {
+  var xhttp = new XMLHttpRequest(), formData = new FormData(), route = '<?php echo $this->url('profile/login') ?>';
+<?php if ($redirect) : ?>
+  route += '?redirect=<?php echo $redirect ?>';
+<?php endif;?>
+  formData.append('identity', $('#login-identity').val());
+  formData.append('credential', $('#login-credential').val());
+  xhttp.open('POST', route, true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        document.location.href = '<?php echo $this->url($redirect) ?>';
+      }
+      else if (xhttp.status == 401 && xhttp.statusText == 'Activation') {
+        $('#modalLoginForm').modal('hide');
+        showRequestActivation($('#login-identity').val());
+      }
+      else if (xhttp.status == 401) {
+          $('#modalLoginContent').html(xhttp.responseText);
+
+          var form = document.getElementById('loginForm');
+          form.onsubmit = function(event) {
+            event.preventDefault();
+            login();
+          }
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send(formData);
+}
+
+function showLogin() {
+  var xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('profile/login') ?>';
+<?php if ($email) : ?>
+  route += '?identity=<?php echo $email ?>';
+<?php endif;?> 
+  xhttp.open('GET', route, true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#modalLoginContent').html(xhttp.responseText);
+
+	     // Lost password
+	
+	     $('#lost_password_anchor').click(function () {
+	         $('#modalLoginForm').modal('hide');
+	         $('#modalLostPasswordForm').modal('show');
+	     });
+
+        var form = document.getElementById('loginForm');
+        form.onsubmit = function(event) {
+          event.preventDefault();
+          login();
+        }
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send();
+}
+
+$('#modalLoginForm').on('show.bs.modal', showLogin);
+
+$('#modalLostPasswordForm').on('hide.bs.modal', function () { 
+ $('.modal_input').val('');
+});
+
+function lostPassword() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.open('GET', '<?php echo $this->url('user/v1') ?>?request=lost-password&identity=' + $('#lost_password-identity').val(), true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4) {
+       if (xhttp.status == 200) {
+         toastr.success("<?php echo $this->translate('Your request has been registered. Please check you emails with a link to follow in order to set your new password.', 'ppit-core', $context->getLocale()) ?>");
+         $('#modalLostPasswordForm').modal('hide');
+       }
+       else {
+         toastr.error("<?php echo $this->translate('This account is not registered. Please register before login.', 'ppit-core', $context->getLocale()) ?>");
+         $('#modalRequestActivationForm').modal('hide');
+         $('#modalRegisterForm').modal('show');
+       }
+    }
+  };
+  xhttp.send();
+}
+
+var form = document.getElementById('lost-password-form');
+form.onsubmit = function(event) {
+  event.preventDefault();
+  lostPassword();
+}
+
+<?php if ($token) : ?>
+
+// Init password
+
+$('#modalInitPasswordForm').on('hide.bs.modal', function () { 
+  $('.modal_input').val('');
+});
+
+function initPassword() {
+  if ($('#init_password-password').val() != $('#init_password-password2').val()) {
+    toastr.error('<?php echo $this->translate('Both new passwords should be identical', 'ppit-core', $context->getLocale()) ?>');
+  }
+  else {
+    var xhttp = new XMLHttpRequest(), formData = new FormData();
+    formData.append('identity', $('#init_password-identity').val());
+    formData.append('password', $('#init_password-password').val());
+    xhttp.open('POST', '<?php echo $this->url('user/v1') ?>?request=init-password&hash=<?php echo $token ?>', true);
+    xhttp.onload = function () {
+      if (xhttp.readyState == 4) {
+        if (xhttp.status == 200) {
+          toastr.success("<?php echo $this->translate('Your password has been changed', 'ppit-core', $context->getLocale()) ?>");
+        }
+        else if (xhttp.status == 401) {
+          if (xhttp.statusText == 'Expiry') {
+            location.href = '<?php echo $this->url('landing/template2') ?>?message=expired';
+          }
+          else {
+            toastr.error('<?php echo $this->translate('Invalid authentication', 'ppit-core', $context->getLocale()) ?>');
+          }
+        }
+        else {
+          toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+        }
+        $('#modalInitPasswordForm').modal('hide');
+      }
+    }
+  };
+  xhttp.send(formData);
+}
+
+var form = document.getElementById('init-password-form');
+form.onsubmit = function(event) {
+  event.preventDefault();
+  initPassword();
+}
+
+<?php endif; ?>
+
+<?php if ($message == 'expired') : ?>
+toastr.error('<?php echo $this->translate('The link expired, please renew the request', 'ppit-core', $context->getLocale()) ?>');
+<?php endif;?>
+
+$('#modalShowCharterForm').on('show.bs.modal', function () { 
+  var xhttp = new XMLHttpRequest();
+  xhttp.open('GET', '<?php echo $this->url('instance/charter') . '?locale=' . $context->getLocale() ?>', true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4 && xhttp.status == 200) $('#show_charter_content').html(xhttp.responseText);
+    else toastr.error("Une erreur technique est survenue. Veuillez essayer ultérieurement.");
+  };
+  xhttp.send();
+});
+
+$('#modalShowGtouForm').on('show.bs.modal', function () { 
+  var xhttp = new XMLHttpRequest();
+  xhttp.open('GET', '<?php echo $this->url('instance/generalTermsOfUse') . '?locale=' . $context->getLocale() ?>', true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4 && xhttp.status == 200) $('#show_gtou_content').html(xhttp.responseText);
+    else toastr.error("Une erreur technique est survenue. Veuillez essayer ultérieurement.");
+  };
+  xhttp.send();
+});
+
+function logout() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.open('GET', '<?php echo $this->url('user/v1') ?>?request=logout', true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+      document.location.href = '<?php echo $this->url('home') ?>';
+    }
+  };
+  xhttp.send();
+}
+
+var form = document.getElementById('logout-form');
+form.onsubmit = function(event) {
+  console.log('In logout form.onsubmit');
+  event.preventDefault();
+  logout();
+}
+    
+<?php if ($panel) : ?>
+  $('#<?php echo $panel ?>').modal('show');
+<?php endif;?>
+
+</script>
