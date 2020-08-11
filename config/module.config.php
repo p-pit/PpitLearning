@@ -475,6 +475,13 @@ return array(
 			),
 		),
 	),
+
+	'teacher/planning' => [
+		'properties' => [
+			'property_3' => [],
+			'caption' => [],
+		],
+	],
 	
 	// Account teacher
 	

@@ -113,24 +113,19 @@ class TeacherController extends AbstractActionController
     	$view->setTerminal(true);
     	return $view;
     }
-
-    public function detailAltAction()
-    {
-    	return $this->detailAction();
-    }
     
     public function planningAction()
     {
     	$context = Context::getCurrent();
-    	$description = Event::getDescription('calendar');
+    	$eventConfig = Event::getConfigProperties('calendar');
     	$id = (int) $this->params()->fromRoute('id', 0);
     	$event = Event::get($id);
-    
+
     	$view = new ViewModel(array(
     		'context' => $context,
+    		'eventConfig' => $eventConfig,
     		'id' => $id,
     		'event' => $event,
-    		'description' => $description,
     	));
     	$view->setTerminal(true);
     	return $view;
