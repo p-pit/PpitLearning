@@ -1,0 +1,79 @@
+	<style>
+	.dropdown:hover>.dropdown-menu {
+	  display: block;
+	}
+	</style>
+	
+<div class="container">
+
+  <div class="row my-3">
+
+<?php foreach ($documents as $document) : ?>
+
+    <div class="col-md-2 my-2">
+       
+      <div class="text-center mt-2">
+
+        <a href="<?php echo $this->url('document/download', ['id' => $document['id']]) ?>" target="_blank" class="document-download-anchor" id="document-download-anchor_<?php echo $document['id'] ?>" data-toggle="tooltip" title="<?php echo $this->translate('Download', 'ppit-core', $context->getLocale()) ?>">
+
+  <?php if (substr($document['mime'], 0, 5) == 'image') : ?>
+          <img src="<?php echo $this->url('document/download', ['id' => $document['id']]) ?>" class="img-fluid" alt="<?php echo $document['name'] ?>" />
+
+  <?php else : ?>
+    <?php 
+    if ($document['mime'] == 'application/pdf') $glyph = 'fa-file-pdf';
+    elseif ($document['mime'] == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') $glyph = 'fa-file-word';
+    elseif ($document['mime'] == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') $glyph = 'fa-file-excel';
+    elseif ($document['mime'] == 'application/vnd.openxmlformats-officedocument.presentationml.presentation') $glyph = 'fa-file-powerpoint';
+    else $glyph = 'fa-file';
+    ?>
+          <i class="far <?php echo $glyph ?> fa-2x text-muted"></i>
+  <?php endif;?>
+
+        </a>
+          
+      </div>
+
+  <?php 
+  if (strlen($document['name']) > 20) $name = substr($document['name'], 0, 20) . '&hellip;';
+  else $name = $document['name'];
+  ?>
+        <div class="dropdown">
+          <div class="text-center"><small class="text-muted" data-toggle="tooltip" title="<?php echo $document['name'] ?>"><?php echo $name ?></small></div>
+          <div class="dropdown-menu">
+            <a class="dropdown-item text-danger" href="#"><?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?></a>
+          </div>
+        </div>
+ 
+      <div>
+        <div class="text-center">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input document-archive-checkbox" id="document-archive-checkbox_<?php echo $document['id'] ?>" />
+            <label class="form-check-label" for="document-archive-checkbox_<?php echo $document['id'] ?>"></label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+<?php endforeach;?>
+    
+  </div>
+
+<div class="row">
+  <div class="col-md-12">
+ <form class="md-form">
+  <div class="file-field">
+    <div class="btn btn-primary btn-sm float-left">
+      <span>Choisir un fichier</span>
+      <input type="file">
+    </div>
+    <div class="file-path-wrapper">
+      <input class="file-path validate" type="text" placeholder="Ajouter un document">
+    </div>
+  </div>
+</form>
+  </div>
+</div>
+
+</div>

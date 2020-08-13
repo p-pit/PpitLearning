@@ -130,6 +130,30 @@ class TeacherController extends AbstractActionController
     	$view->setTerminal(true);
     	return $view;
     }
+
+    public function documentAction()
+    {
+    	$context = Context::getCurrent();
+    	$content = [
+    		'context' => $context,
+    	];
+		$account_id = $this->params()->fromRoute('account_id');
+
+		$select = Document::getSelect('binary', [], ['folder' => ['eq', 'commitments'], 'account_id' => ['eq', $account_id]], ['-update_time'], null);
+		$documents = Document::getTable()->selectWith($select);
+		
+		$content['documents'] = [];
+		foreach ($documents as $document) {
+			$data = $document->getProperties();
+			$content['documents'][$document->id] = $data;
+			$content['documents'][$document->id]['is_deletable'] = $document->isDeletable();
+		}
+    	
+    	// Return the link list
+    	$view = new ViewModel($content);
+    	$view->setTerminal(true);
+    	return $view;
+    }
     
     public function evaluationAction()
     {

@@ -228,6 +228,51 @@ function showStatic(route, target) {
   xhttp.send();
 }
 
+function getDocument(account_id) {
+  let xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('teacher/document', ['account_id' => $profile->id]) ?>';
+  xhttp.open("GET", route, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#document-list').html(xhttp.responseText);
+
+        // Connect the download buttons
+        $('.document-download-btn').click(function () {
+          let id = $(this).attr('id').split('_')[1];
+          documentDownload(id, target, place_id, account_id);
+        });
+
+        // Connect the archive buttons
+        $('.document-archive-checkbox').change(function () {
+          let id = $(this).attr('id').split('_')[1];
+          documentArchive(id, target, place_id, account_id);
+        });
+
+        // Connect the delete buttons
+        $('.document-delete-btn').click(function () {
+          let id = $(this).attr('id').split('_')[1];
+          connectDeleteBtn(id, target, place_id, account_id);
+        });
+
+        // Connect the cancel buttons
+        $('.document-cancel-btn').hide();
+        $('.document-cancel-btn').click(function () {
+          let id = $(this).attr('id').split('_')[1];
+          connectCancelBtn(id, target, place_id, account_id);
+        });
+
+        // Connect the upload buttons
+        $('.document-upload-btn').click(function () {
+          documentUpload(target, place_id, account_id);
+        });
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send();
+}
+
 function showCalendar(route, target) {
   // Execute the ajax request
   let xhttp = new XMLHttpRequest();
@@ -260,6 +305,7 @@ function showCalendar(route, target) {
 	          if (xhttp2.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
 	          if (xhttp2.readyState == 4 && xhttp2.status == 200) {
                 $('#modalForm').html(xhttp2.responseText);
+                getDocument(entry.entryId);
                 $('#modalForm').modal('toggle');
 	          }
 	        }

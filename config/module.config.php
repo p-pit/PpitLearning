@@ -284,6 +284,15 @@ return array(
         										),
         								),
         						),
+        						'document' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/document[/:account_id]',
+        										'defaults' => array(
+        												'action' => 'document',
+        										),
+        								),
+        						),
 	       						'evaluation' => array(
         								'type' => 'segment',
         								'options' => array(
@@ -332,6 +341,7 @@ return array(
             	array('route' => 'teacher', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/home', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
+            	array('route' => 'teacher/document', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
 			)
 		)
@@ -870,7 +880,7 @@ return array(
 				'adr_zip' => ['mandatory' => false],
 				'adr_city' => ['mandatory' => false],
 				'title_2' => ['mandatory' => false],
-				'groups' => ['readonly' => true],
+				'groups' => [],
 				'property_1' => ['mandatory' => false],
 				'property_2' => ['mandatory' => false],
 				'property_3' => ['mandatory' => false],
