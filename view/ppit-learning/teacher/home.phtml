@@ -22,6 +22,10 @@
     <!-- Material Design Bootstrap -->
     <link href="<?php echo $this->basePath('MDB-Pro/css/mdb.min.css') ?>" rel="stylesheet">
      <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar/fullcalendar.css') ?>" />
+  
+  <!-- medium editor -->
+  <link rel="stylesheet" href="<?php echo $this->basePath('medium-editor-master/dist/css/medium-editor.css') ?>">
+  <link rel="stylesheet" href="<?php echo $this->basePath('medium-editor-master/dist/css/themes/default.css" id="medium-editor-theme') ?>">
 
     <!-- FullCalendar -->
     <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar-4.2.0/packages/core/main.min.css') ?>" />
@@ -398,43 +402,6 @@ else $studentGroups = null;
 
 <!-- Medium editor -->
 <script src="<?php echo $this->basePath('medium-editor-master/dist/js/medium-editor.js') ?>"></script>
-<script>
-  //Returns a function, that, as long as it continues to be invoked, will not
-  //be triggered. The function will be called after it stops being called for
-  //N milliseconds. If `immediate` is passed, trigger the function on the
-  //leading edge, instead of the trailing.
-  function debounce(func, wait, immediate) {
-    var timeout;
-    return function() {
-    var context = this, args = arguments;
-    var later = function() {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      if (callNow) func.apply(context, args);
-    };
-  };
-  var editor = new MediumEditor('.editable', {
-    buttonLabels: 'fontawesome'
-  });
-  function triggerAutoSave(event, editable) {
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", '<?php echo $this->url('document/update') ?>/' + editable.id, true);
-    xhttp.onreadystatechange = function() {
-      if (xhttp.readyState == 4 && xhttp.status == 200) {
-      }
-    }
-    var content = { content: {} };
-    content.content[editable.id] = editable.innerHTML;
-    xhttp.send(JSON.stringify(content));
-  }
-  var throttledAutoSave = debounce(triggerAutoSave, 1000);
-  editor.subscribe('editableInput', throttledAutoSave);
-</script>
-<!--/ medium editor -->
 
 <?php echo $this->partial($viewController) ?>
 
