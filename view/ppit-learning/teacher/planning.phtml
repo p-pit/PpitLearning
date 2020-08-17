@@ -30,7 +30,11 @@
  
       <ul class="nav nav-tabs md-tabs nav-justified primary-color">
         <li class="nav-item"><a class="nav-link active" id="document-tab-md" data-toggle="tab" href="#document-md" role="tab" aria-controls="document-md"><?php echo $this->translate('Contenu pédagogique', 'ppit-core', $context->getLocale())?></a></li>
+
+<!-- user_story: Absence and lateness can be notified only on slots that are not grouped (on only 1 date) -->
+<?php if ($event->end_date == $event->begin_date) : ?>
         <li class="nav-item"><a class="nav-link" id="absence-tab-md" data-toggle="tab" href="#absence-md" role="tab" aria-controls="absence-md"><?php echo $this->translate('Retards et absentéisme', 'ppit-core', $context->getLocale())?></a></li>
+<?php endif;?>
       </ul>
  
       <div class="tab-content card pt-5">
