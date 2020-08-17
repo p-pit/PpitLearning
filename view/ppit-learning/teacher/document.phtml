@@ -12,7 +12,7 @@
 
     <div class="col-md-2 my-2">
        
-      <div class="text-center mt-2">
+      <div class="text-center mt-2" id="document-<?php $document->id ?>" draggable="true" ondragstart="drag(event)">
 
         <a href="<?php echo $this->url('document/download', ['id' => $document['id']]) ?>" target="_blank" class="document-download-anchor" id="document-download-anchor_<?php echo $document['id'] ?>" data-toggle="tooltip" title="<?php echo $this->translate('Download', 'ppit-core', $context->getLocale()) ?>">
 

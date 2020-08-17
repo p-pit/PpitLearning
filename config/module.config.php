@@ -293,7 +293,16 @@ return array(
         										),
         								),
         						),
-	       						'evaluation' => array(
+        						'absence' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/absence[/:event_id]',
+        										'defaults' => array(
+        												'action' => 'absence',
+        										),
+        								),
+        						),
+				       			'evaluation' => array(
         								'type' => 'segment',
         								'options' => array(
         										'route' => '/evaluation[/:type][/:id]',
@@ -342,6 +351,7 @@ return array(
             	array('route' => 'teacher/home', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/document', 'roles' => array('teacher', 'manager')),
+            	array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
 			)
 		)

@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
     <!-- Bootstrap core CSS -->
     <link href="<?php echo $this->basePath('/bootstrap-4-2/css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link rel="stylesheet" href="<?php echo $this->basePath('/jquery-ui-1.11.4/jquery-ui.css') ?>">
     <!-- Material Design Bootstrap -->
     <link href="<?php echo $this->basePath('MDB-Pro/css/mdb.min.css') ?>" rel="stylesheet">
      <link rel='stylesheet' href="<?php echo $this->basePath('/fullcalendar/fullcalendar.css') ?>" />
@@ -357,6 +358,7 @@ else $studentGroups = null;
 
     <!-- JQuery -->
     <script type="text/javascript" src="<?php echo $this->basePath('MDB-Pro/js/jquery-3.3.1.min.js') ?>"></script>
+    <script src="/~bruno/2pit.io/public/jquery-ui-1.11.4/jquery-ui.js"></script>
 
     <!-- Bootstrap tooltips -->
     <script type="text/javascript" src="<?php echo $this->basePath('MDB-Pro/js/popper.min.js') ?>"></script>
@@ -399,6 +401,40 @@ else $studentGroups = null;
           $('[data-toggle="tooltip"]').tooltip()
         })
     </script>
+
+<script>
+
+$.datepicker.regional['fr'] = {
+  prevText: '<?php echo $this->translate('Previous', 'ppit-core', $context->getLocale()); ?>',
+  nextText: '<?php echo $this->translate('Next', 'ppit-core', $context->getLocale()); ?>',
+  monthNames: ['<?php echo $this->translate('January', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('February', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('March', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('April', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('May', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('June', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('July', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('August', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('September', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('October', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('November', 'ppit-core', $context->getLocale()); ?>',
+         '<?php echo $this->translate('December', 'ppit-core', $context->getLocale()); ?>'],
+  dayNamesMin: ['<?php echo $this->translate('Su', 'ppit-core', $context->getLocale()); ?>',
+            '<?php echo $this->translate('Mo', 'ppit-core', $context->getLocale()); ?>',
+          '<?php echo $this->translate('Tu', 'ppit-core', $context->getLocale()); ?>',
+          '<?php echo $this->translate('We', 'ppit-core', $context->getLocale()); ?>',
+          '<?php echo $this->translate('Th', 'ppit-core', $context->getLocale()); ?>',
+          '<?php echo $this->translate('Fr', 'ppit-core', $context->getLocale()); ?>',
+          '<?php echo $this->translate('Sa', 'ppit-core', $context->getLocale()); ?>'],
+  dateFormat: 'dd/mm/yy',
+  firstDay: 1,
+  isRTL: false,
+  yearSuffix: ''
+};
+<?php if (substr($context->getLocale(), 0, 2) == 'fr') : ?>
+$.datepicker.setDefaults($.datepicker.regional['fr']);
+<?php endif;?>
+</script>
 
 <!-- Medium editor -->
 <script src="<?php echo $this->basePath('medium-editor-master/dist/js/medium-editor.js') ?>"></script>

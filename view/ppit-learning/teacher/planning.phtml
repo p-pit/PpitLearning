@@ -8,6 +8,12 @@
  */
 -->
 
+<style>
+.homework-document-drop {
+  padding: 10px;
+  border: 1px solid #aaaaaa;
+}
+</style>
 
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -24,7 +30,7 @@
  
       <ul class="nav nav-tabs md-tabs nav-justified primary-color">
         <li class="nav-item"><a class="nav-link active" id="document-tab-md" data-toggle="tab" href="#document-md" role="tab" aria-controls="document-md"><?php echo $this->translate('Contenu pédagogique', 'ppit-core', $context->getLocale())?></a></li>
-        <li class="nav-item"><a class="nav-link" id="schedule-tab-md" data-toggle="tab" href="#schedule-md" role="tab" aria-controls="schedule-md"><?php echo $this->translate('Retards et absentéisme', 'ppit-core', $context->getLocale())?></a></li>
+        <li class="nav-item"><a class="nav-link" id="absence-tab-md" data-toggle="tab" href="#absence-md" role="tab" aria-controls="absence-md"><?php echo $this->translate('Retards et absentéisme', 'ppit-core', $context->getLocale())?></a></li>
       </ul>
  
       <div class="tab-content card pt-5">
@@ -34,7 +40,7 @@
     <strong><?php if ($event->property_3) echo $context->localize($eventConfig['property_3']['modalities'][$event->property_3]) . ', ' ?></strong>
     <?php echo $event->caption ?>&nbsp;&nbsp;
     <small>
-      <i class="far fa-clock"></i> <?php echo substr($event->begin_date, 8, 2) ?>/<?php echo substr($event->begin_date, 5, 2) ?>
+      <i class="far fa-clock"></i> <?php echo substr($date, 8, 2) ?>/<?php echo substr($date, 5, 2) ?>
       (<?php echo substr($event->begin_time, 0, 2) . 'H' . substr($event->begin_time, 3, 2) ?>&mdash;<?php echo substr($event->end_time, 0, 2) . 'H' . substr($event->end_time, 3, 2) ?>)
     </small>&nbsp;&nbsp;
     <small><i class="fas fa-map-marker-alt"></i> <?php echo $event->location ?></small>
@@ -52,32 +58,63 @@
 
           <hr>
 
-          <div class="row">
+<!-- Homework done -->
+
+          <div class="row mt-5">
             <div class="col-md-12">
-              <h5 class="text-center text-muted"><small>Travail réalisé</small></h5>
+              <h5 class="text-muted"><small>Travail réalisé le <?php echo $context->decodeDate($date) ?></small></h5>
             </div>
           </div>
           
           <div class="row">
             <div class="col-md-12">
               <div class="editable"></div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-12">
+              <div class="homework-document-drop text-center align-middle text-muted" id="homeworkDocumentDrop-done" ondrop="dropDone(event)" ondragover="allowDrop(event)"><i>Vous pouvez glisser-déposer vos documents ici</i></div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-12">
+              <div class="homework-document text-center align-middle text-muted" id="homeworkDocument-done"></div>
             </div>
           </div>
 
-          <div class="row">
+<!-- Homework todo -->
+
+          <div class="row mt-5">
             <div class="col-md-12">
-              <h5 class="text-center text-muted"><small>Travail à faire</small></h5>
+              <h5 class="text-muted">
+                <small>
+                  <span>Travail à faire pour le <input type="text" id="target_date">s</span>
+                </small></h5>
             </div>
           </div>
           
           <div class="row">
             <div class="col-md-12">
               <div class="editable"></div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-12">
+              <div class="homework-document-drop text-center align-middle text-muted" id="homeworkDocumentDrop-todo" ondrop="dropTodo(event)" ondragover="allowDrop(event)"><i>Vous pouvez glisser-déposer vos documents ici</i></div>
+            </div>
+          </div>
+         
+          <div class="row">
+            <div class="col-md-12">
+              <div class="homework-document text-center align-middle text-muted" id="homeworkDocument-todo"></div>
             </div>
           </div>
 
         </div>
-        <div class="tab-pane fade" id="schedule-md" role="tabpanel" aria-labelledby="schedule-tab-md"></div>
+        <div class="tab-pane fade" id="absence-md" role="tabpanel" aria-labelledby="absence-tab-md"></div>
       </div>
  
           </div>

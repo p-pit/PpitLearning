@@ -119,12 +119,14 @@ class TeacherController extends AbstractActionController
     	$context = Context::getCurrent();
     	$eventConfig = Event::getConfigProperties('calendar');
     	$id = (int) $this->params()->fromRoute('id', 0);
+    	$date = $this->params()->fromQuery('date');
     	$event = Event::get($id);
 
     	$view = new ViewModel(array(
     		'context' => $context,
     		'eventConfig' => $eventConfig,
     		'id' => $id,
+    		'date' => $date,
     		'event' => $event,
     	));
     	$view->setTerminal(true);
@@ -151,6 +153,144 @@ class TeacherController extends AbstractActionController
     	
     	// Return the link list
     	$view = new ViewModel($content);
+    	$view->setTerminal(true);
+    	return $view;
+    }
+
+    /**
+     * user_story - event-attendees: The attendees of a calendar event are the accounts belonging to the event's class (if any) union the accounts linked to one of the event's groups
+     */
+    public static function getAttendees($event)
+    {
+    	$groups = Account::getList('group', [], '+name', null);
+    	$groupIds = $event->groups;
+    	if ($groupIds) $groupIds = explode(',', $groupIds);
+    
+    	$attendees = [];
+    	$filters['status'] = 'active,retention';
+    	if ($event->property_2) $filters['property_7'] = $event->property_2;
+    	$cursor = Account::getList('p-pit-studies', $filters, '+n_fn', null);
+    
+    	if (!$groupIds) foreach ($cursor as $account_id => $account) $attendees[$account_id] = ['n_fn' => $account->n_fn, 'matched' => true];
+    	else {
+    		foreach ($groupIds as $group_id) {
+    			foreach ($cursor as $account_id => $account) {
+    				if ($account->groups) {
+    					if (in_array($group_id, explode(',', $account->groups))) $attendees[$account_id] = ['n_fn' => $account->n_fn, 'matched' => true];
+    				}
+    			}
+    		}
+    	}
+    	return $attendees;
+    }
+    
+    public function absenceAction()
+    {
+    	$context = Context::getCurrent();
+    	$event_id = (int) $this->params()->fromRoute('event_id', 0);
+    	$event = Event::get($event_id);
+    	$description = Event::getDescription($event->type);
+    
+    	$owner = ['id' => $event->account_id, 'n_fn', 'n_fn' => $event->n_fn, 'matched' => true];
+    	 
+    	$attendees = [];
+    	/*    	if ($event->matched_accounts) {
+    	 foreach (explode(',', $event->matched_accounts) as $account_id) $attendees[$account_id] = Account::get($account_id);
+    	 }*/
+    	$attendees = TeacherController::getAttendees($event);
+    
+    	// Instanciate the csrf form
+    	$csrfForm = new CsrfForm();
+    	$csrfForm->addCsrfElement('csrf');
+    	$error = null;
+    	$message = null;
+    	$request = $this->getRequest();
+    	if ($request->isPost()) {
+    		$csrfForm->setInputFilter((new Csrf('csrf'))->getInputFilter());
+    		$csrfForm->setData($request->getPost());
+    		 
+    		if ($csrfForm->isValid()) { // CSRF check
+    			 
+    			// Load the input data
+    			$data = [];
+    			$data['matched_accounts'] = $request->getPost('matched_accounts');
+    			if (!$request->getPost('owner')) $data['status'] = 'canceled';
+    			else $data['status'] = 'realized';
+    
+    			// Atomically save
+    			$connection = Event::getTable()->getAdapter()->getDriver()->getConnection();
+    			$connection->beginTransaction();
+    			try {
+    				if ($event->loadData($data) != 'OK') throw new \Exception('View error');
+    
+    				$rc = $event->update($request->getPost('event_update_time'));
+    				if ($rc != 'OK') $error = $rc;
+    				if ($error) $connection->rollback();
+    				else {
+    
+    					if ($event->status != 'canceled') {
+    
+    						if ($event->matched_accounts) $matched_accounts = explode(',', $event->matched_accounts);
+    						else $matched_accounts = [];
+    
+    						// user_story: event_calendar_absence: Generate the absence events
+    						Event::getTable()->multipleDelete(['type' => 'absence', 'property_11' => $event->id]);
+    						foreach ($attendees as $account_id => &$account) {
+    							if (!in_array($account_id, $matched_accounts)) {
+    								$account['matched'] = false;
+    
+    								$absence = Event::instanciate('absence');
+    								$absence->account_id = $account_id;
+    								$absence->property_11 = $event->id;
+    								$absence->place_id = $event->place_id;
+    								$absence->begin_date = $event->begin_date;
+    								$absence->end_date = $event->end_date;
+    								$absence->begin_time = $event->begin_time;
+    								$absence->end_time = $event->end_time;
+    
+    								// Properties between property_1 and property_10 are loaded with their counterpart in the calendar event
+    								$absence->property_1 = $event->property_1;
+    								$absence->property_2 = $event->property_2;
+    								$absence->property_3 = $event->property_3;
+    								$absence->property_4 = $event->property_4;
+    								$absence->property_5 = $event->property_5;
+    								$absence->property_6 = $event->property_6;
+    								$absence->property_7 = $event->property_7;
+    								$absence->property_8 = $event->property_8;
+    								$absence->property_9 = $event->property_9;
+    								$absence->property_10 = $event->property_10;
+    								$absence->property_12 = 'unjustified';
+    								 
+    								$rc = $absence->add();
+    								if ($rc != 'OK') $error = $rc;
+    							}
+    						}
+    					}
+    
+    					if (!$error) {
+    						$connection->commit();
+    						$message = 'OK';
+    					}
+    				}
+    			}
+    			catch (\Exception $e) {
+    				$connection->rollback();
+    				throw $e;
+    			}
+    		}
+    	}
+    	 
+    	$view = new ViewModel(array(
+    		'context' => $context,
+    		'event_id' => $event_id,
+    		'event' => $event,
+    		'owner' => $owner,
+    		'attendees' => $attendees,
+    		'csrfForm' => $csrfForm,
+    		'error' => $error,
+    		'message' => $message,
+    		'description' => $description,
+    	));
     	$view->setTerminal(true);
     	return $view;
     }

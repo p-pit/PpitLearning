@@ -1,0 +1,69 @@
+<!-- 
+/**
+ * PpitCore V1.0 (https://github.com/p-pit/PpitCore)
+ *
+ * @link      https://github.com/p-pit/PpitCore
+ * @copyright Copyright (c) 2016 Bruno Lartillot
+ * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
+ */
+-->
+
+<form method="post" id="schedule-form">
+<div class="container">
+
+<!-- Global message -->
+<?php if ($message == 'OK') : ?>
+  <div id="message">
+    <h5 class="alert alert-success my-3 text-center"><?php echo $this->translate('Your request has been registered', 'ppit-core', $context->getLocale()) ?></h5>
+  </div>
+<?php endif;?>
+
+<!-- Isolation error -->
+<?php if ($error == 'Isolation') : ?>
+  <div class="alert alert-danger my-3" style="text-align: center">
+    <strong><?php echo $this->translate('The database has evolved in the meantime, please input again', 'ppit-core', $context->getLocale()) ?></strong>
+  </div>
+<?php endif;?>
+
+<!-- CSRF -->
+<?php $element = $csrfForm->get('csrf') ?>
+  <div class="form-group">
+    <?php echo $this->formElement($element) ?>
+<?php if ($this->formElementErrors($element)) : ?>
+    <div class="alert alert-danger my-3" style="text-align: center">
+      <strong><?php echo $this->translate('The form has expired, please input again', 'ppit-core', $context->getLocale()) ?></strong>
+    </div>
+<?php endif;?>
+  </div>
+
+<?php 
+if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $isDisabled = false;
+?>
+  
+<?php if ($message != 'OK' && $event->status != 'realized') : ?>
+  <div class="alert alert-warning my-3" style="text-align: center">
+    <strong><?php echo $this->translate('Please uncheck the absent attendees, or input the time of arrival if being late', 'ppit-core', $context->getLocale()) ?></strong>
+  </div>
+<?php endif;?>
+
+<?php foreach ($attendees as $account_id => $account) : ?>
+  <div class="form-group row">
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input updatable-control matched_accounts" id="matched_accounts_<?php echo $account_id ?>" name="matched_accounts" value="<?php echo $account_id ?>" <?php if ($account['matched']) : ?>checked<?php endif;?> <?php if ($isDisabled) : ?>disabled<?php endif;?>/>
+        <label class="form-check-label" for="matched_accounts_<?php echo $account_id ?>"><?php echo $account['n_fn'] ?></label>
+      </div>&nbsp;&nbsp;
+      <input type="text" placeholder="Heure d’arrivée" />
+  </div>
+<?php endforeach;?>
+
+<?php if ($message != 'OK' && $event->status != 'realized') : ?>
+  <div class="form-group row">
+    <div class="col-sm-5">&nbsp;</div>
+    <div class="col-sm-7">
+      <input name="submit" type="submit" id="submit-button" class="btn btn-warning" value="<?php echo $this->translate('Save', 'ppit-core', $context->getLocale()) ?>">
+    </div>
+  </div>
+<?php endif;?>
+
+</div>
+</form>
