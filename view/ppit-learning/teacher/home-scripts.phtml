@@ -349,7 +349,7 @@ function showCalendar(route, target) {
 	          if (xhttp2.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
 	          if (xhttp2.readyState == 4 && xhttp2.status == 200) {
                 $('#modalForm').html(xhttp2.responseText);
-                $('#target_date').datepicker();
+//                $('#target_date').datepicker();
                 getDocument(entry.entryId);
                 getAbsence(entry.entryId);
                 makeEditable();
