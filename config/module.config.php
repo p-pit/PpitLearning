@@ -275,7 +275,16 @@ return array(
         										),
         								),
         						),
-        						'planning' => array(
+        						'calendar' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/calendar[/:id]',
+        										'defaults' => array(
+        												'action' => 'calendar',
+        										),
+        								),
+        						),
+	       						'planning' => array(
         								'type' => 'segment',
         								'options' => array(
         										'route' => '/planning[/:id]',
@@ -349,7 +358,8 @@ return array(
 				// Teacher
             	array('route' => 'teacher', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/home', 'roles' => array('teacher', 'manager')),
-            	array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
+            	array('route' => 'teacher/calendar', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/document', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
@@ -481,7 +491,7 @@ return array(
 			'planning' => array(
 				'type' => 'calendar',
 				'level' => 'community',
-				'route' => 'student/planningV2',
+				'route' => 'teacher/calendar',
 				'label' => array('en_US' => 'Planning', 'fr_FR' => 'Planning'),
 			),
 			'evaluation' => array(

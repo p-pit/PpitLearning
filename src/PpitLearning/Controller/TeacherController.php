@@ -113,6 +113,22 @@ class TeacherController extends AbstractActionController
     	$view->setTerminal(true);
     	return $view;
     }
+
+    public function calendarAction()
+    {
+    	// Retrieve the context
+    	$context = Context::getCurrent();
+    
+    	$account_id = (int) $this->params()->fromRoute('id');
+    	$account = Account::get($account_id);
+    
+    	// Return the link list
+    	$view = new ViewModel(array(
+    		'context' => $context,
+    	));
+    	$view->setTerminal(true);
+    	return $view;
+    }
     
     public function planningAction()
     {
@@ -120,6 +136,7 @@ class TeacherController extends AbstractActionController
     	$eventConfig = Event::getConfigProperties('calendar');
     	$id = (int) $this->params()->fromRoute('id', 0);
     	$date = $this->params()->fromQuery('date');
+    	$grouped = $this->params()->fromQuery('grouped');
     	$event = Event::get($id);
 
     	$view = new ViewModel(array(
@@ -127,6 +144,7 @@ class TeacherController extends AbstractActionController
     		'eventConfig' => $eventConfig,
     		'id' => $id,
     		'date' => $date,
+    		'grouped' => $grouped,
     		'event' => $event,
     	));
     	$view->setTerminal(true);

@@ -1,0 +1,13 @@
+<div>&nbsp;</div>
+<div class="row">
+  <div class="col-md-10" id="calendar"></div>
+  <div class="col-md-2 text-center">
+    <div>Légende</div>
+    <div><span class="chip chip-lg my-3" style="background-color: <?php echo $context->getConfig('note/colour')['done-work'] ?>"><?php echo $this->translate('Done', 'ppit-studies', $context->getLocale()) ?></span></div>
+    <div><span class="chip chip-lg my-3" style="background-color: <?php echo $context->getConfig('note/colour')['todo-work'] ?>"><?php echo $this->translate('To do', 'ppit-studies', $context->getLocale()) ?></span></div>
+    <div id="homework-detail">
+      <h3 id="homework-event-title"></h3>
+      <div id="homework-event-description"></div>
+    </div>
+  </div>
+</div>
