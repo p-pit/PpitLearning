@@ -209,6 +209,7 @@ class TeacherController extends AbstractActionController
 		if ($id) $homework = Note::get($id);
 		else {
 			$note = Note::instanciate($type, null);
+			$note->place_id = $context->getPlaceId();
 			$note->teacher_id = $account_id;
 			$note->group_id = $group_id;
 			$note->subject = $subject;
