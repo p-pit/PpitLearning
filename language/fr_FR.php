@@ -1,5 +1,6 @@
 <?php
 	return array(
+		'Add a document' => 'Ajouter un document',
 		'Add an evaluation' => 'Ajouter une évaluation',
 		'Appreciation' => 'Appréciation',
 		'Class average' => 'Moyenne class',
@@ -32,6 +33,7 @@
 		'The test has not begun' => 'Le test n\'a pas commencé',
 		'This action send to the candidate an email containing a link to the test.' => 'Cette action envoie au candidat un email contenant un lien vers le test.',
 		'This action reinitializes the test. The previous results for this candidate will be suppressed.' => 'Cette action réinitialise le test. Les résultats existants pour ce candidat seront supprimés.',
+		'Select the document(s) to include' => 'Sélectionnez le(s) document(s) à inclure',
 		'Submit definitely' => 'Soumettre définitivement',
 		'Update an evaluation' => 'Modifier une évaluation',
 		'Upper average' => 'Moyenne supérieure',

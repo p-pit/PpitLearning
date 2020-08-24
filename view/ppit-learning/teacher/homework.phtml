@@ -1,0 +1,31 @@
+<div class="row mt-5">
+  <div class="col-md-12">
+    <h5 class="text-muted">
+      <small>
+        <span>
+<?php if ($type == 'done-work') : ?>
+      Travail réalisé en <?php echo $note['subject'] ?> avec le groupe <?php echo $group ?> le 
+<?php else : ?>
+      Travail à faire en <?php echo $note['subject'] ?> par le groupe <?php echo $group ?> pour le 
+<?php endif;?> 
+      <input type="text" id="target_date-<?php echo $type ?>" value="<?php echo $context->decodeDate($note['target_date']) ?>">
+          </span>
+        </small>
+    </h5>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="editable" id="observations-<?php echo $type ?>"></div>
+  </div>
+</div>
+
+<div id="teacherHomeworkDocumentSelect-<?php echo $type ?>"></div>
+
+<?php if ($requestType == 'POST' && $statusCode == '200') : ?>
+  <div id="message">
+    <h5 class="alert alert-success my-3 text-center"><?php echo $this->translate('Your request has been registered', 'ppit-core', $context->getLocale()) ?></h5>
+  </div>
+<?php endif;?>
+

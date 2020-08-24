@@ -157,7 +157,7 @@ class TeacherController extends AbstractActionController
     	$content = [
     		'context' => $context,
     	];
-		$account_id = $this->params()->fromRoute('account_id');
+		$account_id = $this->params()->fromQuery('account_id');
 
 		$select = Document::getSelect('binary', [], ['folder' => ['eq', 'commitments'], 'account_id' => ['eq', $account_id]], ['-update_time'], null);
 		$documents = Document::getTable()->selectWith($select);
@@ -175,6 +175,93 @@ class TeacherController extends AbstractActionController
     	return $view;
     }
 
+    public function getHomeworkAction()
+    {
+    	// Retrieve the context
+    	$context = Context::getCurrent();
+    	$id = $this->params()->fromRoute('id');
+    
+    	$teacher_id = (int) $this->params()->fromQuery('teacher_id');
+    
+    	$notes = Note::GetList('homework', null, ['teacher_id' => $teacher_id], 'date', 'DESC', 'search', null);
+    	 
+    	echo json_encode($notes, JSON_PRETTY_PRINT);
+    	return $this->getResponse();
+    }
+    
+	public function homeworkAction()
+	{
+		$context = Context::getCurrent();
+		if ($this->getRequest()->isPost()) $requestType = 'POST';
+		elseif ($this->getRequest()->isDelete()) $requestType = 'DELETE';
+		else $requestType = 'GET';
+		
+		$type = $this->params()->fromRoute('type');
+		$id = $this->params()->fromRoute('id');
+		$groups = $this->params()->fromQuery('groups');
+		$groups = explode(',', $groups);
+		$group_id = $groups[0];
+		$group = Account::get($group_id);
+		$account_id = $this->params()->fromQuery('account_id');
+		$subject = $this->params()->fromQuery('subject');
+		$date = $this->params()->fromQuery('date');
+		
+		if ($id) $homework = Note::get($id);
+		else {
+			$note = Note::instanciate($type, null);
+			$note->teacher_id = $account_id;
+			$note->group_id = $group_id;
+			$note->subject = $subject;
+			$note->date = $note->target_date = ($date) ? $date : date('Y-m-d');
+		}
+		$content = [
+			'context' => $context,
+			'requestType' => $requestType,
+			'type' => $type,
+			'id' => $id,
+			'group' => $group->name,
+			'note' => $note->getProperties(),
+		];
+
+		$statusCode = '200';
+		if ($this->getRequest()->isPost()) {
+			$note->date = $note->target_date = $context->encodeDate($this->getRequest()->getPost('target_date'));
+			$note->observations = $this->getRequest()->getPost('observations');
+			$note->document = $this->getRequest()->getPost('document');
+			if ($note->observations) {
+				if (!$id) $note->add();
+				else $note->update(null);
+			}
+		}
+		
+		$content['statusCode'] = $statusCode;
+
+		// Return the link list
+		$view = new ViewModel($content);
+		$view->setTerminal(true);
+		return $view;
+	}
+    
+	public function homeworkDocumentAction()
+	{
+		$view = $this->documentAction();
+		$type = $this->params()->fromRoute('type');
+		$view->type = $type;
+		return $view;
+	}
+
+	public function homeworkDetailAction()
+	{
+		$context = Context::getCurrent();
+		$id = $this->params()->fromRoute('id');
+		$homework = Note::get($id);
+		
+		$view = new ViewModel($homework->getProperties());
+		$view->context = $context;
+		$view->setTerminal(true);
+		return $view;
+	}
+	
     /**
      * user_story - event-attendees: The attendees of a calendar event are the accounts belonging to the event's class (if any) union the accounts linked to one of the event's groups
      */

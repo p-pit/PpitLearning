@@ -296,13 +296,49 @@ return array(
         						'document' => array(
         								'type' => 'segment',
         								'options' => array(
-        										'route' => '/document[/:account_id]',
+        										'route' => '/document',
         										'defaults' => array(
         												'action' => 'document',
         										),
         								),
         						),
-        						'absence' => array(
+        						'getHomework' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/get-homework',
+        										'defaults' => array(
+        												'action' => 'getHomework',
+        										),
+        								),
+        						),
+	       						'homework' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/homework[/:type][/:id]',
+        										'defaults' => array(
+        												'action' => 'homework',
+        										),
+        								),
+        						),
+        						'homeworkDocument' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/homework-document[/:type]',
+        										'defaults' => array(
+        												'action' => 'homeworkDocument',
+        										),
+        								),
+        						),
+	       						'homeworkDetail' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/homework-detail[/:id]',
+        										'defaults' => array(
+        												'action' => 'homeworkDetail',
+        										),
+        								),
+        						),
+	       						'absence' => array(
         								'type' => 'segment',
         								'options' => array(
         										'route' => '/absence[/:event_id]',
@@ -361,7 +397,11 @@ return array(
             	array('route' => 'teacher/calendar', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/document', 'roles' => array('teacher', 'manager')),
-            	array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/getHomework', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/homework', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/homeworkDocument', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/homeworkDetail', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
 			)
 		)

@@ -1,0 +1,7 @@
+<select class="mdb-select md-form" id="document-<?php echo $type ?>" multiple>
+  <option value="" disabled selected><?php echo $this->translate('Select the document(s) to include', 'ppit-learning', $context->getLocale()) ?></option>
+<?php foreach ($documents as $document) : ?>
+  <option value="<?php echo $document['id'] ?>"><?php echo $document['name'] ?></option>
+<?php endforeach;?>
+</select>
+<label class="mdb-main-label"><?php echo $this->translate('Documents', 'ppit-core', $context->getLocale()) ?></label>

@@ -62,58 +62,13 @@
 
           <hr>
 
-<!-- Homework done -->
+          <div id="teacher-homework-done-work"></div>
 
-          <div class="row mt-5">
-            <div class="col-md-12">
-              <h5 class="text-muted"><small>Travail réalisé le <?php echo $context->decodeDate($date) ?></small></h5>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-12">
-              <div class="editable"></div>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-12">
-              <div class="homework-document-drop text-center align-middle text-muted" id="homeworkDocumentDrop-done" ondrop="dropDone(event)" ondragover="allowDrop(event)"><i>Vous pouvez glisser-déposer vos documents ici</i></div>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-12">
-              <div class="homework-document text-center align-middle text-muted" id="homeworkDocument-done"></div>
-            </div>
-          </div>
-
-<!-- Homework todo -->
-
-          <div class="row mt-5">
-            <div class="col-md-12">
-              <h5 class="text-muted">
-                <small>
-                  <span>Travail à faire pour le <input type="text" id="target_date">s</span>
-                </small></h5>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-12">
-              <div class="editable"></div>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-12">
-              <div class="homework-document-drop text-center align-middle text-muted" id="homeworkDocumentDrop-todo" ondrop="dropTodo(event)" ondragover="allowDrop(event)"><i>Vous pouvez glisser-déposer vos documents ici</i></div>
-            </div>
-          </div>
+          <div id="teacher-homework-todo-work"></div>
          
-          <div class="row">
+          <div class="row my-3">
             <div class="col-md-12">
-              <div class="homework-document text-center align-middle text-muted" id="homeworkDocument-todo"></div>
+              <div class="text-center align-middle text-muted"><button class="btn btn-warning" id="teacherHomeworkSubmit"><?php echo $this->translate('Add', 'ppit-core', $context->getLocale()) ?></button></div>
             </div>
           </div>
 

@@ -1,3 +1,9 @@
+<?php 
+$groupIds = [];
+foreach ($groups as $group) $groupIds[] = $group->id;
+$groupIds = implode(',', $groupIds);
+?>
+
 <script>
 
 function makeEditable() {
@@ -46,8 +52,9 @@ var viewBeginDate = '<?php echo date('Y-m-d') ?>';
 function getEvents(calendar) {
 
   calendar.getEvents().forEach(function (event, id) { event.remove(); });
+  getHomeworkList(calendar);
 	
-  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&property_1=<?php echo $context->getConfig('student/property/school_year/default') ?>';
+  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&account_id=<?php echo $profile->id ?>';
 
 //Filter on place
 <?php if ($place) : ?>
@@ -79,6 +86,7 @@ function getEvents(calendar) {
 		      calendar.addEvent({
                   entryType: 'planning',
 		          entryId: value.id,
+                  entrySubject: value.property_3,
                   entryDate: value.begin_date,
                   category: 'event',
 	              allDay: false,
@@ -112,11 +120,11 @@ let absenceMotiveLabels = {
 <?php endforeach; ?>
 }
 
-function getHomework(calendar) {
+function getHomeworkList(calendar) {
 
   // Retrieve the homework events
   let xhttp = new XMLHttpRequest();
-  xhttp.open("GET", '<?php echo $this->url('note/get', ['category' => 'homework']) ?>?account_id=<?php echo $profile->id ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('teacher/getHomework') ?>?teacher_id=<?php echo $profile->id ?>', true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -138,6 +146,7 @@ function getHomework(calendar) {
         else date = homework.target_date;
         calendar.addEvent({
           entryType: 'homework',
+          entryId: homework.id,
           id: homeworkId,
           category: 'homework',
           type: homework.type,
@@ -248,8 +257,36 @@ function showStatic(route, target) {
   xhttp.send();
 }
 
-function getDocument(account_id) {
-  let xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('teacher/document', ['account_id' => $profile->id]) ?>';
+//Add a new vard or update an existing vcard
+function documentUpload(account_id)
+{
+  formData = new FormData();
+  let fileSelect = document.getElementById('document-file');
+  if (fileSelect) {
+    let files = fileSelect.files;
+    if (files[0]) {
+      formData.append('document-file', files[0], files[0].name);
+      let xhttp = new XMLHttpRequest();
+      let route = '<?php echo $this->url('document/upload', ['type' => 'binary', 'folder' => 'commitments']) ?>?';
+      route += '&place_id=' + <?php echo $place->id ?>;
+      route += '&account_id=' + account_id;
+      xhttp.open('POST', route, true);
+      xhttp.onreadystatechange = function() {
+        if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+        if (xhttp.readyState == 4 && (xhttp.status == 200 || xhttp.status == 400)) {
+          getDocument();
+          getHomeworkDocument('done-work');
+          getHomeworkDocument('todo-work');
+        }
+      };
+      xhttp.send(formData);
+    }
+    else toastr.error('Erreur');
+  }
+}
+
+function getDocument() {
+  let account_id = <?php echo $profile->id ?>, xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('teacher/document') ?>?account_id=' + account_id;
   xhttp.open("GET", route, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
@@ -260,32 +297,28 @@ function getDocument(account_id) {
         // Connect the download buttons
         $('.document-download-btn').click(function () {
           let id = $(this).attr('id').split('_')[1];
-          documentDownload(id, target, place_id, account_id);
-        });
-
-        // Connect the archive buttons
-        $('.document-archive-checkbox').change(function () {
-          let id = $(this).attr('id').split('_')[1];
-          documentArchive(id, target, place_id, account_id);
+          documentDownload(account_id);
         });
 
         // Connect the delete buttons
         $('.document-delete-btn').click(function () {
-          let id = $(this).attr('id').split('_')[1];
-          connectDeleteBtn(id, target, place_id, account_id);
-        });
-
-        // Connect the cancel buttons
-        $('.document-cancel-btn').hide();
-        $('.document-cancel-btn').click(function () {
-          let id = $(this).attr('id').split('_')[1];
-          connectCancelBtn(id, target, place_id, account_id);
+          let id = $(this).attr('id').split('_')[1], xhttp = new XMLHttpRequest();
+          let route = '<?php echo $this->url('document/delete', ['type' => 'binary', 'folder' => 'commitments']) ?>/' + id;
+          xhttp.open('DELETE', route, true);
+          xhttp.onreadystatechange = function() {
+        	if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+            if (xhttp.readyState == 4 && (xhttp.status == 200 || xhttp.status == 400)) {
+                getDocument();
+                getHomeworkDocument('done-work');
+                getHomeworkDocument('todo-work');
+            }
+          };
+          xhttp.send();
         });
 
         // Connect the upload buttons
-        $('.document-upload-btn').click(function () {
-          documentUpload(target, place_id, account_id);
-        });
+        $('.document-upload-btn').attr('disabled', true);
+        $('#document-file').change(function () { documentUpload(account_id) });
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }
@@ -293,28 +326,101 @@ function getDocument(account_id) {
   xhttp.send();
 }
 
-function allowDrop(ev) {
-  ev.preventDefault();
+function postHomework(type, subject, date) {
+  let xhttp = new XMLHttpRequest(), formData = new FormData(), route;
+  route = '<?php echo $this->url('teacher/homework') ?>/' + type + '?account_id=' + <?php echo $profile->id ?> + '&subject=' + subject + '&date=' + date + '&groups=' + '<?php echo $groupIds ?>';
+  formData.append('observations', $('#observations-' + type).html());
+  formData.append('target_date', $('#target_date-' + type).val());
+  formData.append('document', $('#document-' + type).val());
+  xhttp.open("POST", route, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#teacher-homework-' + type).html(xhttp.responseText);
+        $('#teacherHomeworkSubmit').addClass('disabled');
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send(formData);
 }
 
-function drag(ev) {
-  ev.dataTransfer.setData("text", ev.target.id);
+function getHomeworkDocument(type) {
+  let xhttp = new XMLHttpRequest(), route;
+  route = '<?php echo $this->url('teacher/homeworkDocument') ?>/' + type + '?account_id=<?php echo $profile->id ?>';
+  xhttp.open("GET", route, false);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#teacherHomeworkDocumentSelect-' + type).html(xhttp.responseText);
+        $('#document-' + type).materialSelect();
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send();
 }
 
-function dropDone(ev) {
-  ev.preventDefault();
-  let data = ev.dataTransfer.getData("text");
-  let nodeCopy = document.getElementById(data).cloneNode(true);
-  nodeCopy.id = "newId";
-  $('#homeworkDocument-done').append(nodeCopy);
+function getHomework(subject, date) {
+  let xhttp = new XMLHttpRequest(), route;
+
+  // Done work
+
+  route = '<?php echo $this->url('teacher/homework', ['type' => 'done-work']) ?>' + '?account_id=' + <?php echo $profile->id ?> + '&subject=' + subject + '&date=' + date + '&groups=' + '<?php echo $groupIds ?>';
+  xhttp.open("GET", route, false);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#teacher-homework-done-work').html(xhttp.responseText);
+        getHomeworkDocument('done-work');
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send();
+
+  // Todo work
+
+  route = '<?php echo $this->url('teacher/homework', ['type' => 'todo-work']) ?>' + '?account_id=' + <?php echo $profile->id ?> + '&subject=' + subject + '&date=' + date + '&groups=' + '<?php echo $groupIds ?>';
+  xhttp.open("GET", route, false);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#teacher-homework-todo-work').html(xhttp.responseText);
+        getHomeworkDocument('todo-work');
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  };
+  xhttp.send();
+
+  makeEditable();
+  $('#teacherHomeworkSubmit').click(function () { 
+    postHomework('done-work', subject, date) 
+    postHomework('todo-work', subject, date) 
+  });
 }
 
-function dropTodo(ev) {
-  ev.preventDefault();
-  let data = ev.dataTransfer.getData("text");
-  let nodeCopy = document.getElementById(data).cloneNode(true);
-  nodeCopy.id = "newId";
-  $('#homeworkDocument-todo').append(nodeCopy);
+function getPlanning(entry) {
+  let route = '<?php echo $this->url('teacher/planning') ?>/' + entry.entryId + '?date=' + entry.entryDate;
+  let xhttp2 = new XMLHttpRequest();
+  xhttp2.open("GET", route, true);
+  xhttp2.onreadystatechange = function() {
+    if (xhttp2.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp2.readyState == 4 && xhttp2.status == 200) {
+      $('#modalForm').html(xhttp2.responseText);
+//    $('#target_date').datepicker();
+      getDocument();
+      getHomework(entry.entrySubject, entry.entryDate);
+      getAbsence(entry.entryId);
+      $('#modalForm').modal('toggle');
+    }
+  }
+  xhttp2.send();
 }
 
 function showCalendar(route, target) {
@@ -342,21 +448,23 @@ function showCalendar(route, target) {
 
       createCalendar(function (info) {
         let entry = info.event.extendedProps;
-	        let route = '<?php echo $this->url('teacher/planning') ?>/' + entry.entryId + '?date=' + entry.entryDate;
-	        let xhttp2 = new XMLHttpRequest();
-	        xhttp2.open("GET", route, true);
-	        xhttp2.onreadystatechange = function() {
-	          if (xhttp2.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
-	          if (xhttp2.readyState == 4 && xhttp2.status == 200) {
-                $('#modalForm').html(xhttp2.responseText);
-//                $('#target_date').datepicker();
-                getDocument(entry.entryId);
-                getAbsence(entry.entryId);
-                makeEditable();
-                $('#modalForm').modal('toggle');
-	          }
-	        }
-            xhttp2.send();
+        if (entry.entryType == 'planning') getPlanning(entry);
+        else if (entry.entryType == 'homework') {
+        	  let xhttp = new XMLHttpRequest(), route;
+        	  route = '<?php echo $this->url('teacher/homeworkDetail') ?>/' + entry.entryId;
+        	  xhttp.open("GET", route, false);
+        	  xhttp.onreadystatechange = function() {
+        	    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+        	    if (xhttp.readyState == 4) {
+        	      if (xhttp.status == 200) {
+        	        $('#modalForm').html(xhttp.responseText);
+                    $('#modalForm').modal('toggle');
+        	      }
+        	      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+        	    }
+        	  };
+        	  xhttp.send();
+        }
       });
     }
   }
