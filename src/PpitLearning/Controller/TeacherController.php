@@ -196,18 +196,23 @@ class TeacherController extends AbstractActionController
 		elseif ($this->getRequest()->isDelete()) $requestType = 'DELETE';
 		else $requestType = 'GET';
 		
-		$type = $this->params()->fromRoute('type');
 		$id = $this->params()->fromRoute('id');
 		$groups = $this->params()->fromQuery('groups');
 		$groups = explode(',', $groups);
 		$group_id = $groups[0];
 		$group = Account::get($group_id);
 		$account_id = $this->params()->fromQuery('account_id');
-		$subject = $this->params()->fromQuery('subject');
-		$date = $this->params()->fromQuery('date');
 		
-		if ($id) $homework = Note::get($id);
+		if ($id) {
+			$note = Note::get($id);
+			$type = $note->type;
+			$subject = $note->subject;
+			$date = $note->date;
+		}
 		else {
+			$type = $this->params()->fromRoute('type');
+			$subject = $this->params()->fromQuery('subject');
+			$date = $this->params()->fromQuery('date');
 			$note = Note::instanciate($type, null);
 			$note->place_id = $context->getPlaceId();
 			$note->teacher_id = $account_id;
@@ -221,9 +226,18 @@ class TeacherController extends AbstractActionController
 			'type' => $type,
 			'id' => $id,
 			'group' => $group->name,
-			'note' => $note->getProperties(),
 		];
-
+		
+		$select = Document::getSelect('binary', [], ['folder' => ['eq', 'commitments'], 'account_id' => ['eq', $account_id]], ['-update_time'], null);
+		$documents = Document::getTable()->selectWith($select);
+		
+		$content['documents'] = [];
+		foreach ($documents as $document) {
+			$data = $document->getProperties();
+			$content['documents'][$document->id] = $data;
+			$content['documents'][$document->id]['is_deletable'] = $document->isDeletable();
+		}
+		
 		$statusCode = '200';
 		if ($this->getRequest()->isPost()) {
 			$note->date = $note->target_date = $context->encodeDate($this->getRequest()->getPost('target_date'));
@@ -235,6 +249,11 @@ class TeacherController extends AbstractActionController
 			}
 		}
 		
+		elseif ($this->getRequest()->isDelete()) {
+			$rc = $note->delete(null);
+		}
+		
+		$content['note'] = $note->getProperties();
 		$content['statusCode'] = $statusCode;
 
 		// Return the link list
@@ -242,14 +261,14 @@ class TeacherController extends AbstractActionController
 		$view->setTerminal(true);
 		return $view;
 	}
-    
+/*    
 	public function homeworkDocumentAction()
 	{
 		$view = $this->documentAction();
 		$type = $this->params()->fromRoute('type');
 		$view->type = $type;
 		return $view;
-	}
+	}*/
 
 	public function homeworkDetailAction()
 	{

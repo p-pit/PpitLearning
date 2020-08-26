@@ -320,7 +320,7 @@ return array(
         										),
         								),
         						),
-        						'homeworkDocument' => array(
+/*        						'homeworkDocument' => array(
         								'type' => 'segment',
         								'options' => array(
         										'route' => '/homework-document[/:type]',
@@ -328,7 +328,7 @@ return array(
         												'action' => 'homeworkDocument',
         										),
         								),
-        						),
+        						),*/
 	       						'homeworkDetail' => array(
         								'type' => 'segment',
         								'options' => array(
@@ -399,7 +399,7 @@ return array(
             	array('route' => 'teacher/document', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/getHomework', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/homework', 'roles' => array('teacher', 'manager')),
-				array('route' => 'teacher/homeworkDocument', 'roles' => array('teacher', 'manager')),
+//				array('route' => 'teacher/homeworkDocument', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/homeworkDetail', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),

@@ -1,10 +1,14 @@
+<?php 
+$selectedDocuments = explode(',', $note['document']);
+?>
+
 <div class="row mt-5">
   <div class="col-md-12">
     <h5 class="text-muted">
       <small>
         <span>
 <?php if ($type == 'done-work') : ?>
-      Travail réalisé en <?php echo $note['subject'] ?> avec le groupe <?php echo $group ?> le 
+      Travail réalisé en <?php echo $context->localize($context->getConfig('student/property/school_subject')['modalities'][$note['subject']]) ?> avec le groupe <?php echo $group ?> le 
 <?php else : ?>
       Travail à faire en <?php echo $note['subject'] ?> par le groupe <?php echo $group ?> pour le 
 <?php endif;?> 
@@ -17,15 +21,38 @@
 
 <div class="row">
   <div class="col-md-12">
-    <div class="editable" id="observations-<?php echo $type ?>"></div>
+    <div class="editable" id="observations-<?php echo $type ?>"><?php echo $note['observations'] ?></div>
   </div>
 </div>
 
-<div id="teacherHomeworkDocumentSelect-<?php echo $type ?>"></div>
+<?php if (in_array($requestType, ['GET']) && $statusCode == '200') : ?>
 
-<?php if ($requestType == 'POST' && $statusCode == '200') : ?>
+<div id="teacherHomeworkDocumentSelect-<?php echo $type ?>">
+	<select class="mdb-select md-form" id="document-<?php echo $type ?>" multiple>
+	  <option value="" disabled selected><?php echo $this->translate('Select the document(s) to include', 'ppit-learning', $context->getLocale()) ?></option>
+	<?php foreach ($documents as $document) : ?>
+	  <option value="<?php echo $document['id'] ?>" <?php if (in_array($document['id'], $selectedDocuments)) : ?>selected<?php endif;?>><?php echo $document['name'] ?></option>
+	<?php endforeach;?>
+	</select>
+	<label class="mdb-main-label"><?php echo $this->translate('Documents', 'ppit-core', $context->getLocale()) ?></label>
+</div>
+
+<?php endif;?>
+
+<?php if (in_array($requestType, ['POST', 'DELETE']) && $statusCode == '200') : ?>
   <div id="message">
     <h5 class="alert alert-success my-3 text-center"><?php echo $this->translate('Your request has been registered', 'ppit-core', $context->getLocale()) ?></h5>
   </div>
-<?php endif;?>
 
+<?php else : ?>
+         
+<div class="row my-3">
+  <div class="col-md-12">
+    <div class="text-center align-middle">
+      <button class="btn btn-warning" id="teacherHomeworkSubmit-<?php echo $type ?>"><?php echo $this->translate(($id) ? 'Update' : 'Add', 'ppit-core', $context->getLocale()) ?></button>
+      <?php if ($id) : ?><button class="btn btn-danger" id="teacherHomeworkDelete-<?php echo $type ?>"><?php echo $this->translate('Delete', 'ppit-core', $context->getLocale()) ?></button><?php endif;?>
+    </div>
+  </div>
+</div>
+
+<?php endif;?>
