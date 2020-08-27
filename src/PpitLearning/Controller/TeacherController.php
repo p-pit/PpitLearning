@@ -296,12 +296,17 @@ class TeacherController extends AbstractActionController
     	if ($event->property_2) $filters['property_7'] = $event->property_2;
     	$cursor = Account::getList('p-pit-studies', $filters, '+n_fn', null);
     
+    	$matched_accounts = ($event->matched_accounts) ? explode(',', $event->matched_accounts) : [];
     	if (!$groupIds) foreach ($cursor as $account_id => $account) $attendees[$account_id] = ['n_fn' => $account->n_fn, 'matched' => true];
     	else {
     		foreach ($groupIds as $group_id) {
     			foreach ($cursor as $account_id => $account) {
     				if ($account->groups) {
-    					if (in_array($group_id, explode(',', $account->groups))) $attendees[$account_id] = ['n_fn' => $account->n_fn, 'matched' => true];
+    					if (in_array($group_id, explode(',', $account->groups))) {
+    						$attendees[$account_id] = ['n_fn' => $account->n_fn];
+    						if (in_array($account_id, $matched_accounts)) $attendees[$account_id]['matched'] = true;
+    						else $attendees[$account_id]['matched'] = false;
+    					}
     				}
     			}
     		}
@@ -319,9 +324,6 @@ class TeacherController extends AbstractActionController
     	$owner = ['id' => $event->account_id, 'n_fn', 'n_fn' => $event->n_fn, 'matched' => true];
     	 
     	$attendees = [];
-    	/*    	if ($event->matched_accounts) {
-    	 foreach (explode(',', $event->matched_accounts) as $account_id) $attendees[$account_id] = Account::get($account_id);
-    	 }*/
     	$attendees = TeacherController::getAttendees($event);
     
     	// Instanciate the csrf form
@@ -339,9 +341,7 @@ class TeacherController extends AbstractActionController
     			// Load the input data
     			$data = [];
     			$data['matched_accounts'] = $request->getPost('matched_accounts');
-    			if (!$request->getPost('owner')) $data['status'] = 'canceled';
-    			else $data['status'] = 'realized';
-    
+
     			// Atomically save
     			$connection = Event::getTable()->getAdapter()->getDriver()->getConnection();
     			$connection->beginTransaction();
@@ -352,9 +352,6 @@ class TeacherController extends AbstractActionController
     				if ($rc != 'OK') $error = $rc;
     				if ($error) $connection->rollback();
     				else {
-    
-    					if ($event->status != 'canceled') {
-    
     						if ($event->matched_accounts) $matched_accounts = explode(',', $event->matched_accounts);
     						else $matched_accounts = [];
     
@@ -389,8 +386,22 @@ class TeacherController extends AbstractActionController
     								$rc = $absence->add();
     								if ($rc != 'OK') $error = $rc;
     							}
-    						}
-    					}
+    							
+    							$duration = $request->getPost('lateness-' . $account_id);
+    							if ($duration) {
+
+    								$lateness = Absence::instanciate();
+    								$lateness->place_id = $context->getPlaceId();
+    								$lateness->category = 'lateness';
+    								$lateness->school_year = $context->getConfig('student/property/school_year/default');
+    								$lateness->account_id = $account_id;
+    								$lateness->subject = $event->property_3;
+    								$lateness->begin_date = $event->begin_date;
+    								$lateness->end_date = $event->end_date;
+    								$lateness->duration = $duration;
+    								$lateness->add();
+    							}
+	    					}
     
     					if (!$error) {
     						$connection->commit();

@@ -8,7 +8,7 @@
  */
 -->
 
-<form method="post" id="schedule-form">
+<form method="post" id="teacherAbsenceForm">
 <div class="container">
 
 <!-- Global message -->
@@ -52,7 +52,7 @@ if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $
         <input type="checkbox" class="form-check-input updatable-control matched_accounts" id="matched_accounts_<?php echo $account_id ?>" name="matched_accounts" value="<?php echo $account_id ?>" <?php if ($account['matched']) : ?>checked<?php endif;?> <?php if ($isDisabled) : ?>disabled<?php endif;?>/>
         <label class="form-check-label" for="matched_accounts_<?php echo $account_id ?>"><?php echo $account['n_fn'] ?></label>
       </div>&nbsp;&nbsp;
-      <input type="text" placeholder="Heure d’arrivée" />
+      <input type="text" class="lateness" id="lateness-<?php echo $account_id ?>" placeholder="Retard (mn)" />
   </div>
 <?php endforeach;?>
 
@@ -60,7 +60,7 @@ if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $
   <div class="form-group row">
     <div class="col-sm-5">&nbsp;</div>
     <div class="col-sm-7">
-      <input name="submit" type="submit" id="submit-button" class="btn btn-warning" value="<?php echo $this->translate('Save', 'ppit-core', $context->getLocale()) ?>">
+      <input name="submit" type="submit" id="teacherAbsenceSubmit" class="btn btn-warning" value="<?php echo $this->translate('Save', 'ppit-core', $context->getLocale()) ?>">
     </div>
   </div>
 <?php endif;?>
