@@ -651,6 +651,7 @@ class TeacherController extends AbstractActionController
 				foreach ($vcard->perimeters['p-pit-admin']['place_id'] as $place_id) {
 					if (!array_key_exists($vcard->email . '_' . $place_id, $teachers)) {
 						$account = Account::instanciate('teacher');
+						$account->status = 'active';
 						$account->contact_1_id = $vcard->id;
 						$account->place_id = $place_id;
 						$account->add();
