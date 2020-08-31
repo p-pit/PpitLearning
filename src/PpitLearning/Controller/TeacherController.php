@@ -646,7 +646,7 @@ class TeacherController extends AbstractActionController
 		$vcards = [];
 		print_r("id;email;n_fn;place_id;username;place_caption;\n");
 		foreach ($cursor as $vcard) {
-			if (array_key_exists('p-pit-admin', $vcard->perimeters) && array_key_exists('place_id', $vcard->perimeters['p-pit-admin'])) {
+			if ($vcard->username && array_key_exists('p-pit-admin', $vcard->perimeters) && array_key_exists('place_id', $vcard->perimeters['p-pit-admin'])) {
 				foreach ($vcard->perimeters['p-pit-admin']['place_id'] as $place_id) {
 					if (!array_key_exists($vcard->email . '_' . $place_id, $teachers)) {
 						$account = Account::instanciate('teacher');
