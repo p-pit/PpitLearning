@@ -644,6 +644,7 @@ class TeacherController extends AbstractActionController
 		$select->join('core_place', 'core_place.id = core_account.place_id', ['place_id' => 'id', 'place_caption' => 'caption'], 'left');
 		$cursor = Vcard::getTable()->selectWith($select);
 		$vcards = [];
+		print_r("id;email;n_fn;roles;place_id;username;place_caption;\n");
 		foreach ($cursor as $vcard) {
 			if (array_key_exists('p-pit-admin', $vcard->perimeters) && array_key_exists('place_id', $vcard->perimeters['p-pit-admin'])) {
 				foreach ($vcard->perimeters['p-pit-admin']['place_id'] as $place_id) {
@@ -651,7 +652,7 @@ class TeacherController extends AbstractActionController
 						$account = Account::instanciate('teacher');
 						$account->contact_1_id = $vcard->id;
 						$account->place_id = $place_id;
-						print_r(['id' => $vcard->id, 'email' => $vcard->email, 'roles' => $vcard->roles, 'place_id' => $place_id, 'username' => $vcard->username, 'place_caption' => $vcard->place_caption]);
+						print_r($vcard->id . ';' . $vcard->email . ';' . $vcard->n_fn . ';' . $vcard->roles . ';' . $place_id . ';' . $vcard->username . ';' . $vcard->place_caption . ";\n");
 //						$account->add();
 						$teachers[$vcard->email . '_' . $place_id] = $account;
 					}
