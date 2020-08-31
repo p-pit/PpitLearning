@@ -623,7 +623,8 @@ class TeacherController extends AbstractActionController
 	public function initAction()
 	{
 		$context = Context::getCurrent();
-
+		$places = Place::getList([]);
+		
 		// Get the teacher accounts
 		$cursor = Account::getList('teacher', [], '+email', null);
 		$teacher = [];
@@ -652,7 +653,7 @@ class TeacherController extends AbstractActionController
 						$account = Account::instanciate('teacher');
 						$account->contact_1_id = $vcard->id;
 						$account->place_id = $place_id;
-						print_r($vcard->id . ';' . $vcard->email . ';' . $vcard->n_fn . ';' . $place_id . ';' . $vcard->username . ';' . $vcard->place_caption . ";\n");
+						print_r($vcard->id . ';' . $vcard->email . ';' . $vcard->n_fn . ';' . $place_id . ';' . $vcard->username . ';' . $places[$place_id]->caption . ";\n");
 //						$account->add();
 						$teachers[$vcard->email . '_' . $place_id] = $account;
 					}
