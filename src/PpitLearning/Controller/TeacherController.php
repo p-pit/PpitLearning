@@ -619,4 +619,46 @@ class TeacherController extends AbstractActionController
 		$view->setTerminal(true);
 		return $view;
 	}
+	
+	public function initAction()
+	{
+		$context = Context::getCurrent();
+
+		// Get the teacher accounts
+		$cursor = Account::getList('teacher', [], '+email', null);
+		$teacher = [];
+		foreach ($cursor as $teacher_id => $teacher) {
+			$teachers[$teacher->email . '_' . $teacher->place_id] = $teacher;
+//			print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
+		}
+		
+		// Get the vcard with role 'teacher'
+		$columns = null;
+		$filters = ['roles' => ['like', 'teacher']];
+		$order = ['email'];
+		$limit = null;
+		$select = Vcard::getSelect($columns, $filters, $order, $limit);
+		$select->join('core_user_contact', 'core_vcard.id = core_user_contact.vcard_id', ['user_id'], 'left');
+		$select->join('core_user', 'core_user.user_id = core_user_contact.user_id', ['username'], 'left');
+		$select->join('core_account', 'core_account.contact_1_id = core_vcard.id', ['account_id' => 'id'], 'left');
+		$select->join('core_place', 'core_place.id = core_account.place_id', ['place_id' => 'id', 'place_caption' => 'caption'], 'left');
+		$cursor = Vcard::getTable()->selectWith($select);
+		$vcards = [];
+		foreach ($cursor as $vcard) {
+			if (array_key_exists('p-pit-admin', $vcard->perimeters) && array_key_exists('place_id', $vcard->perimeters['p-pit-admin'])) {
+				foreach ($vcard->perimeters['p-pit-admin']['place_id'] as $place_id) {
+					if (!array_key_exists($vcard->email . '_' . $place_id, $teachers)) {
+						$account = Account::instanciate('teacher');
+						$account->contact_1_id = $vcard->id;
+						$account->place_id = $place_id;
+						print_r(['id' => $vcard->id, 'email' => $vcard->email, 'roles' => $vcard->roles, 'place_id' => $place_id, 'username' => $vcard->username, 'place_caption' => $vcard->place_caption]);
+//						$account->add();
+						$teachers[$vcard->email . '_' . $place_id] = $account;
+					}
+				}
+			}
+		}
+				
+		exit;
+	}
 }

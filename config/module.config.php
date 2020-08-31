@@ -356,6 +356,15 @@ return array(
         										),
         								),
         						),
+				       			'init' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/init',
+        										'defaults' => array(
+        												'action' => 'init',
+        										),
+        								),
+        						),
 	       		),
         	),
         ),
@@ -403,6 +412,7 @@ return array(
 				array('route' => 'teacher/homeworkDetail', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/init', 'roles' => array('manager')),
 			)
 		)
 	),
