@@ -641,8 +641,8 @@ class TeacherController extends AbstractActionController
 				$vcard->update(null);
 				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
 			}*/
-			if ($teacher->applications) {
-				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id, 'roles' => $teacher->roles, 'applications' => $teacher->applications]);
+			if ($vcard->applications) {
+				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id, 'roles' => $vcard->roles, 'applications' => $vcard->applications]);
 			}
 		}
 		
