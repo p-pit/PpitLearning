@@ -638,8 +638,8 @@ class TeacherController extends AbstractActionController
 			if (!array_key_exists('teacher', $vcard->roles)) {
 				$vcard->roles['teacher'] = 'teacher';
 				$vard->update(null);
-				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
 			}
+				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
 		}
 		
 		// Get the vcard with role 'teacher'
