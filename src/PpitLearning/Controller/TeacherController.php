@@ -635,11 +635,14 @@ class TeacherController extends AbstractActionController
 		foreach ($cursor as $teacher_id => $teacher) {
 			$teachers[$teacher->email . '_' . $teacher->place_id] = $teacher;
 			$vcard = Vcard::get($teacher->contact_1_id);
-			if (!array_key_exists('teacher', $vcard->roles) || $teacher->applications) {
+/*			if (!array_key_exists('teacher', $vcard->roles)) {
 				$vcard->applications = [];
 				$vcard->roles['teacher'] = 'teacher';
 				$vcard->update(null);
 				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
+			}*/
+			if ($teacher->applications) {
+				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id, 'roles' => $teacher->roles, 'applications' => $teacher->applications]);
 			}
 		}
 		
