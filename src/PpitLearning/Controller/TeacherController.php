@@ -634,11 +634,16 @@ class TeacherController extends AbstractActionController
 		$teacher = [];
 		foreach ($cursor as $teacher_id => $teacher) {
 			$teachers[$teacher->email . '_' . $teacher->place_id] = $teacher;
-//			print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
+			$vcard = Vcard::get($teacher->contact_1_id);
+			if (!array_key_exists('teacher', $vcard->roles)) {
+				$vcard->roles['teacher'] = 'teacher';
+				$vard->update(null);
+				print_r(['id' => $teacher->id, 'email' => $teacher->email, 'place_caption' => $teacher->place_caption, 'contact_1_id' => $teacher->contact_1_id]);
+			}
 		}
 		
 		// Get the vcard with role 'teacher'
-		$columns = null;
+/*		$columns = null;
 		$filters = ['roles' => ['like', 'teacher']];
 		$order = ['email'];
 		$limit = null;
@@ -664,7 +669,7 @@ class TeacherController extends AbstractActionController
 					}
 				}
 			}
-		}
+		}*/
 				
 		exit;
 	}
