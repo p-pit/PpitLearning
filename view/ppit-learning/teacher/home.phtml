@@ -84,6 +84,23 @@
                   <ul class="nav navbar-nav nav-flex-icons ml-auto">
                    
 <?php if ($context->isAuthenticated()) : ?>
+
+ <?php if (count($profiles) > 1) : ?>
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dark-grey-text font-weight-bold dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-map-marker-alt ml-1"></i>
+                        <span class="clearfix d-none d-sm-inline-block"><?php echo $this->translate('Places', 'ppit-core', $context->getLocale()) ?></span>
+                      </a>
+                      <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink">
+    <?php foreach ($profiles as $profile) : ?>
+                        <a class="dropdown-item p-0 <?php if ($currentProfile->id == $profile->id) echo 'active' ?>" href="<?php echo $this->url('teacher/home', ['account_id' => $profile->id]) ?>">
+                          <?php echo $profile->place_caption ?> - <?php echo $profile->n_fn ?>
+                        </a>
+    <?php endforeach;?>
+                      </div>
+                    </li>
+  <?php endif;?>
+
                     <li class="nav-item">
                       <a class="nav-link dark-grey-text font-weight-bold" id="login-anchor" data-toggle="modal" data-target="#modalLogoutForm">
                         <i class="fa fa-sign-out-alt blue-text" aria-hidden="true"></i>
@@ -170,10 +187,10 @@
 
               <!--Card image-->
               <div class="view view-cascade gradient-card-header primary-color">
-  <?php if ($profile->photo_link_id) : ?>
+  <?php if ($currentProfile->photo_link_id) : ?>
                 <div class="avatar mx-auto"><i class="img-fluid fas fa-user fa-5x"></i></div>
   <?php else : ?>
-                <div class="avatar mx-auto"><img class="rounded-circle z-depth-1 img-fluid" src="<?php echo $this->basePath('photos/' . $profile->contact_1_id.'.jpg') ?>"/></div>
+                <div class="avatar mx-auto"><img class="rounded-circle z-depth-1 img-fluid" src="<?php echo $this->basePath('photos/' . $currentProfile->contact_1_id.'.jpg') ?>"/></div>
   <?php endif;?>
               </div>
               <!--/Card image-->
@@ -181,17 +198,17 @@
               <!--Card content-->
               <div class="card-body card-body-cascade text-center">
   
-              <div class="h6 text-center text-muted my-4"><?php echo $profile->n_fn ?></div>
+              <div class="h6 text-center text-muted my-4"><?php echo $currentProfile->n_fn ?></div>
 <?php 
-if ($profile->groups) {
+if ($currentProfile->groups) {
   $studentGroups = [];
-  foreach (explode(',', $profile->groups) as $group_id) $studentGroups[] = $groups[$group_id]->name;
+  foreach (explode(',', $currentProfile->groups) as $group_id) $studentGroups[] = $groups[$group_id]->name;
   $studentGroups = implode(',', $studentGroups);
 }
-elseif ($profile->property_7) $studentGroups = $context->localize($configProperties['property_7']['modalities'][$profile->property_7]);
+elseif ($currentProfile->property_7) $studentGroups = $context->localize($configProperties['property_7']['modalities'][$currentProfile->property_7]);
 else $studentGroups = null;
 ?>
-              <div class="h6 text-center text-muted my-4"><?php echo $profile->property_16 ?><?php if ($studentGroups) : ?> &mdash; <?php echo $studentGroups ?><?php endif;?></div>
+              <div class="h6 text-center text-muted my-4"><?php echo $currentProfile->property_16 ?><?php if ($studentGroups) : ?> &mdash; <?php echo $studentGroups ?><?php endif;?></div>
 <?php if ($global_average) : ?>
               <div class="text-center text-muted my-4"><strong><?php echo $this->translate('Global average', 'ppit-studies', $context->getLocale()) ?>:</strong> <?php echo $context->formatFloat($global_average, 2) ?></div>
 <?php endif;?>

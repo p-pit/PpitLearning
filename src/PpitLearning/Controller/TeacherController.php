@@ -40,17 +40,15 @@ class TeacherController extends AbstractActionController
     	$context = Context::getCurrent();
     	$account_id = (int) $this->params()->fromRoute('account_id');
 
-    	$profile = null;
-    	if ($account_id) $profile = Account::get($account_id);
+    	$profiles = Account::getList('teacher', ['contact_1_id' => $context->getContactId()]);
+    	 
+    	$currentProfile = null;
+    	if ($account_id) $currentProfile = Account::get($account_id);
     	else {
-    		$candidates = Account::getList('p-pit-studies', ['contact_1_id' => $context->getContactId()]);
-    		foreach ($candidates as $candidate) if ($candidate->status != 'gone') {
-    			$profile = $candidate;
-    			break;
-    		}
+    		foreach ($profiles as $currentProfile) if ($currentProfile->status != 'gone') break;
     	}
-    	if (!$profile) return $this->redirect()->toRoute('home');
-    	$place = Place::get($profile->place_id);
+    	if (!$currentProfile) return $this->redirect()->toRoute('student/studentHomeV2');
+    	$place = Place::get($currentProfile->place_id);
     	$template = $context->getConfig('teacher/home/tabs');
     	$logo = ($place->logo_src) ? $place->logo_src : '/logos/'.$context->getInstance()->caption.'/'.$context->getConfig('headerParams')['logo'];
     	$logo_height = ($place->logo_src) ? $place->logo_height : $context->getConfig('headerParams')['logo-height'];
@@ -64,16 +62,16 @@ class TeacherController extends AbstractActionController
     	$redirect = $this->params()->fromQuery('redirect', 'home');
     	if ($email && !$context->isAuthenticated()) {
     		$vcard = Vcard::get($email, 'email');
-    		$profile->email = $email;
+    		$currentProfile->email = $email;
     		if ($vcard) {
     			$userContact = UserContact::get($vcard->id, 'vcard_id');
     			if ($userContact) $panel = 'modalLoginForm';
-    			$profile->n_first = $vcard->n_first;
-    			$profile->n_last = $vcard->n_last;
+    			$currentProfile->n_first = $vcard->n_first;
+    			$currentProfile->n_last = $vcard->n_last;
     		}
     		else {
-    			$profile->n_first = $this->params()->fromQuery('n_first');
-    			$profile->n_last = $this->params()->fromQuery('n_last');
+    			$currentProfile->n_first = $this->params()->fromQuery('n_first');
+    			$currentProfile->n_last = $this->params()->fromQuery('n_last');
     		}
     		if ($panel != 'modalLoginForm') {
     			$panel = 'modalRegisterForm';
@@ -84,7 +82,7 @@ class TeacherController extends AbstractActionController
     	$current_school_year = $context->getConfig('student/property/school_year/default');
     	$school_periods = $place->getConfig('school_periods');
     	$current_school_period = $context->getCurrentPeriod($school_periods);
-    	$cursor = NoteLink::getList('report', ['category' => 'evaluation', 'subject' => 'global', 'school_year' => $current_school_year, 'school_period' => $current_school_period, 'account_id' => $profile->id], 'id', 'ASC', $mode = 'search');
+    	$cursor = NoteLink::getList('report', ['category' => 'evaluation', 'subject' => 'global', 'school_year' => $current_school_year, 'school_period' => $current_school_period, 'account_id' => $currentProfile->id], 'id', 'ASC', $mode = 'search');
     	foreach ($cursor as $report) $averageNote = $report; // Should be unique but to keep only the last one
     	$global_average = (isset($averageNote) && $averageNote) ? $averageNote->value : null;
     
@@ -92,7 +90,8 @@ class TeacherController extends AbstractActionController
     		'context' => $context,
     		'place_identifier' => $place->identifier,
     		'place' => $place,
-    		'profile' => $profile,
+    		'currentProfile' => $currentProfile,
+    		'profiles' => $profiles,
     		'global_average' => $global_average,
     		'requestUri' => $this->request->getRequestUri(),
     		'viewController' => 'ppit-learning/teacher/home-scripts.phtml',

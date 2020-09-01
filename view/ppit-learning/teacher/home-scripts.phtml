@@ -54,7 +54,7 @@ function getEvents(calendar) {
   calendar.getEvents().forEach(function (event, id) { event.remove(); });
   getHomeworkList(calendar);
 	
-  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&account_id=<?php echo $profile->id ?>';
+  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&account_id=<?php echo $currentProfile->id ?>';
 
 //Filter on place
 <?php if ($place) : ?>
@@ -62,17 +62,17 @@ function getEvents(calendar) {
 <?php endif; ?>
 
 // Filter on groups
-<?php if ($profile->groups) : ?>
+<?php if ($currentProfile->groups) : ?>
 	  route += '&groups=';
-  <?php $first = true; foreach (explode(',', $profile->groups) as $group_id) : ?>
+  <?php $first = true; foreach (explode(',', $currentProfile->groups) as $group_id) : ?>
   	  <?php if (!$first) : ?>route += ',';<?php endif;?>
       <?php $first = false ?>
       route += '<?php echo $group_id ?>';
   <?php endforeach;?>
 
 // Filter on class
-<?php elseif ($profile->property_7) : ?>
-      route += '&property_2=' + '<?php echo $profile->property_7 ?>';
+<?php elseif ($currentProfile->property_7) : ?>
+      route += '&property_2=' + '<?php echo $currentProfile->property_7 ?>';
 <?php endif;?>
 
     var xhttp = new XMLHttpRequest();
@@ -124,7 +124,7 @@ function getHomeworkList(calendar) {
 
   // Retrieve the homework events
   let xhttp = new XMLHttpRequest();
-  xhttp.open("GET", '<?php echo $this->url('teacher/getHomework') ?>?teacher_id=<?php echo $profile->id ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('teacher/getHomework') ?>?teacher_id=<?php echo $currentProfile->id ?>', true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -317,7 +317,7 @@ function documentUpload(account_id)
 }
 
 function getDocument() {
-  let account_id = <?php echo $profile->id ?>, xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('teacher/document') ?>?account_id=' + account_id;
+  let account_id = <?php echo $currentProfile->id ?>, xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('teacher/document') ?>?account_id=' + account_id;
   xhttp.open("GET", route, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
@@ -362,7 +362,7 @@ function postHomeworkUpdate(id, target, type, subject, date) {
   route = '<?php echo $this->url('teacher/homework') ?>';
   route += '/' + type;
   if (id) route += '/' + id;
-  route += '?account_id=' + <?php echo $profile->id ?>;
+  route += '?account_id=' + <?php echo $currentProfile->id ?>;
   if (subject) route += '&subject=' + subject;
   if (date) route += '&date=' + date;
   route += '&groups=' + '<?php echo $groupIds ?>';
@@ -388,7 +388,7 @@ function postHomeworkDelete(id, target, type, subject, date) {
   route = '<?php echo $this->url('teacher/homework') ?>';
   route += '/' + type;
   if (id) route += '/' + id;
-  route += '?account_id=' + <?php echo $profile->id ?>;
+  route += '?account_id=' + <?php echo $currentProfile->id ?>;
   if (subject) route += '&subject=' + subject;
   if (date) route += '&date=' + date;
   route += '&groups=' + '<?php echo $groupIds ?>';
@@ -411,7 +411,7 @@ function getHomeworkUpdate(id, target, type, subject, date) {
   route = '<?php echo $this->url('teacher/homework') ?>';
   route += '/' + type;
   if (id) route += '/' + id;
-  route += '?account_id=' + <?php echo $profile->id ?>;
+  route += '?account_id=' + <?php echo $currentProfile->id ?>;
   if (subject) route += '&subject=' + subject;
   if (date) route += '&date=' + date;
   route += '&groups=' + '<?php echo $groupIds ?>';
@@ -441,7 +441,7 @@ function getHomeworkUpdate(id, target, type, subject, date) {
 /*
 function getHomeworkDocument(type) {
   let xhttp = new XMLHttpRequest(), route;
-  route = '<?php //echo $this->url('teacher/homeworkDocument') ?>/' + type + '?account_id=<?php echo $profile->id ?>';
+  route = '<?php //echo $this->url('teacher/homeworkDocument') ?>/' + type + '?account_id=<?php echo $currentProfile->id ?>';
   xhttp.open("GET", route, false);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
@@ -514,7 +514,7 @@ function showCalendar(route, target) {
       document.getElementById(target).innerHTML = xhttp.responseText;
 
       $('#absence-statement-anchor').click(function () {
-    	let route = '<?php echo $this->url('student/absenceV2', ['account_id' => $profile->id]) ?>?';
+    	let route = '<?php echo $this->url('student/absenceV2', ['account_id' => $currentProfile->id]) ?>?';
         let xhttp2 = new XMLHttpRequest();
         xhttp2.open("GET", route, true);
         xhttp2.onreadystatechange = function() {
@@ -552,7 +552,7 @@ $('#' + '<?php echo $tabId ?>-tab').click(function () {
 	showStatic('<?php echo $route ?>', '<?php echo $tabId ?>-panel');
 });
     <?php elseif ($tab['type'] == 'calendar') : ?>
-showCalendar('<?php echo $this->url($tab['route'], array('id' => $profile->id)) ?>', '<?php echo $tabId ?>-panel');
+showCalendar('<?php echo $this->url($tab['route'], array('id' => $currentProfile->id)) ?>', '<?php echo $tabId ?>-panel');
 
 	<?php endif;?>
 <?php endforeach;?>

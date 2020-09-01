@@ -401,8 +401,8 @@ return array(
             	array('route' => 'learningEvaluation/delete', 'roles' => array('trainer', 'admin')),
 						
 				// Teacher
-            	array('route' => 'teacher', 'roles' => array('teacher', 'manager')),
-            	array('route' => 'teacher/home', 'roles' => array('teacher', 'manager')),
+            	array('route' => 'teacher', 'roles' => array('user')),
+            	array('route' => 'teacher/home', 'roles' => array('user')),
             	array('route' => 'teacher/calendar', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/planning', 'roles' => array('teacher', 'manager')),
             	array('route' => 'teacher/document', 'roles' => array('teacher', 'manager')),
