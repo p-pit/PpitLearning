@@ -285,7 +285,7 @@ class TeacherController extends AbstractActionController
     /**
      * user_story - event-attendees: The attendees of a calendar event are the accounts belonging to the event's class (if any) union the accounts linked to one of the event's groups
      */
-    public static function getAttendees($event)
+    public static function getAttendees($event, $absences)
     {
     	$groups = Account::getList('group', [], '+name', null);
     	$groupIds = $event->groups;
@@ -305,7 +305,8 @@ class TeacherController extends AbstractActionController
     					if (in_array($group_id, explode(',', $account->groups))) {
     						$attendees[$account_id] = ['n_fn' => $account->n_fn];
     						if (in_array($account_id, $matched_accounts)) $attendees[$account_id]['matched'] = true;
-    						else $attendees[$account_id]['matched'] = false;
+    						elseif (array_key_exists($account_id, $absences)) $attendees[$account_id]['matched'] = false;
+    						else $attendees[$account_id]['matched'] = true;
     					}
     				}
     			}
@@ -322,9 +323,13 @@ class TeacherController extends AbstractActionController
     	$description = Event::getDescription($event->type);
     
     	$owner = ['id' => $event->account_id, 'n_fn', 'n_fn' => $event->n_fn, 'matched' => true];
-    	 
+    
+    	$cursor = Event::getList('absence', ['property_11' => $event->id], '+id', null);
+    	$absences = [];
+    	foreach ($cursor as $absence) $absences[$absence->account_id] = $absence;
+    	
     	$attendees = [];
-    	$attendees = TeacherController::getAttendees($event);
+    	$attendees = TeacherController::getAttendees($event, $absences);
     
     	// Instanciate the csrf form
     	$csrfForm = new CsrfForm();
