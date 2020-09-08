@@ -88,6 +88,7 @@ function getEvents(calendar) {
 		          entryId: value.id,
                   entrySubject: value.property_3,
                   entryDate: value.begin_date,
+                  groups: value.groups,
                   category: 'event',
 	              allDay: false,
 		          title: value.formatted,
@@ -147,6 +148,7 @@ function getHomeworkList(calendar) {
         calendar.addEvent({
           entryType: 'homework',
           entryId: homework.id,
+          groups: homework.group_id,
           id: homeworkId,
           category: 'homework',
           type: homework.type,
@@ -357,7 +359,7 @@ function getDocument() {
   xhttp.send();
 }
 
-function postHomeworkUpdate(id, target, type, subject, date) {
+function postHomeworkUpdate(id, target, type, groups, subject, date) {
   let xhttp = new XMLHttpRequest(), formData = new FormData(), route;
   route = '<?php echo $this->url('teacher/homework') ?>';
   route += '/' + type;
@@ -365,7 +367,7 @@ function postHomeworkUpdate(id, target, type, subject, date) {
   route += '?account_id=' + <?php echo $currentProfile->id ?>;
   if (subject) route += '&subject=' + subject;
   if (date) route += '&date=' + date;
-  route += '&groups=' + '<?php echo $groupIds ?>';
+  route += '&groups=' + groups;
   formData.append('observations', $('#observations-' + type).html());
   formData.append('target_date', $('#target_date-' + type).val());
   formData.append('document', $('#document-' + type).val());
@@ -383,7 +385,7 @@ function postHomeworkUpdate(id, target, type, subject, date) {
   xhttp.send(formData);
 }
 
-function postHomeworkDelete(id, target, type, subject, date) {
+function postHomeworkDelete(id, target, type, groups, subject, date) {
   let xhttp = new XMLHttpRequest(), route;
   route = '<?php echo $this->url('teacher/homework') ?>';
   route += '/' + type;
@@ -391,7 +393,7 @@ function postHomeworkDelete(id, target, type, subject, date) {
   route += '?account_id=' + <?php echo $currentProfile->id ?>;
   if (subject) route += '&subject=' + subject;
   if (date) route += '&date=' + date;
-  route += '&groups=' + '<?php echo $groupIds ?>';
+  route += '&groups=' + groups;
   xhttp.open("DELETE", route, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
@@ -406,7 +408,7 @@ function postHomeworkDelete(id, target, type, subject, date) {
   xhttp.send();
 }
 
-function getHomeworkUpdate(id, target, type, subject, date) {
+function getHomeworkUpdate(id, target, type, groups, subject, date) {
   let xhttp = new XMLHttpRequest(), route;
   route = '<?php echo $this->url('teacher/homework') ?>';
   route += '/' + type;
@@ -414,7 +416,7 @@ function getHomeworkUpdate(id, target, type, subject, date) {
   route += '?account_id=' + <?php echo $currentProfile->id ?>;
   if (subject) route += '&subject=' + subject;
   if (date) route += '&date=' + date;
-  route += '&groups=' + '<?php echo $groupIds ?>';
+  route += '&groups=' + groups;
   xhttp.open("GET", route, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
@@ -427,10 +429,10 @@ function getHomeworkUpdate(id, target, type, subject, date) {
         $('#document-' + type).materialSelect();
         makeEditable();
         $('#teacherHomeworkSubmit-' + type).click(function () { 
-          postHomeworkUpdate(id, target, type, subject, date) 
+          postHomeworkUpdate(id, target, type, groups, subject, date) 
         });
         $('#teacherHomeworkDelete-' + type).click(function () { 
-            postHomeworkDelete(id, target, type, subject, date) 
+            postHomeworkDelete(id, target, type, groups, subject, date) 
           });
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
@@ -456,11 +458,11 @@ function getHomeworkDocument(type) {
   xhttp.send();
 }*/
 
-function getHomework(id, subject, date) {
+function getHomework(id, groups, subject, date) {
   let xhttp = new XMLHttpRequest(), route;
-
-  getHomeworkUpdate(null, 'teacher-homework-done-work', 'done-work', subject, date) 
-  getHomeworkUpdate(null, 'teacher-homework-todo-work', 'todo-work', subject, date) 
+console.log(groups);
+  getHomeworkUpdate(null, 'teacher-homework-done-work', 'done-work', groups, subject, date) 
+  getHomeworkUpdate(null, 'teacher-homework-todo-work', 'todo-work', groups, subject, date) 
 }
 
 function getPlanning(entry) {
@@ -472,7 +474,7 @@ function getPlanning(entry) {
     if (xhttp2.readyState == 4 && xhttp2.status == 200) {
       $('#modalForm').html(xhttp2.responseText);
       getDocument();
-      getHomework(entry.entryId, entry.entrySubject, entry.entryDate);
+      getHomework(entry.entryId, entry.groups, entry.entrySubject, entry.entryDate);
       getAbsence(entry.entryId);
       $('#modalForm').modal('toggle');
     }
@@ -493,7 +495,7 @@ function getCalendar() {
       	    if (xhttp.readyState == 4) {
       	      if (xhttp.status == 200) {
       	        $('#modalForm').html(xhttp.responseText);
-                  getHomeworkUpdate(entry.entryId, 'teacher-homework', entry.type, null, null) 
+                  getHomeworkUpdate(entry.entryId, 'teacher-homework', entry.type, entry.groups, null, null) 
                   $('#modalForm').modal('toggle');
       	      }
       	      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
