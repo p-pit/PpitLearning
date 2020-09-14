@@ -40,12 +40,12 @@ $tabs = $context->getConfig('teacher/home/tabs')['content']['planning']['tabs'];
 
 <!-- user_story: Absence and lateness can be notified only on slots that are not grouped (on only 1 date) -->
 <?php if (!in_array($event->status, ['realized', 'canceled']) && $event->end_date == $event->begin_date) : ?>
-        <li class="nav-item"><a class="nav-link" id="absence-tab-md" data-toggle="tab" href="#absence-md" role="tab" aria-controls="absence-md"><?php echo $this->translate('Retards et absentéisme', 'ppit-core', $context->getLocale())?></a></li>
+        <li class="nav-item"><a class="nav-link <?php if (!array_key_exists('school_work', $tabs)) : ?>sactive<?php endif;?>" id="absence-tab-md" data-toggle="tab" href="#absence-md" role="tab" aria-controls="absence-md"><?php echo $this->translate('Retards et absentéisme', 'ppit-core', $context->getLocale())?></a></li>
 <?php endif;?>
       </ul>
  
       <div class="tab-content card pt-5">
-        <div class="tab-pane fade show active" id="document-md" role="tabpanel" aria-labelledby="document-tab-md">
+        <div class="tab-pane fade <?php if (array_key_exists('school_work', $tabs)) : ?>show active<?php endif;?>" id="document-md" role="tabpanel" aria-labelledby="document-tab-md">
      
 <h5 class="modal-title text-muted text-center" id="modalFormLabel">
     <strong><?php if ($event->property_3) echo $context->localize($eventConfig['property_3']['modalities'][$event->property_3]) . ', ' ?></strong>
@@ -74,7 +74,7 @@ $tabs = $context->getConfig('teacher/home/tabs')['content']['planning']['tabs'];
           <div id="teacher-homework-todo-work"></div>
 
         </div>
-        <div class="tab-pane fade" id="absence-md" role="tabpanel" aria-labelledby="absence-tab-md"></div>
+        <div class="tab-pane fade <?php if (!array_key_exists('school_work', $tabs)) : ?>show active<?php endif;?>" id="absence-md" role="tabpanel" aria-labelledby="absence-tab-md"></div>
       </div>
  
           </div>
