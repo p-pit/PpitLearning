@@ -492,7 +492,7 @@ return array(
 									'fr_FR' => 'Groupes',
 							),
 					),
-					'calendar' => array(
+/*					'calendar' => array(
 						'route' => 'event/calendar',
 						'params' => array('type' => 'calendar', 'category' => 'calendar', 'app' => 'p-pit-learning'),
 						'urlParams' => '?status=new',
@@ -501,7 +501,7 @@ return array(
 							'en_US' => 'Planning',
 							'fr_FR' => 'Planning',
 						),
-					),
+					),*/
 					'testResult' => array(
 							'route' => 'testResult/index',
 							'params' => array('type' => 'generic'),
@@ -543,6 +543,7 @@ return array(
 				'level' => 'community',
 				'route' => 'teacher/calendar',
 				'label' => array('en_US' => 'Planning', 'fr_FR' => 'Planning'),
+				'tabs' => ['school_work' => ['default' => 'Contenu pédagogique'], 'absence' => ['default' => 'Retards et absentéisme']],
 			),
 			'evaluation' => array(
 				'label' => array('en_US' => 'Evaluations', 'fr_FR' => 'Évaluations'),
@@ -792,8 +793,8 @@ return array(
 			),
 			'hours' => array(
 				'type' => 'time',
-				'min_value' => 0,
-				'max_value' => 9999,
+				'minValue' => 0,
+				'maxValue' => 9999,
 				'mandatory' => true,
 				'labels' => array('en_US' => 'Number of hours', 'fr_FR' => 'Nombre d\'heures'),
 			),

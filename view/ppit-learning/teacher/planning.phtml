@@ -8,6 +8,10 @@
  */
 -->
 
+<?php 
+$tabs = $context->getConfig('teacher/home/tabs')['content']['planning']['tabs'];
+?>
+
 <style>
 .homework-document-drop {
   padding: 10px;
@@ -29,7 +33,10 @@
           <div class="event-nav-target" id="event-nav-target-appointment">
  
       <ul class="nav nav-tabs md-tabs nav-justified primary-color">
+
+<?php if (array_key_exists('school_work', $tabs)) : ?>
         <li class="nav-item"><a class="nav-link active" id="document-tab-md" data-toggle="tab" href="#document-md" role="tab" aria-controls="document-md"><?php echo $this->translate('Contenu pédagogique', 'ppit-core', $context->getLocale())?></a></li>
+<?php endif;?>
 
 <!-- user_story: Absence and lateness can be notified only on slots that are not grouped (on only 1 date) -->
 <?php if (!in_array($event->status, ['realized', 'canceled']) && $event->end_date == $event->begin_date) : ?>

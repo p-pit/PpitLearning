@@ -398,6 +398,7 @@ class TeacherController extends AbstractActionController
     								$lateness->place_id = $context->getPlaceId();
     								$lateness->category = 'lateness';
     								$lateness->school_year = $context->getConfig('student/property/school_year/default');
+    								$lateness->type = 'schooling';
     								$lateness->account_id = $account_id;
     								$lateness->subject = $event->property_3;
     								$lateness->begin_date = $event->begin_date;
@@ -478,6 +479,8 @@ class TeacherController extends AbstractActionController
 				else $competences = [];
 				$teachers[$teacher->contact_1_id]['competences'] = $competences;
 			}
+    		$owner_id = (int) $this->params()->fromQuery('myAccount');
+	    	$myAccount = Account::get($owner_id);
 		}
 		else {
 			$myAccount = Account::get($context->getContactId(), 'contact_1_id', 'teacher', 'type');
@@ -495,6 +498,7 @@ class TeacherController extends AbstractActionController
 			if ($myAccount->groups) $teachers[$myAccount->contact_1_id]['groups'] = explode(',', $myAccount->groups);
 			else $teachers[$myAccount->contact_1_id]['groups'] = [];
 		}
+		$teacher = $teachers[$myAccount->contact_1_id];
 		
 		// Retrieve the existing note or instanciate
 		
@@ -559,19 +563,22 @@ class TeacherController extends AbstractActionController
 			}
 			$content['group'] = $group->properties;
 			$place = Place::get($group->place_id);
+			if (!$place) $place = $context->getPlace();
 			$content['place'] = $place->properties;
 				
 			$note = Note::instanciate($type, null, $group_id);
 			$noteLinks = [];
 			foreach ($group->members as $member_id => $member) {
-				if (!$accounts || in_array($member_id, $accounts)) {
-					$noteLink = [
-						'account_id' => $member_id,
-						'n_fn' => $member->n_fn,
-						'value' => null,
-						'assessment' => '',
-					];
-					$noteLinks[] = $noteLink;
+				if ($member->type == 'p-pit-studies') {
+					if (!$accounts || in_array($member_id, $accounts)) {
+						$noteLink = [
+							'account_id' => $member_id,
+							'n_fn' => $member->n_fn,
+							'value' => null,
+							'assessment' => '',
+						];
+						$noteLinks[] = $noteLink;
+					}
 				}
 			}
 			$content['note']['status'] = 'current';
@@ -601,7 +608,6 @@ class TeacherController extends AbstractActionController
 			if (!array_key_exists('archive', $subject) || !$subject['archive']) {
 				if ($context->hasRole('manager')) $subjects[$subjectId] = $subject;
 				else {
-					$teacher = $teachers[$myAccount->contact_1_id];
 					$teacherSubjects = ($teacher['property_5']) ? explode(',', $teacher['property_5']) : [];
 					if (in_array($subjectId, $teacherSubjects)) $subjects[$subjectId] = $subject;
 					if (array_key_exists('subcategory', $subject) && in_array($subject['subcategory'], $teacher['competences'])) $subjects[$subjectId] = $subject;
