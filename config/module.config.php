@@ -822,7 +822,7 @@ return array(
 	'core_account/teacher' => array(
 		'properties' => array(
 			'title_1', 'title_2', 'title_3', 'status', 'place_id', 'identifier', 'name', 'photo_link_id', 'basket',
-			'contact_1_id', 'contact_1_status', 'org', 'n_title', 'n_first', 'n_last', 'n_fn', 'email', 'tel_work', 'tel_cell',
+			'contact_1_id', 'contact_1_status', 'org', 'n_title', 'n_first', 'n_last', 'n_fn', 'email', 'email_work', 'tel_work', 'tel_cell',
 			'adr_street', 'adr_extended', 'adr_post_office_box', 'adr_zip', 'adr_city', 'adr_state', 'adr_country',
 			'n_title_2', 'n_first_2', 'n_last_2', 'email_2', 'tel_work_2', 'tel_cell_2',
 			'adr_street_2', 'adr_extended_2', 'adr_post_office_box_2', 'adr_zip_2', 'adr_city_2', 'adr_state_2', 'adr_country_2',
@@ -945,6 +945,7 @@ return array(
 				'n_last' => ['mandatory' => true],
 				'property_4' => ['mandatory' => false],
 				'email' => ['mandatory' => false],
+				'email_work' => ['mandatory' => false],
 				'tel_work' => ['mandatory' => false],
 				'tel_cell' => ['mandatory' => false],
 				'adr_street' => ['mandatory' => false],
