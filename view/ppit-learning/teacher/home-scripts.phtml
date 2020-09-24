@@ -252,8 +252,7 @@ function showEvaluationDetail() {
   // Execute the ajax request
   let xhttp = new XMLHttpRequest(), group_id = '<?php echo current($groups)->id ?>';
   
-//  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?myAccount=<?php //echo $currentProfile->id ?>&group_id=<?php //echo $group_id ?>', true);
-  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?group_id=13852&accounts=13850', true);
+  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?myAccount=<?php echo $currentProfile->id ?>&group_id=<?php echo $group_id ?>', true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -268,7 +267,7 @@ function showEvaluationDetail() {
 function showEvaluation(target) {
   // Execute the ajax request
   var xhttp = new XMLHttpRequest();
-  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>?teacher_id=<?php echo $currentProfile->id ?>', true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -538,7 +537,7 @@ function showCalendar(route, target) {
 }
 
 $('#modalForm').on('hidden.bs.modal', function (e) {
-  getCalendar();
+//  getCalendar();
 })
 
 <?php foreach ($template['content'] as $tabId => $tab) : ?>
