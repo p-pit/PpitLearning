@@ -252,7 +252,7 @@ function showEvaluationDetail() {
   // Execute the ajax request
   let xhttp = new XMLHttpRequest(), group_id = '<?php echo current($groups)->id ?>';
   
-  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?myAccount=<?php echo $currentProfile->id ?>&group_id=<?php echo $group_id ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
