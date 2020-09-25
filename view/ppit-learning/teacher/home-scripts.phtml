@@ -163,7 +163,7 @@ function getHomeworkList(calendar) {
           subject: homework.subject,
           target_date: date,
           allDay: true,
-          title: groups[homework.group_id] + ' | ' + schoolSubjectsLabels[homework.subject],
+          title: groups[homework.group_id] + "\n" + schoolSubjectsLabels[homework.subject],
           observations: homework.observations,
           color: color,
           textColor: textColor,
