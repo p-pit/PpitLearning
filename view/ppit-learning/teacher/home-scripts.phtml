@@ -105,6 +105,14 @@ function getEvents(calendar) {
 	xhttp.send();
 }
 
+let groups = {
+<?php $first = true; foreach ($groups as $group_id => $group) : ?>
+  <?php if (!$first) : ?>,<?php endif; ?>
+  <?php $first = false ?>
+  '<?php echo $group_id ?>': '<?php echo $group->name ?>'
+<?php endforeach; ?>
+}
+
 let schoolSubjectsLabels = {
 <?php $first = true; foreach ($context->getConfig('student/property/school_subject')['modalities'] as $modalityId => $modality) : ?>
   <?php if (!$first) : ?>,<?php endif; ?>
@@ -155,7 +163,7 @@ function getHomeworkList(calendar) {
           subject: homework.subject,
           target_date: date,
           allDay: true,
-          title: schoolSubjectsLabels[homework.subject],
+          title: groups[homework.group_id] + ' | ' + schoolSubjectsLabels[homework.subject],
           observations: homework.observations,
           color: color,
           textColor: textColor,
@@ -248,11 +256,11 @@ function createCalendar(callback) {
   getEvents(calendar);
 }
 
-function showEvaluationDetail() {
+function showEvaluationDetail(id) {
   // Execute the ajax request
   let xhttp = new XMLHttpRequest(), group_id = '<?php echo current($groups)->id ?>';
   
-  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
+  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -272,7 +280,10 @@ function showEvaluation(target) {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
       document.getElementById(target).innerHTML = xhttp.responseText;
-      $('.note-detail-anchor').click(showEvaluationDetail);
+      $('.note-detail-anchor').click(function () { 
+        let id = $(this).attr('id').split('_')[1];
+        showEvaluationDetail(id); 
+      });
     }
   }
   xhttp.send();
@@ -461,9 +472,9 @@ function getHomeworkDocument(type) {
 
 function getHomework(id, groups, subject, date) {
   let xhttp = new XMLHttpRequest(), route;
-console.log(groups);
   getHomeworkUpdate(null, 'teacher-homework-done-work', 'done-work', groups, subject, date) 
   getHomeworkUpdate(null, 'teacher-homework-todo-work', 'todo-work', groups, subject, date) 
+  getHomeworkUpdate(null, 'teacher-homework-event', 'event', groups, subject, date) 
 }
 
 function getPlanning(entry) {

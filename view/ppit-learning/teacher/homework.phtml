@@ -9,8 +9,10 @@ $selectedDocuments = explode(',', $note['document']);
         <span>
 <?php if ($type == 'done-work') : ?>
       Travail réalisé en <?php echo $context->localize($context->getConfig('student/property/school_subject')['modalities'][$note['subject']]) ?> avec le groupe <?php echo $group ?> le 
+<?php elseif ($type == 'todo-work') : ?>
+      Travail à faire en <?php echo $context->localize($context->getConfig('student/property/school_subject')['modalities'][$note['subject']]) ?> par le groupe <?php echo $group ?> pour le 
 <?php else : ?>
-      Travail à faire en <?php echo $note['subject'] ?> par le groupe <?php echo $group ?> pour le 
+      Événement en <?php echo $context->localize($context->getConfig('student/property/school_subject')['modalities'][$note['subject']]) ?> par le groupe <?php echo $group ?> le 
 <?php endif;?> 
       <input type="text" id="target_date-<?php echo $type ?>" value="<?php echo $context->decodeDate($note['target_date']) ?>">
           </span>

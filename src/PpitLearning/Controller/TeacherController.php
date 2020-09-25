@@ -521,13 +521,12 @@ class TeacherController extends AbstractActionController
 			$group = Account::get($group_id);
 			if ($group) {
 				$content['group'] = $group->properties;
-				$place = Place::get($group->place_id);
 			}
 			else {
 				$content['group'] = null;
-				$place = Place::get($note->place_id);
 			}
-			$content['place'] = $place->properties;
+			$place = Place::get($note->place_id);
+			$content['place'] = ($place) ? $place->properties : null;
 		
 			$noteLinks = $note->links;
 			$content['note']['status'] = $note->status;
