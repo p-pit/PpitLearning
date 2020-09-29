@@ -256,17 +256,54 @@ function createCalendar(callback) {
   getEvents(calendar);
 }
 
-function showEvaluationDetail(id) {
+function postEvaluationDetail(group_id, id) {
   // Execute the ajax request
-  let xhttp = new XMLHttpRequest(), group_id = '<?php echo current($groups)->id ?>';
+  let xhttp = new XMLHttpRequest(), formData = new FormData();
+
+  formData.append('teacher_id', <?php echo $currentProfile->id ?>);
+  
+  $('.update_input').each(function () {
+    let val = $(this).val();
+//    if ($(this).hasClass('update_input_date')) val = val.substr(6, 4) + "-" + val.substr(3, 2) + "-" + val.substr(0, 2);
+    formData.append($(this).attr('id'), val);
+  });
+
+  $('.matched_accounts').each(function () {
+    if ($(this).prop('checked')) formData.append($(this).attr('id'), 1);
+  });
+
+  xhttp.open("POST", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#modalForm').html(xhttp.responseText);
+        toastr.success("<?php echo $this->translate('Your request has been registered', 'ppit-core', $context->getLocale()) ?>");
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  }
+  xhttp.send(formData);
+}
+
+function showEvaluationDetail(group_id, id, open) {
+  // Execute the ajax request
+  let xhttp = new XMLHttpRequest();
   
   xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
-	    $('#modalForm').html(xhttp.responseText);
-      
-        $('#modalForm').modal('toggle');
+      if (xhttp.status == 200) {
+  	    $('#modalForm').html(xhttp.responseText);
+        if (open) $('#modalForm').modal('toggle');
+        $('#search-groups').change(function () {
+          let group_id = $(this).val();
+          showEvaluationDetail(group_id, id, false);
+        });
+        $('.note_evaluation_submit_button').click(function () { postEvaluationDetail(group_id, id); });
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }
   }
   xhttp.send();
@@ -279,11 +316,14 @@ function showEvaluation(target) {
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
-      document.getElementById(target).innerHTML = xhttp.responseText;
-      $('.note-detail-anchor').click(function () { 
-        let id = $(this).attr('id').split('_')[1];
-        showEvaluationDetail(id); 
-      });
+      if (xhttp.status == 200) {
+        document.getElementById(target).innerHTML = xhttp.responseText;
+        $('.note-detail-anchor').click(function () { 
+          let id = $(this).attr('id').split('_')[1];
+          showEvaluationDetail('<?php echo current($groups)->id ?>', id, true); 
+        });
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }
   }
   xhttp.send();

@@ -1,4 +1,7 @@
-<?php $isDisabled = false; ?>
+<?php 
+if ($request == 'POST' && $statusCode == '200') $isDisabled = true;
+else $isDisabled = false; 
+?>
 
 <div class="modal-dialog modal-lg" role="document">
   <div class="modal-content">
@@ -17,38 +20,17 @@
         <div class="card-body">
 
 <!-- Filters -->
-      <div class="row">
 		
 <?php foreach ($config['search'] as $propertyId => $property) : ?>
   <?php 
   $label = $context->localize($property['labels']);
   $options = (array_key_exists('options', $property)) ? $property['options'] : [];
   ?>
-        <div class="col-md-4">
+    <div class="form-group row">
+      <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $label ?></label>
+      <div class="col-sm-7">
 
-  <?php if (in_array($property['type'], array('date', 'datetime'))) : ?>
-
-        <div class="input-group input-group-sm mb-2 mr-sm-2">
-          <input type="hidden" value="0" class="search_check_value" id="search_check_value-<?php echo $propertyId ?>" />
-          <div class="input-group-prepend">
-            <button type="button" class="btn btn-secondary input-group-text search_check" id="search_check-<?php echo $propertyId ?>"><?php echo $label ?></button>
-          </div>
-		  <input class="form-control search_input search_input_date search_input_date_min" type="text" id="search_min-<?php echo $propertyId ?>" placeholder="<?php echo $this->translate('Min', 'ppit-core', $context->getLocale()) ?>" />
-          <input class="form-control search_input search_input_date search_input_date_max" type="text" id="search_max-<?php echo $propertyId ?>" placeholder="<?php echo $this->translate('Max', 'ppit-core', $context->getLocale()) ?>" />
-        </div>
-
-  <?php elseif (in_array($property['type'], array('time', 'number'))) : ?>
-
-        <div class="input-group input-group-sm mb-2 mr-sm-2">
-          <input type="hidden" value="0" class="search_check_value" id="search_check_value-<?php echo $propertyId ?>" />
-          <div class="input-group-prepend">
-            <button type="button" class="btn btn-secondary input-group-text search_check" id="search_check-<?php echo $propertyId ?>"><?php echo $label ?></button>
-          </div>
-          <input class="form-control search_input search_input_text_min" type="text" id="search_min-<?php echo $propertyId ?>" placeholder="<?php echo $this->translate('Min', 'ppit-core', $context->getLocale()) ?>" />
-          <input class="form-control search_input search_input_text_max" type="text" id="search_max-<?php echo $propertyId ?>" placeholder="<?php echo $this->translate('Max', 'ppit-core', $context->getLocale()) ?>" />
-        </div>
-
-	<?php elseif (in_array($property['type'], ['select', 'multiselect'])) : ?>
+	<?php if (in_array($property['type'], ['select', 'multiselect'])) : ?>
 
 		<?php
 		$modalities = array();
@@ -62,38 +44,19 @@
 
 		if (array_key_exists('multiple', $options) && $options['multiple']) $multiple = true; else $multiple = false;
 		?>
-<!--Dropdown primary-->
- <div class="dropdown">
-
-  <!--Trigger-->
-  <a class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown"
-    aria-haspopup="true" aria-expanded="false">Groupe</a>
-
-
-  <!--Menu-->
-  <div class="dropdown-menu dropdown-primary">
+          <select class="browser-default custom-select form-control form-control-sm" id="search-<?php echo $propertyId ?>">
       <?php foreach ($modalities as $modalityId => $modalityLabel) : ?>
-    <a class="dropdown-item" href="#" id="search-<?php echo $propertyId ?>-<?php echo $modalityId ?>"><?php echo $modalityLabel ?></a>
+             <option value="<?php echo $modalityId ?>" <?php if ($content['note']['group_id'] == $modalityId) echo 'selected="selected"' ?>><?php echo $modalityLabel ?></option>
       <?php endforeach;?>
-  </div>
-</div>
-
-<!--/Dropdown primary-->
-	
-	<?php else : ?>
-
- <!-- Search form -->
-<form class="form-inline d-flex justify-content-center md-form form-sm mt-0">
-   <i class="fas fa-search" aria-hidden="true"></i>
-  <input class="form-control form-control-sm ml-3 w-75 search_input search_input_text"  id="search-<?php echo $propertyId ?>" type="text" placeholder="Nom"
-    aria-label="Nom">
-</form>
+          </select>
 
 	<?php endif;?>
-        </div> <!-- col -->
+
+       </div>
+    </div>
+
 <?php endforeach;?>
-       
-        </div> <!-- row -->
+
 
 <!-- Subject -->
     <div class="form-group row">
@@ -109,7 +72,6 @@
     ?>
             <option value="<?php echo $subjectId ?>" <?php if ($content['note']['subject'] == $subjectId) echo 'selected="selected"' ?>><?php echo $caption ?></option>
   <?php endforeach;?>
-                    <option value="global" <?php if ($content['note']['subject'] == 'global') echo 'selected="selected"' ?>><?php echo $this->translate('Opinion of staff meeting', 'ppit-studies', $context->getLocale()) ?></option>
           </select>
       </div>
 <?php endif;?>
@@ -155,7 +117,7 @@
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Date', 'ppit-core', $context->getLocale()) ?></label>
       <div class="col-sm-7">
-        <input class="form-control form-control-sm update_input update_input_date" id="date" value="<?php echo $context->decodeDate($noteDate) ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> required />
+        <input type="date" class="form-control form-control-sm update_input update_input_date" id="date" value="<?php echo $noteDate ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> required />
       </div>
       <div class="col-sm-12"><p class="help-block"></p></div>
     </div>
@@ -165,7 +127,7 @@
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Reference value', 'ppit-studies', $context->getLocale()) ?></label>
       <div class="col-sm-7">
-        <input class="form-control form-control-sm update_input update_input_number" id="reference_value" value="<?php echo $context->formatFloat($reference_value, 2) ?>" <?php if (!$context->hasRole('manager')) : ?>disabled="disabled"<?php endif;?> required />
+        <input type="number" class="form-control form-control-sm update_input update_input_number" id="reference_value" value="<?php echo $reference_value ?>" <?php if (!$context->hasRole('manager')) : ?>disabled="disabled"<?php endif;?> required />
       </div>
     </div>
 
@@ -175,20 +137,22 @@
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Weight', 'ppit-studies', $context->getLocale()) ?></label>
       <div class="col-sm-7">
-        <input class="form-control form-control-sm update_input update_input_number" id="weight" value="<?php echo $context->formatFloat($weight, 2) ?>" <?php if ($isDisabled || ($content['type'] == 'report' && !$context->hasRole('manager'))) : ?>disabled="disabled"<?php endif;?> required />
+        <input type="number" class="form-control form-control-sm update_input update_input_number" id="weight" value="<?php echo $weight ?>" <?php if ($isDisabled || ($content['type'] == 'report' && !$context->hasRole('manager'))) : ?>disabled="disabled"<?php endif;?> required />
       </div>
     </div>
 
 <?php foreach ($content['noteLinks'] as $noteLink) : ?>
-<!-- Value -->
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm">
-<!-- Default unchecked -->
+
+<!-- Checkbox-->
     <div class="form-check">
-      <input type="checkbox" class="form-check-input updatable-control matched_accounts" id="noteAccount-<?php echo $account_id ?>" name="noteAccount" value="<?php echo $noteLink['n_fn'] ?>" checked <?php if ($isDisabled) : ?>disabled<?php endif;?>/>
-      <label class="form-check-label" for="noteAccount-<?php echo $account_id ?>"><?php echo $noteLink['n_fn'] ?></label>
+      <input type="checkbox" class="form-check-input updatable-control matched_accounts" id="noteAccount-<?php echo $noteLink['account_id'] ?>" name="noteAccount" value="<?php echo $noteLink['n_fn'] ?>" <?php if ($noteLink['value'] !== null) : ?>checked<?php endif;?> <?php if ($isDisabled) : ?>disabled<?php endif;?>/>
+      <label class="form-check-label" for="noteAccount-<?php echo $noteLink['account_id'] ?>"><?php echo $noteLink['n_fn'] ?></label>
     </div>
       </label>
+
+<!-- Value -->
       <div class="col-sm-7">
   <?php if ($context->getConfig('note/property/value')['type'] == 'number') : ?>
         <input class="form-control form-control-sm update_input update_input_text" id="value-<?php echo $noteLink['account_id'] ?>" <?php if ($noteLink['value'] !== null) echo 'value="'.$noteLink['value'].'"' ?> <?php if ($isDisabled || $content['type'] == 'report') echo 'disabled="disabled"' ?> />
@@ -243,7 +207,7 @@
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Observations', 'ppit-core', $context->getLocale()) ?></label>
       <div class="col-sm-7">
-        <textarea class="form-control form-control-sm" id="observations" <?php if ($isDisabled) echo 'disabled="disabled"'?> placeholder="<?php echo $this->translate('General observation (for the group)', 'ppit-studies', $context->getLocale()) ?>"><?php echo $content['note']['observations'] ?></textarea>
+        <textarea class="form-control form-control-sm update_input update_input_textarea" id="observations" <?php if ($isDisabled) echo 'disabled="disabled"'?> placeholder="<?php echo $this->translate('General observation (for the group)', 'ppit-studies', $context->getLocale()) ?>"><?php echo $content['note']['observations'] ?></textarea>
       </div>
     </div>
 

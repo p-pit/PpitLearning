@@ -1863,6 +1863,5 @@ table.note-report td {
 	
 	'teacher/evaluation/account/search' => [
 		'groups' => [],
-		'n_fn' => [],
 	],
 );

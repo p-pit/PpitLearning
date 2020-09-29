@@ -528,7 +528,24 @@ class TeacherController extends AbstractActionController
 			$place = Place::get($note->place_id);
 			$content['place'] = ($place) ? $place->properties : null;
 		
-			$noteLinks = $note->links;
+			$noteLinks = [];
+			foreach ($group->members as $member_id => $member) {
+				if ($member->type == 'p-pit-studies') {
+					if (!$accounts || in_array($member_id, $accounts)) {
+						$noteLink = [
+							'account_id' => $member_id,
+							'n_fn' => $member->n_fn,
+							'value' => null,
+							'assessment' => '',
+						];
+						$noteLinks[$member_id] = $noteLink;
+					}
+				}
+			}
+			foreach ($note->links as $link_id => $link) {
+				$noteLinks[$link_id]['value'] = $link->value;
+				$noteLinks[$link_id]['assessment'] = $link->assessment;
+			}
 			$content['note']['status'] = $note->status;
 			$content['note']['place_id'] = $place->id;
 			$content['note']['teacher_id'] = $note->teacher_id;
@@ -540,7 +557,7 @@ class TeacherController extends AbstractActionController
 			$content['note']['reference_value'] = $note->reference_value;
 			$content['note']['weight'] = $note->weight;
 			$content['note']['observations'] = $note->observations;
-			foreach ($note->links as $noteLink) $content['noteLinks'][$noteLink->account_id] = $noteLink->getProperties();
+			$content['noteLinks'] = $noteLinks;
 			$content['update_time'] = $note->update_time;
 		}
 		else {
@@ -573,7 +590,7 @@ class TeacherController extends AbstractActionController
 						$noteLink = [
 							'account_id' => $member_id,
 							'n_fn' => $member->n_fn,
-							'value' => null,
+							'value' => 0,
 							'assessment' => '',
 						];
 						$noteLinks[] = $noteLink;
@@ -581,7 +598,7 @@ class TeacherController extends AbstractActionController
 				}
 			}
 			$content['note']['status'] = 'current';
-			$content['note']['place_id'] = $group->place_id;
+			$content['note']['place_id'] = $place->id;
 			if ($context->hasRole('manager')) $content['note']['teacher_id'] = null;
 			else $content['note']['teacher_id'] = $myAccount->contact_1_id;
 			$content['note']['subject'] = $subject;
@@ -591,7 +608,7 @@ class TeacherController extends AbstractActionController
 		
 			// user_story - student_evaluation_period: La période est pré-renseignée à la période en cours (en paramètre) mais peut être modifiée (ex. pour effectuer une rétro-saisie sur une période antérieure).
 			$school_periods = $place->getConfig('school_periods');
-			$current_school_period = $context->getCurrentPeriod($school_periods);
+			$current_school_period = 'Q1'; //$context->getCurrentPeriod($school_periods);
 		
 			$content['note']['school_period'] = $current_school_period;
 			$content['note']['reference_value'] = $context->getConfig('student/parameter/average_computation')['reference_value'];
@@ -617,6 +634,114 @@ class TeacherController extends AbstractActionController
 		$content['config']['subjects'] = $subjects;
 		$content['config']['categories'] = $place->getConfig('student/property/evaluationCategory')['modalities'];
 
+		// POST request for create or update
+		if ($this->request->isPost()) {
+		
+			// User story - student_evaluation_teachers:
+			// Rôle manager: les enseignants pouvant être selectionnés dans le formulaire sont tous les enseignants ayant un statut "actif".
+			// Rôle enseignant: je ne peux pas affecter un autre enseignant que moi-même à l'évaluation.
+		
+			// Load the input data
+		
+			$content['note']['teacher_id'] = $this->request->getPost('teacher_id');
+		
+//			$content['note']['school_period'] = $this->request->getPost('school_period');
+			$content['note']['level'] = $this->request->getPost('level');
+			$content['note']['subject'] = $this->request->getPost('subject');
+			$content['note']['date'] = $this->request->getPost('date');
+			$content['note']['reference_value'] = $this->request->getPost('reference_value');
+			$content['note']['weight'] = $this->request->getPost('weight');
+			$content['note']['observations'] = $this->request->getPost('observations');
+
+			foreach ($content['noteLinks'] as &$noteLinkData) {
+				$account_id = $noteLinkData['account_id'];
+				if ($this->request->getPost('noteAccount-' . $account_id)) {
+					if (!$id) $noteLink = NoteLink::instanciate($account_id);
+					else $noteLink = $note->links[$account_id];
+					$value = $this->request->getPost('value-' . $account_id);
+					if ($value == '') $value = null;
+					//				$mention = $this->request->getPost('mention-' . $account_id);
+					$assessment = $this->request->getPost('assessment-' . $account_id);
+					$audit = [];
+					if ($value !== null || $assessment) {
+						$noteLinkData['value'] = $value;
+						//					$noteLinkData['evaluation'] = $mention;
+						$noteLinkData['assessment'] = $assessment;
+						$noteLink->loadData($noteLinkData);
+						$note->links[$account_id] = $noteLink;
+					}
+				}
+			}
+			$rc = $note->loadData($content['note']);
+			if ($rc != 'OK') {
+				$this->response->setStatusCode('409');
+				$this->response->setReasonPhrase($rc);
+				return null;
+			}
+			else {
+		
+				// Atomically save
+				$connection = Note::getTable()->getAdapter()->getDriver()->getConnection();
+				$connection->beginTransaction();
+				try {
+					$update_time = $this->request->getPost('update_time');
+					if ($note->id) $rc = $note->update('update_time');
+					elseif (count($note->links)) {
+						$rc = $note->add();
+						$content['id'] = $note->id;
+					}
+					if ($rc != 'OK') {
+						$connection->rollback();
+						$this->response->setStatusCode('409');
+						$this->response->setReasonPhrase($rc);
+						return null;
+					}
+		
+					// Save the note at the student level
+					foreach ($note->links as $noteLink) {
+						if (!$noteLink->id) {
+							$noteLink->note_id = $note->id;
+							$rc = $noteLink->add();
+						}
+						else {
+							$rc = $noteLink->drop();
+							$noteLink->id = null;
+							$rc = $noteLink->add(null);
+						}
+						if ($rc != 'OK') {
+							$connection->rollback();
+							$this->response->setStatusCode('409');
+							$this->response->setReasonPhrase($rc);
+							return null;
+						}
+					}
+						
+					// Update the subject and global averages
+					if (false /* (transient rule) $note->id*/) {
+						$rc = Note::updateAverage($content['note']['place_id'], $class, $group_id, $content['note']['subject'], $content['note']['school_year'], $content['note']['school_period']);
+						if ($rc) {
+							$connection->rollback();
+							$this->response->setStatusCode('409');
+							$this->response->setReasonPhrase($rc);
+							return null;
+						}
+					}
+						
+					// Compute the group indicators
+					$content['indicators'] = null; //$note->computeGroupIndicators();
+		
+					$connection->commit();
+					$this->response->setStatusCode('200');
+				}
+				catch (\Exception $e) {
+					$connection->rollback();
+					$this->response->setStatusCode('409');
+					$this->response->setReasonPhrase('Exception: ' . $e);
+					return null;
+				}
+			}
+		}
+		
 		$view = new ViewModel(array(
 			'context' => $context,
 			'config' => $config,
