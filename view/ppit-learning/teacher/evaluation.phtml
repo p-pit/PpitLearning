@@ -1,6 +1,8 @@
 <?php 
 if ($request == 'POST' && $statusCode == '200') $isDisabled = true;
 else $isDisabled = false; 
+
+$subjects = explode(',', $content['teacher']['property_5']);
 ?>
 
 <div class="modal-dialog modal-lg" role="document">
@@ -39,7 +41,7 @@ else $isDisabled = false;
 			$modalities[$place->id] = $place->caption;
 		} 
 		else foreach ($property['modalities'] as $modalityId => $modality) {
-			$modalities[$modalityId] = $context->localize($modality);
+			if ($propertyId != 'groups' || in_array($modalityId, $content['teacher']['groups'])) $modalities[$modalityId] = $context->localize($modality);
 		}
 
 		if (array_key_exists('multiple', $options) && $options['multiple']) $multiple = true; else $multiple = false;
@@ -66,11 +68,13 @@ else $isDisabled = false;
           <select class="browser-default custom-select form-control form-control-sm update_input update_input_select" id="subject" <?php if ($isDisabled || ($content['type'] == 'report' && $content['note']['subject'])) echo 'disabled="disabled"'?> required>
             <option />
   <?php foreach ($content['config']['subjects'] as $subjectId => $subject) : ?>
-    <?php
-    $subject = $context->getConfig('student/property/school_subject')['modalities'][$subjectId];
-    $caption = $context->localize($subject);
-    ?>
+    <?php if (in_array($subjectId, $subjects)) : ?>
+	    <?php
+	    $subject = $context->getConfig('student/property/school_subject')['modalities'][$subjectId];
+	    $caption = $context->localize($subject);
+	    ?>
             <option value="<?php echo $subjectId ?>" <?php if ($content['note']['subject'] == $subjectId) echo 'selected="selected"' ?>><?php echo $caption ?></option>
+    <?php endif;?>
   <?php endforeach;?>
           </select>
       </div>

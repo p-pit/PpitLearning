@@ -478,6 +478,11 @@ class TeacherController extends AbstractActionController
 				if ($competences) $competences = explode(',', $competences);
 				else $competences = [];
 				$teachers[$teacher->contact_1_id]['competences'] = $competences;
+				
+				$groups = $teachers[$teacher->contact_1_id]['groups'];
+				if ($groups) $groups = explode(',', $groups);
+				else $groups = [];
+				$teachers[$teacher->contact_1_id]['groups'] = $groups;
 			}
     		$owner_id = (int) $this->params()->fromQuery('myAccount');
 	    	$myAccount = Account::get($owner_id);
@@ -508,7 +513,7 @@ class TeacherController extends AbstractActionController
 		$content['note'] = [];
 		$content['note']['type'] = $type;
 		$content['noteLinks'] = [];
-		$content['teachers'] = $teachers;
+		$content['teacher'] = $teacher;
 		
 		if ($id) {
 				
