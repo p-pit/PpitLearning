@@ -312,7 +312,7 @@ function showEvaluationDetail(group_id, id, open) {
 function showEvaluation(target) {
   // Execute the ajax request
   var xhttp = new XMLHttpRequest();
-  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>?teacher_id=<?php echo $currentProfile->id ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>?teacher_id=<?php echo $currentProfile->id ?>&school_year=<?php echo $context->getConfig('student/property/school_year/default') ?>', true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
