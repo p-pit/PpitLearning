@@ -320,7 +320,7 @@ function showEvaluation(target) {
         document.getElementById(target).innerHTML = xhttp.responseText;
         $('.note-detail-anchor').click(function () { 
           let id = $(this).attr('id').split('_')[1];
-          showEvaluationDetail('<?php echo current($groups)->id ?>', id, true); 
+          showEvaluationDetail('<?php echo current(explode(',', $currentProfile->groups)) ?>', id, true); 
         });
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
