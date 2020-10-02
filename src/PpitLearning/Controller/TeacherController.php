@@ -590,7 +590,7 @@ class TeacherController extends AbstractActionController
 			$note = Note::instanciate($type, null, $group_id);
 			$noteLinks = [];
 			foreach ($group->members as $member_id => $member) {
-				if ($member->type == 'p-pit-studies') {
+				if ($member->type == 'p-pit-studies' && $member->place_id = $myAccount->place_id) {
 					if (!$accounts || in_array($member_id, $accounts)) {
 						$noteLink = [
 							'account_id' => $member_id,
