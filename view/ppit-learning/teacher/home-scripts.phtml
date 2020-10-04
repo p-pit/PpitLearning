@@ -49,12 +49,13 @@ function makeEditable() {
 
 var viewBeginDate = '<?php echo date('Y-m-d') ?>';
 
-function getEvents(calendar) {
+function getEvents(calendar, activeStart, activeEnd) {
 
   calendar.getEvents().forEach(function (event, id) { event.remove(); });
-  getHomeworkList(calendar);
+  getHomeworkList(calendar, activeStart, activeEnd);
 	
-  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&account_id=<?php echo $currentProfile->id ?>';
+//  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=<?php echo $context->getConfig('student/property/school_year/start') ?>&end=<?php echo $context->getConfig('student/property/school_year/end') ?>&account_id=<?php echo $currentProfile->id ?>';
+  let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=' + activeStart + '&end=' + activeEnd + '&account_id=<?php echo $currentProfile->id ?>';
 
 //Filter on place
 <?php if ($place) : ?>
@@ -129,11 +130,11 @@ let absenceMotiveLabels = {
 <?php endforeach; ?>
 }
 
-function getHomeworkList(calendar) {
+function getHomeworkList(calendar, activeStart, activeEnd) {
 
   // Retrieve the homework events
   let xhttp = new XMLHttpRequest();
-  xhttp.open("GET", '<?php echo $this->url('teacher/getHomework') ?>?teacher_id=<?php echo $currentProfile->id ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('teacher/getHomework') ?>?teacher_id=<?php echo $currentProfile->id ?>&begin=' + activeStart + '&end=' + activeEnd, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -247,13 +248,15 @@ function createCalendar(callback) {
 
       allDaySlot: true,
       allDayText: '<?php echo $this->translate('Day', 'ppit-core', $context->getLocale()) ?>',
-    	    		  
+
+      datesRender: function (info) {
+    	getEvents(calendar, moment(info.view.activeStart).format('YYYY-MM-DD'), moment(info.view.activeEnd).format('YYYY-MM-DD'));
+      },
+          	    		  
       eventClick: callback
     });
 
     calendar.render();
-    
-  getEvents(calendar);
 }
 
 function postEvaluationDetail(group_id, id) {

@@ -179,10 +179,12 @@ class TeacherController extends AbstractActionController
     	// Retrieve the context
     	$context = Context::getCurrent();
     	$id = $this->params()->fromRoute('id');
-    
+    	$begin = $this->params()->fromQuery('begin');
+    	$end = $this->params()->fromQuery('end');
+    	 
     	$teacher_id = (int) $this->params()->fromQuery('teacher_id');
     
-    	$notes = Note::GetList('homework', null, ['teacher_id' => $teacher_id], 'date', 'DESC', 'search', null);
+    	$notes = Note::GetList('homework', null, ['teacher_id' => $teacher_id, 'min_date' => $begin, 'max_date' => $end], 'date', 'DESC', 'search', null);
     	 
     	echo json_encode($notes, JSON_PRETTY_PRINT);
     	return $this->getResponse();
