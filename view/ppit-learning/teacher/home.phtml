@@ -97,9 +97,19 @@
                           <?php echo $profile->place_caption ?> - <?php echo $profile->n_fn ?>
                         </a>
     <?php endforeach;?>
+    
                       </div>
                     </li>
   <?php endif;?>
+    
+    <?php if ($context->hasRole('manager')) : ?>
+                    <li class="nav-item dropdown">
+                        <a class="dropdown-item p-0" href="<?php echo $this->url('student/indexV2', ['app' => 'p-pit-studies', 'type' => '', 'entryId' => 'student']) ?>">
+                          P-Pit Studies (RP)
+                        </a>
+                    </li>
+    <?php endif;?>
+
 
                     <li class="nav-item">
                       <a class="nav-link dark-grey-text font-weight-bold" id="login-anchor" data-toggle="modal" data-target="#modalLogoutForm">
