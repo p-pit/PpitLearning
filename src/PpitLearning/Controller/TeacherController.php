@@ -472,7 +472,7 @@ class TeacherController extends AbstractActionController
 		
 		// user_story - student_evaluation_teachers: Les enseignants pouvant être selectionnés dans le formulaire sont tous les enseignants ayant un statut "actif"
 		$teachers = [];
-		if ($context->hasRole('manager')) {
+		if ($context->hasRole('manager') && !$context->hasRole('teacher')) {
 			$cursor = Account::getList('teacher', ['status' => 'active,committed,contrat_envoye,reconnect_with'], '+name', null);
 			foreach ($cursor as $teacher_id => $teacher) {
 				$teachers[$teacher->contact_1_id] = $teacher->properties;
