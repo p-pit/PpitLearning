@@ -490,7 +490,7 @@ class TeacherController extends AbstractActionController
 	    	$myAccount = Account::get($owner_id);
 		}
 		else {
-			$myAccount = Account::get($context->getContactId(), 'contact_1_id', 'teacher', 'type');
+			$myAccount = Account::get($this->params()->fromQuery('myAccount'));
 			if (!$myAccount) {
 				$this->response->setStatusCode('403');
 				return $this->response;
