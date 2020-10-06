@@ -47,7 +47,7 @@ class TeacherController extends AbstractActionController
     	else {
     		foreach ($profiles as $currentProfile) if ($currentProfile->status != 'gone') break;
     	}
-    	if (!$currentProfile) return $this->redirect()->toRoute('student/studentHomeV2');
+    	if (!$currentProfile) return $this->redirect()->toRoute($context->getConfig('studentHome'));
     	$place = Place::get($currentProfile->place_id);
     	$template = $context->getConfig('teacher/home/tabs');
     	$logo = ($place->logo_src) ? $place->logo_src : '/logos/'.$context->getInstance()->caption.'/'.$context->getConfig('headerParams')['logo'];
