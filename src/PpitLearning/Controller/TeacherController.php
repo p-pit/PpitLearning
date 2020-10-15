@@ -203,6 +203,7 @@ class TeacherController extends AbstractActionController
 		$group_id = $groups[0];
 		$group = Account::get($group_id);
 		$account_id = $this->params()->fromQuery('account_id');
+		$account= Account::get($account_id);
 		
 		if ($id) {
 			$note = Note::get($id);
@@ -215,7 +216,7 @@ class TeacherController extends AbstractActionController
 			$subject = $this->params()->fromQuery('subject');
 			$date = $this->params()->fromQuery('date');
 			$note = Note::instanciate($type, null);
-			$note->place_id = $context->getPlaceId();
+			$note->place_id = $account->place_id;
 			$note->teacher_id = $account_id;
 			$note->group_id = $group_id;
 			$note->subject = $subject;
