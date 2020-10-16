@@ -1001,6 +1001,7 @@ return array(
 				'n_first' => [],
 				'n_last' => [],
 				'property_4' => [],
+				'groups' => [],
 				'email' => [],
 				'email_work' => [],
 				'tel_work' => [],
