@@ -63,7 +63,7 @@ function getEvents(calendar, activeStart, activeEnd) {
 <?php endif; ?>
 
 // Filter on groups
-<?php if ($currentProfile->groups) : ?>
+<?php if (false /*$currentProfile->groups*/) : ?>
 	  route += '&groups=';
   <?php $first = true; foreach (explode(',', $currentProfile->groups) as $group_id) : ?>
   	  <?php if (!$first) : ?>route += ',';<?php endif;?>

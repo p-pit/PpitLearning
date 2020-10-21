@@ -664,7 +664,7 @@ class TeacherController extends AbstractActionController
 			foreach ($content['noteLinks'] as &$noteLinkData) {
 				$account_id = $noteLinkData['account_id'];
 				if ($this->request->getPost('noteAccount-' . $account_id)) {
-					if (!$id) $noteLink = NoteLink::instanciate($account_id);
+					if (!$id || !array_key_exists($account_id, $note->links)) $noteLink = NoteLink::instanciate($account_id);
 					else $noteLink = $note->links[$account_id];
 					$value = $this->request->getPost('value-' . $account_id);
 					if ($value == '') $value = null;
