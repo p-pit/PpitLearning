@@ -587,7 +587,7 @@ class TeacherController extends AbstractActionController
 			}
 			$content['group'] = $group->properties;
 			/*$place = Place::get($group->place_id);
-			if (!$place) */$place = Account::get($myAccount->place_id);
+			if (!$place) */$place = Place::get($myAccount->place_id);
 			$content['place'] = $place->properties;
 				
 			$note = Note::instanciate($type, null, $group_id);
