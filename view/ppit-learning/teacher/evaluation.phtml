@@ -1,4 +1,6 @@
 <?php 
+$updateProperties = $context->getConfig('teacher/evaluation/update')['properties'];
+
 if ($request == 'POST' && $statusCode == '200') $isDisabled = true;
 else $isDisabled = false; 
 
@@ -60,6 +62,8 @@ $subjects = explode(',', $content['teacher']['property_5']);
 <?php endforeach;?>
 
 
+<?php if (array_key_exists('subject', $updateProperties)) : ?>
+
 <!-- Subject -->
     <div class="form-group row">
 <?php if ($content['type'] != 'exam') : ?>
@@ -80,6 +84,10 @@ $subjects = explode(',', $content['teacher']['property_5']);
       </div>
 <?php endif;?>
     </div>
+<?php endif;?>
+
+
+<?php if (array_key_exists('level', $updateProperties)) : ?>
 
 <!-- Evaluation category -->
 <?php if ($content['type'] != 'exam') : ?>
@@ -115,6 +123,10 @@ $subjects = explode(',', $content['teacher']['property_5']);
       </div>
     </div>
 <?php endif;?>
+<?php endif;?>
+
+
+<?php if (array_key_exists('date', $updateProperties)) : ?>
 
 <!-- Note date -->
 <?php $noteDate = $content['note']['date'] ?>
@@ -125,6 +137,10 @@ $subjects = explode(',', $content['teacher']['property_5']);
       </div>
       <div class="col-sm-12"><p class="help-block"></p></div>
     </div>
+ <?php endif;?>
+
+
+<?php if (array_key_exists('reference_value', $updateProperties)) : ?>
 
 <!-- Reference value -->
 <?php $reference_value = $content['note']['reference_value'] ?>
@@ -134,6 +150,10 @@ $subjects = explode(',', $content['teacher']['property_5']);
         <input type="number" class="form-control form-control-sm update_input update_input_number" id="reference_value" value="<?php echo $reference_value ?>" <?php if (!$context->hasRole('manager')) : ?>disabled="disabled"<?php endif;?> required />
       </div>
     </div>
+<?php endif;?>
+
+
+<?php if (array_key_exists('weight', $updateProperties)) : ?>
 
 <!-- Weight -->
 <?php $weight = $content['note']['weight'] ?>
@@ -144,6 +164,8 @@ $subjects = explode(',', $content['teacher']['property_5']);
         <input type="number" class="form-control form-control-sm update_input update_input_number" id="weight" value="<?php echo $weight ?>" <?php if ($isDisabled || ($content['type'] == 'report' && !$context->hasRole('manager'))) : ?>disabled="disabled"<?php endif;?> required />
       </div>
     </div>
+<?php endif;?>
+
 
 <?php foreach ($content['noteLinks'] as $noteLink) : ?>
     <div class="form-group row">
@@ -171,6 +193,9 @@ $subjects = explode(',', $content['teacher']['property_5']);
       </div>
     </div>
 
+
+<?php if (array_key_exists('assessment', $updateProperties)) : ?>
+
 <!-- Assessment -->
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm">&nbsp;</label>
@@ -178,7 +203,8 @@ $subjects = explode(',', $content['teacher']['property_5']);
         <textarea class="form-control form-control-sm update_input update_input_textarea" rows="6" id="assessment-<?php echo $noteLink['account_id'] ?>" <?php if ($isDisabled) echo 'disabled="disabled"'?> placeholder="<?php echo $this->translate('Assessment', 'ppit-studies', $context->getLocale()) ?>"><?php echo $noteLink['assessment'] ?></textarea>
       </div>
     </div>
-
+<?php endif;?>
+    
 <?php endforeach;?>
 
 <?php if ($request == 'POST' && $statusCode == '200' && $content['indicators']) : ?>
@@ -207,6 +233,9 @@ $subjects = explode(',', $content['teacher']['property_5']);
     </div>
 <?php endif;?>
 
+
+<?php if (array_key_exists('observations', $updateProperties)) : ?>
+
 <!-- Class observations -->
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Observations', 'ppit-core', $context->getLocale()) ?></label>
@@ -214,8 +243,11 @@ $subjects = explode(',', $content['teacher']['property_5']);
         <textarea class="form-control form-control-sm update_input update_input_textarea" id="observations" <?php if ($isDisabled) echo 'disabled="disabled"'?> placeholder="<?php echo $this->translate('General observation (for the group)', 'ppit-studies', $context->getLocale()) ?>"><?php echo $content['note']['observations'] ?></textarea>
       </div>
     </div>
+<?php endif;?>
 
 <?php if (!$isDisabled) : ?>
+
+<div class="alert alert-danger my-3 text-center note_evaluation_delete_confirmation"><?php echo $this->translate('Please confirm', 'ppit-core', $context->getLocale()) ?></div>
 
         <div class="form-group row">
         <div class="col-sm-5">&nbsp;</div>

@@ -563,6 +563,22 @@ return array(
 			'caption' => [],
 		],
 	],
+
+	'teacher/evaluation/account/search' => [
+		'groups' => [],
+	],
+	
+	'teacher/evaluation/update' => [
+		'properties' => [
+			'subject' => [],
+			'level' => [],
+			'date' => [],
+			'reference_value' => [],
+			'weight' => [],
+			'assessment' => [],
+			'observations' => [],
+		],
+	],
 	
 	// Account teacher
 	
@@ -1864,8 +1880,4 @@ table.note-report td {
 					',
 			),
 	),
-	
-	'teacher/evaluation/account/search' => [
-		'groups' => [],
-	],
 );

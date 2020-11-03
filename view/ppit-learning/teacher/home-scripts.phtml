@@ -289,6 +289,28 @@ function postEvaluationDetail(group_id, id) {
   xhttp.send(formData);
 }
 
+function deleteNoteEvaluation(id)
+{
+  let xhttp = new XMLHttpRequest();
+  let formData = new FormData();
+  let route = '<?php echo $this->url('note/evaluation', ['type' => 'note']) ?>/' + id;
+  formData.append('update_time', null);
+
+  xhttp.open('DELETE', route, true);
+  xhttp.onload = function () {
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#modalForm').modal('hide');
+    	showEvaluation('evaluation-panel');
+      }
+      else {
+        toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>\nTechnical information: " + xhttp.status + ' - ' + xhttp.statusText);
+      }
+    }
+  };
+  xhttp.send(formData);
+}
+
 function showEvaluationDetail(group_id, id, open) {
   // Execute the ajax request
   let xhttp = new XMLHttpRequest();
@@ -305,6 +327,14 @@ function showEvaluationDetail(group_id, id, open) {
           showEvaluationDetail(group_id, id, false);
         });
         $('.note_evaluation_submit_button').click(function () { postEvaluationDetail(group_id, id); });
+        $('.note_evaluation_delete_confirmation').hide();
+        $('.note_evaluation_delete_button').click(function () { 
+          $('.note_evaluation_delete_confirmation').show();
+          $('.note_evaluation_delete_button').removeClass('btn-outline-primary').addClass('btn-danger').unbind();
+          $('.note_evaluation_delete_button').click(function () {
+            deleteNoteEvaluation(id);
+          });
+        });
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }
