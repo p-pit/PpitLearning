@@ -57,10 +57,25 @@ if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $
 <?php endforeach;?>
 
 <?php if ($message != 'OK' && $event->status != 'realized') : ?>
+  <input type="hidden" id="status" value="new">
   <div class="form-group row">
     <div class="col-sm-5">&nbsp;</div>
     <div class="col-sm-7">
       <input name="submit" type="submit" id="teacherAbsenceSubmit" class="btn btn-warning" value="<?php echo $this->translate('Save', 'ppit-core', $context->getLocale()) ?>">
+    </div>
+  </div>
+<?php endif;?>
+  
+<?php if ($message == 'OK' && $event->status != 'realized') : ?>
+  <div class="alert alert-danger my-3" style="text-align: center">
+    <strong><?php echo $this->translate('Do you want to complete the attendance? This action cannot be undone.', 'ppit-learning', $context->getLocale()) ?></strong>
+  </div>
+
+  <input type="hidden" id="status" value="realized">
+  <div class="form-group row">
+    <div class="col-sm-5">&nbsp;</div>
+    <div class="col-sm-7">
+      <input name="submit" type="submit" id="teacherAbsenceSubmit" class="btn btn-danger" value="<?php echo $this->translate('Complete', 'ppit-learning', $context->getLocale()) ?>">
     </div>
   </div>
 <?php endif;?>

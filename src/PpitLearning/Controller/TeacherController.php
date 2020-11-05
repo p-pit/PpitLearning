@@ -348,7 +348,8 @@ class TeacherController extends AbstractActionController
     			// Load the input data
     			$data = [];
     			$data['matched_accounts'] = $request->getPost('matched_accounts');
-
+    			$data['status'] = $request->getPost('status');
+    			 
     			// Atomically save
     			$connection = Event::getTable()->getAdapter()->getDriver()->getConnection();
     			$connection->beginTransaction();
