@@ -187,6 +187,30 @@ function getAbsence(event_id) {
     if (xhttp.readyState == 4) {
       $('#absence-md').html(xhttp.responseText);
       var form = document.getElementById('teacherAbsenceForm');
+      $('.absence-label').hide();
+      $('.matched_accounts').each(function () {
+        let id = $(this).attr('id').split('_')[2]; 
+        if ($(this).prop('checked')) {
+          $('#absenceLabel-' + id).hide();
+          $('#lateness-' + id).show();
+        }
+        else {
+            $('#absenceLabel-' + id).show();
+            $('#lateness-' + id).hide();
+        }
+      });
+      $('.matched_accounts').change(function () {
+        let id = $(this).attr('id').split('_')[2]; 
+        if ($(this).prop('checked')) {
+          $('#absenceLabel-' + id).hide();
+          $('#lateness-' + id).show();
+        }
+        else {
+            $('#absenceLabel-' + id).show();
+            $('#lateness-' + id).hide();
+        }
+      });
+
       form.onsubmit = function(event) {
         event.preventDefault();
 
@@ -214,6 +238,18 @@ function getAbsence(event_id) {
           if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
           if (xhttp.readyState == 4) {
             $('#absence-md').html(xhttp.responseText);
+            $('.absence-label').hide();
+            $('.matched_accounts').change(function () {
+              let id = $(this).attr('id').split('_')[2]; console.log(id);
+              if ($(this).prop('checked')) {
+                $('#absenceLabel-' + id).hide();
+                $('#lateness-' + id).show();
+              }
+              else {
+                  $('#absenceLabel-' + id).show();
+                  $('#lateness-' + id).hide();
+              }
+            });
 
             var form = document.getElementById('teacherAbsenceForm');
             form.onsubmit = function(event) {
@@ -297,7 +333,7 @@ function postEvaluationDetail(group_id, id) {
   // Execute the ajax request
   let xhttp = new XMLHttpRequest(), formData = new FormData();
 
-  formData.append('teacher_id', <?php echo $currentProfile->id ?>);
+  formData.append('teacher_id', <?php echo $currentProfile->contact_1_id ?>);
   
   $('.update_input').each(function () {
     let val = $(this).val();

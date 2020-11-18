@@ -356,7 +356,25 @@ return array(
         										),
         								),
         						),
-				       			'init' => array(
+				       			'reportList' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/report-list[/:id]',
+        										'defaults' => array(
+        												'action' => 'reportList',
+        										),
+        								),
+        						),
+				       			'report' => array(
+        								'type' => 'segment',
+        								'options' => array(
+        										'route' => '/report[/:id]',
+        										'defaults' => array(
+        												'action' => 'report',
+        										),
+        								),
+        						),
+	       						'init' => array(
         								'type' => 'segment',
         								'options' => array(
         										'route' => '/init',
@@ -412,6 +430,8 @@ return array(
 				array('route' => 'teacher/homeworkDetail', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/absence', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/reportList', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/report', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/init', 'roles' => array('manager')),
 			)
 		)
@@ -551,7 +571,7 @@ return array(
 			'schooling' => array(
 				'type' => 'static',
 				'level' => 'subject',
-				'route' => 'student/reportV2',
+				'route' => 'teacher/reportList',
 				'label' => array('en_US' => 'School reports', 'fr_FR' => 'Bulletins scolaires'),
 			),
 		),
@@ -564,6 +584,10 @@ return array(
 		],
 	],
 
+	'teacher/absence' => [
+		'studentCaption' => ['default' => '%s', 'params' => ['n_fn']],
+	],
+	
 	'teacher/evaluation/account/search' => [
 		'groups' => [],
 	],
@@ -577,6 +601,16 @@ return array(
 			'weight' => [],
 			'assessment' => [],
 			'observations' => [],
+		],
+	],
+
+	'teacher/report/list' => [
+		'properties' => [
+			'subject' => [],
+			'school_period' => [],
+			'weight' => [],
+			'value' => [],
+			'assessment' => [],
 		],
 	],
 	

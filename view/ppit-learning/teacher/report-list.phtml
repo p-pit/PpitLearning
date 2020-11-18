@@ -1,0 +1,81 @@
+<style>
+table td { 
+  font-size: 0.9rem;
+}
+</style>
+
+<div class="col-md-12">
+ 
+  <table class="table table-sm table-hover">
+    <thead class="table-info">
+      <th>&nbsp;</th>
+
+<?php foreach ($context->getConfig('teacher/report/list')['properties'] as $propertyId => $rendering) : ?>
+	<?php 
+	$label = null;
+	if ($propertyId == 'group_id') $label = $context->localize($context->getConfig('note/property/group_id')['labels']);
+	elseif ($propertyId == 'school_period') $label = $context->localize($context->getConfig('student/property/school_period')['labels']);
+	elseif ($propertyId == 'account_id') $label = $this->translate('Student', 'ppit-studies', $context->getLocale());
+	elseif ($propertyId == 'subject') $label = $context->localize($context->getConfig('student/property/school_subject')['labels']);
+	elseif ($propertyId == 'weight') $label = $this->translate('Weight', 'ppit-studies', $context->getLocale());
+	elseif ($propertyId == 'value') $label = $this->translate('Value', 'ppit-studies', $context->getLocale());
+	elseif ($propertyId == 'assessment') $label = $this->translate('Observations', 'ppit-studies', $context->getLocale());
+	?>
+  <?php if ($label) : ?>
+      <th align="center">
+        <a role="button" id="<?php echo $propertyId ?>-anchor">
+          <span><?php echo $label ?></span>
+        </a>
+		</th>
+  <?php endif;?>
+<?php endforeach;?>
+
+	</thead>
+  
+    <tr>
+      <td style="text-align: center">
+        <a class="text-primary font-weight-bold note-detail-anchor" id="note-detail-anchor_0">
+          <i class="fas fa-plus" id="group-glyphicon"></i>
+        </a>
+      </td>
+    </tr>
+
+<?php foreach ($noteLinks as $noteLink) : ?>
+	
+	<tr>
+
+      <td style="text-align: center">
+        <a class="text-primary font-weight-bold note-detail-anchor" id="note-detail-anchor_<?php echo $noteLink->id ?>">
+          <i class="fas fa-search" id="group-glyphicon"></i>
+        </a>
+      </td>
+
+	<?php foreach ($context->getConfig('teacher/report/list')['properties'] as $propertyId => $rendering) : ?>
+
+        <?php if ($propertyId == 'group_id') : ?>
+        <td><?php if ($noteLink->group_id) echo $groups[$noteLink->group_id]->name ?></td>
+
+        <?php elseif ($propertyId == 'school_period') : ?>
+        <td><?php if ($noteLink->school_period) echo $context->localize($context->getConfig('student/property/school_period')['modalities'][$noteLink->school_period]) ?></td>
+
+		<?php elseif ($propertyId == 'subject') : ?>
+		<td><?php echo ($noteLink->subject == 'global') ? $this->translate('Global average', 'ppit-studies', $context->getLocale()) : $context->localize($context->getConfig('student/property/school_subject')['modalities'][$noteLink->subject]) ?></td>
+
+		<?php elseif ($propertyId == 'weight') : ?>
+		<td><?php echo $context->formatFloat($noteLink->weight, 1) ?></td>
+
+        <?php elseif ($propertyId == 'value') : ?>
+        <td><?php echo $context->formatFloat($noteLink->value, 1) ?></td>
+
+        <?php elseif ($propertyId == 'assessment') : ?>
+        <td><?php echo $noteLink->assessment ?></td>
+		
+		<?php endif;?>
+	<?php endforeach;?>
+	
+	</tr>
+
+<?php endforeach; ?>
+
+  </table>
+</div>

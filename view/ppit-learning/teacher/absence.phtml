@@ -47,11 +47,23 @@ if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $
 <?php endif;?>
 
 <?php foreach ($attendees as $account_id => $account) : ?>
+  <?php 
+  $studentCaptionConfig = $context->getConfig('teacher/absence')['studentCaption'];
+  $args = [];
+  foreach ($studentCaptionConfig['params'] as $param) {
+  	$description = $context->getConfig('core_account/p-pit-studies/property/' . $param);
+  	if ($description['definition'] != 'inline') $description = $context->getConfig($description['definition']);
+  	if ($description['type'] == 'select' && array_key_exists($account[$param], $description['modalities'])) $args[] = $context->localize($description['modalities'][$account[$param]]);
+  	else $args[] = $account[$param];
+  }
+  $studentCaption = vsprintf($context->localize($studentCaptionConfig), $args);
+  ?>
   <div class="form-group row">
       <div class="form-check">
         <input type="checkbox" class="form-check-input updatable-control matched_accounts" id="matched_accounts_<?php echo $account_id ?>" name="matched_accounts" value="<?php echo $account_id ?>" <?php if ($account['matched']) : ?>checked<?php endif;?> <?php if ($isDisabled) : ?>disabled<?php endif;?>/>
-        <label class="form-check-label" for="matched_accounts_<?php echo $account_id ?>"><?php echo $account['n_fn'] ?></label>
+        <label class="form-check-label" for="matched_accounts_<?php echo $account_id ?>"><?php echo $studentCaption ?></label>
       </div>&nbsp;&nbsp;
+      <span class="absence-label text-danger" id="absenceLabel-<?php echo $account_id ?>">ABSENT</span>
       <input type="text" class="lateness" id="lateness-<?php echo $account_id ?>" placeholder="Retard (mn)" />
   </div>
 <?php endforeach;?>

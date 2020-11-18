@@ -305,7 +305,7 @@ class TeacherController extends AbstractActionController
     			foreach ($cursor as $account_id => $account) {
     				if ($account->groups) {
     					if (in_array($group_id, explode(',', $account->groups))) {
-    						$attendees[$account_id] = ['n_fn' => $account->n_fn];
+    						$attendees[$account_id] = $account->properties;
     						if (in_array($account_id, $matched_accounts)) $attendees[$account_id]['matched'] = true;
     						elseif (array_key_exists($account_id, $absences)) $attendees[$account_id]['matched'] = false;
     						else $attendees[$account_id]['matched'] = true;
@@ -758,6 +758,29 @@ class TeacherController extends AbstractActionController
 			'content' => $content,
 			'statusCode' => $this->response->getStatusCode(),
 			'reasonPhrase' => $this->response->getReasonPhrase(),
+		));
+		$view->setTerminal(true);
+		return $view;
+	}
+	
+	public function reportListAction()
+	{
+		// Retrieve the context
+		$context = Context::getCurrent();
+		$school_year = '2019-2020'; //$context->getConfig('current_school_year');
+	
+		$teacher_id = (int) $this->params()->fromRoute('id');
+		$teacher = Account::get($teacher_id);
+var_dump($teacher_id);
+		$periods = array();
+		$noteLinks = NoteLink::GetList('report', array('teacher_id' => $teacher_id, 'school_year' => $school_year), 'date', 'DESC', 'search');
+
+		// Return the link list
+		$view = new ViewModel(array(
+			'context' => $context,
+			'config' => $context->getconfig(),
+			'teacher' => $teacher,
+			'noteLinks' => $noteLinks,
 		));
 		$view->setTerminal(true);
 		return $view;
