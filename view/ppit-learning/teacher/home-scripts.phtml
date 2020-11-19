@@ -415,7 +415,7 @@ function showEvaluationDetail(group_id, id, open) {
 function showEvaluation(target) {
   // Execute the ajax request
   var xhttp = new XMLHttpRequest();
-  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>?teacher_id=<?php echo $currentProfile->id ?>&school_year=<?php echo $context->getConfig('student/property/school_year/default') ?>', true);
+  xhttp.open("GET", '<?php echo $this->url('note/teacherList', ['category' => 'evaluation', 'type' => 'note']) ?>?teacher_id=<?php echo $currentProfile->contact_1_id ?>&school_year=<?php echo $context->getConfig('student/property/school_year/default') ?>', true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -425,6 +425,26 @@ function showEvaluation(target) {
           let id = $(this).attr('id').split('_')[1];
           showEvaluationDetail('<?php echo current(explode(',', $currentProfile->groups)) ?>', id, true); 
         });
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  }
+  xhttp.send();
+}
+
+function showReport(target) {
+  // Execute the ajax request
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", '<?php echo $this->url('teacher/reportList') ?>/<?php echo $currentProfile->id ?>', true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        document.getElementById(target).innerHTML = xhttp.responseText;
+/*        $('.note-detail-anchor').click(function () { 
+          let id = $(this).attr('id').split('_')[1];
+          showEvaluationDetail('<?php echo current(explode(',', $currentProfile->groups)) ?>', id, true); 
+        });*/
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }
@@ -698,6 +718,10 @@ $('#modalForm').on('hidden.bs.modal', function (e) {
 	<?php if ($tabId == 'evaluation') : ?>
 $('#' + '<?php echo $tabId ?>-tab').click(function () {
    showEvaluation('<?php echo $tabId ?>-panel');
+});
+	<?php elseif ($tabId == 'report') : ?>
+$('#' + '<?php echo $tabId ?>-tab').click(function () {
+   showReport('<?php echo $tabId ?>-panel');
 });
     <?php elseif ($tab['type'] == 'static') : ?>
       <?php

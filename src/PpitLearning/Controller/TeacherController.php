@@ -767,13 +767,12 @@ class TeacherController extends AbstractActionController
 	{
 		// Retrieve the context
 		$context = Context::getCurrent();
-		$school_year = '2019-2020'; //$context->getConfig('current_school_year');
-	
-		$teacher_id = (int) $this->params()->fromRoute('id');
+		$school_year = $context->getConfig('student/property/school_year/default');
+
+		$teacher_id = (int) $this->params()->fromRoute('teacher_id');
 		$teacher = Account::get($teacher_id);
-var_dump($teacher_id);
 		$periods = array();
-		$noteLinks = NoteLink::GetList('report', array('teacher_id' => $teacher_id, 'school_year' => $school_year), 'date', 'DESC', 'search');
+		$noteLinks = NoteLink::getList('report', array('teacher_id' => $teacher_id, 'school_year' => $school_year), 'date', 'DESC', 'search');
 
 		// Return the link list
 		$view = new ViewModel(array(
@@ -781,6 +780,26 @@ var_dump($teacher_id);
 			'config' => $context->getconfig(),
 			'teacher' => $teacher,
 			'noteLinks' => $noteLinks,
+		));
+		$view->setTerminal(true);
+		return $view;
+	}
+
+	public function reportAction()
+	{
+		// Retrieve the context
+		$context = Context::getCurrent();
+		$school_year = '2019-2020'; //$context->getConfig('current_school_year');
+	
+		$id = (int) $this->params()->fromRoute('id');
+		$noteLink = NoteLink::get($id);
+	
+		// Return the link list
+		$view = new ViewModel(array(
+			'context' => $context,
+			'config' => $context->getconfig(),
+			'noteLink' => $noteLink,
+			'id' => $id,
 		));
 		$view->setTerminal(true);
 		return $view;

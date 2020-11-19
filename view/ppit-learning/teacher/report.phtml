@@ -1,0 +1,94 @@
+<?php 
+$updateProperties = $context->getConfig('teacher/report/update')['properties'];
+
+if ($request == 'POST' && $statusCode == '200') $isDisabled = true;
+else $isDisabled = false; 
+?>
+
+<div class="modal-dialog modal-lg" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><?php echo $this->translate('Reports', 'ppit-studies', $context->getLocale()) ?></h5>
+      <div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" title="<?php echo $this->translate('Cancel', 'ppit-core', $context->getLocale()) ?>">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+        
+      <div class="card my-3">
+           
+        <div class="card-body">
+
+<?php if (array_key_exists('subject', $updateProperties)) : ?>
+
+<!-- Subject -->
+    <div class="form-group row">
+      <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Subject', 'ppit-studies', $context->getLocale()) ?></label>
+      <div class="col-sm-7">
+          <input class="browser-default custom-select form-control form-control-sm" value="<?php echo $context->localize($context->getConfig('student/property/school_subject')['modalities'][$noteLink->subject]) ?>" id="subject" disabled="disabled" />
+      </div>
+    </div>
+
+<?php endif;?>
+
+
+<?php if (array_key_exists('weight', $updateProperties)) : ?>
+
+<!-- Weight -->
+    <input type="hidden" id="weight" />
+    <div class="form-group row">
+      <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Weight', 'ppit-studies', $context->getLocale()) ?></label>
+      <div class="col-sm-7">
+        <input type="number" class="form-control form-control-sm update_input update_input_number" id="weight" value="<?php echo $noteLink->weight ?>" disabled="disabled" />
+      </div>
+    </div>
+
+<?php endif;?>
+
+
+    <div class="form-group row">
+      <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $noteLink->n_fn ?></label>
+
+<!-- Value -->
+      <div class="col-sm-7">
+  <?php if ($context->getConfig('note/property/value')['type'] == 'number') : ?>
+        <input class="form-control form-control-sm" value="<?php echo $noteLink->value ?>" disabled="disabled" />
+  <?php else : ?>
+        <input class="form-control form-control-sm" value="<?php echo $context->getConfig('note/property/value')['modalities'][$noteLink->value] ?>" disabled="disabled" />
+  <?php endif;?>
+      </div>
+    </div>
+
+
+<?php if (array_key_exists('assessment', $updateProperties)) : ?>
+
+<!-- Assessment -->
+    <div class="form-group row">
+      <label class="col-sm-5 col-form-label col-form-label-sm">&nbsp;</label>
+      <div class="col-sm-7">
+        <textarea class="form-control form-control-sm update_input update_input_textarea" rows="6" id="assessment" <?php if ($isDisabled) echo 'disabled="disabled"'?> placeholder="<?php echo $this->translate('Assessment', 'ppit-studies', $context->getLocale()) ?>"><?php echo $noteLink->assessment ?></textarea>
+      </div>
+    </div>
+<?php endif;?>
+
+<?php if (!$isDisabled) : ?>
+
+<div class="alert alert-danger my-3 text-center note_evaluation_delete_confirmation"><?php echo $this->translate('Please confirm', 'ppit-core', $context->getLocale()) ?></div>
+
+        <div class="form-group row">
+        <div class="col-sm-5">&nbsp;</div>
+        <div class="col-sm-7">
+          <input type="submit" class="note_evaluation_submit_button btn btn-warning" value="<?php echo $this->translate('Update', 'ppit-core', $context->getLocale()) ?>" />
+          <span class="spinner-border note-evaluation-spinner invisible" role="status"><span class="sr-only">Loading...</span></span>
+        </div>
+      </div>
+<?php endif;?>
+
+  </div>
+      </div>
+    </div>
+  </div>
+</div>
+

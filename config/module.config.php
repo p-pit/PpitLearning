@@ -359,7 +359,7 @@ return array(
 				       			'reportList' => array(
         								'type' => 'segment',
         								'options' => array(
-        										'route' => '/report-list[/:id]',
+        										'route' => '/report-list[/:teacher_id]',
         										'defaults' => array(
         												'action' => 'reportList',
         										),
@@ -568,10 +568,7 @@ return array(
 			'evaluation' => array(
 				'label' => array('en_US' => 'Evaluations', 'fr_FR' => 'Évaluations'),
 			),
-			'schooling' => array(
-				'type' => 'static',
-				'level' => 'subject',
-				'route' => 'teacher/reportList',
+			'report' => array(
 				'label' => array('en_US' => 'School reports', 'fr_FR' => 'Bulletins scolaires'),
 			),
 		),
@@ -605,6 +602,16 @@ return array(
 	],
 
 	'teacher/report/list' => [
+		'properties' => [
+			'subject' => [],
+			'school_period' => [],
+			'weight' => [],
+			'value' => [],
+			'assessment' => [],
+		],
+	],
+
+	'teacher/report/update' => [
 		'properties' => [
 			'subject' => [],
 			'school_period' => [],
