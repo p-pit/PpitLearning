@@ -605,6 +605,7 @@ return array(
 		'properties' => [
 			'subject' => [],
 			'school_period' => [],
+			'group_id' => [],
 			'name' => [],
 			'weight' => [],
 			'assessment' => [],

@@ -772,7 +772,7 @@ class TeacherController extends AbstractActionController
 		$teacher_id = (int) $this->params()->fromRoute('teacher_id');
 		$teacher = Account::get($teacher_id);
 		$periods = array();
-		$noteLinks = NoteLink::getList('report', array('teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year), 'date', 'DESC', 'search');
+		$noteLinks = NoteLink::getList('report', array('teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year), 'group_id', 'ASC', 'search');
 
 		// Return the link list
 		$view = new ViewModel(array(
@@ -780,6 +780,7 @@ class TeacherController extends AbstractActionController
 			'config' => $context->getconfig(),
 			'teacher' => $teacher,
 			'noteLinks' => $noteLinks,
+    		'groups' => Account::getList('group', [], '+name', null),
 		));
 		$view->setTerminal(true);
 		return $view;
