@@ -21,7 +21,7 @@ table td {
 	$label = null;
 	if ($propertyId == 'group_id') $label = $context->localize($context->getConfig('note/property/group_id')['labels']);
 	elseif ($propertyId == 'school_period') $label = $context->localize($context->getConfig('student/property/school_period')['labels']);
-	elseif ($propertyId == 'account_id') $label = $this->translate('Student', 'ppit-studies', $context->getLocale());
+	elseif ($propertyId == 'name') $label = $this->translate('Student', 'ppit-studies', $context->getLocale());
 	elseif ($propertyId == 'subject') $label = $context->localize($context->getConfig('student/property/school_subject')['labels']);
 	elseif ($propertyId == 'weight') $label = $this->translate('Weight', 'ppit-studies', $context->getLocale());
 	elseif ($propertyId == 'value') $label = $this->translate('Value', 'ppit-studies', $context->getLocale());
@@ -37,16 +37,9 @@ table td {
 <?php endforeach;?>
 
 	</thead>
-  
-    <tr>
-      <td style="text-align: center">
-        <a class="text-primary font-weight-bold note-detail-anchor" id="note-detail-anchor_0">
-          <i class="fas fa-plus" id="group-glyphicon"></i>
-        </a>
-      </td>
-    </tr>
-
+ 
 <?php foreach ($noteLinks as $noteLink) : ?>
+  <?php if ($noteLink->subject != 'global') : ?>
 	
 	<tr>
 
@@ -63,6 +56,9 @@ table td {
 
         <?php elseif ($propertyId == 'school_period') : ?>
         <td><?php if ($noteLink->school_period) echo $context->localize($context->getConfig('student/property/school_period')['modalities'][$noteLink->school_period]) ?></td>
+
+        <?php elseif ($propertyId == 'name') : ?>
+        <td><?php if ($noteLink->n_fn) echo $noteLink->name ?></td>
 
 		<?php elseif ($propertyId == 'subject') : ?>
 		<td><?php echo ($noteLink->subject == 'global') ? $this->translate('Global average', 'ppit-studies', $context->getLocale()) : $context->localize($context->getConfig('student/property/school_subject')['modalities'][$noteLink->subject]) ?></td>
@@ -81,6 +77,7 @@ table td {
 	
 	</tr>
 
+  <?php endif;?>
 <?php endforeach; ?>
 
   </table>

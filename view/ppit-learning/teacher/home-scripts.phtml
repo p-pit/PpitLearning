@@ -432,6 +432,44 @@ function showEvaluation(target) {
   xhttp.send();
 }
 
+function postReportDetail(id, listTarget) {
+  // Execute the ajax request
+  let xhttp = new XMLHttpRequest(), formData = new FormData();
+  formData.append('assessment', $('#assessment').val());
+  
+  xhttp.open("POST", '<?php echo $this->url('teacher/report') ?>/' + id, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#modalForm').html(xhttp.responseText);
+        showReport(listTarget);
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  }
+  xhttp.send(formData);
+}
+
+function showReportDetail(id, open, listTarget) {
+  // Execute the ajax request
+  let xhttp = new XMLHttpRequest();
+  
+  xhttp.open("GET", '<?php echo $this->url('teacher/report') ?>/' + id, true);
+  xhttp.onreadystatechange = function() {
+    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        $('#modalForm').html(xhttp.responseText);
+        if (open) $('#modalForm').modal('toggle');
+        $('.report_submit_button').click(function () { postReportDetail(id, listTarget); });
+      }
+      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
+    }
+  }
+  xhttp.send();
+}
+
 function showReport(target) {
   // Execute the ajax request
   var xhttp = new XMLHttpRequest();
@@ -441,10 +479,10 @@ function showReport(target) {
     if (xhttp.readyState == 4) {
       if (xhttp.status == 200) {
         document.getElementById(target).innerHTML = xhttp.responseText;
-/*        $('.note-detail-anchor').click(function () { 
+        $('.note-detail-anchor').click(function () { 
           let id = $(this).attr('id').split('_')[1];
-          showEvaluationDetail('<?php echo current(explode(',', $currentProfile->groups)) ?>', id, true); 
-        });*/
+          showReportDetail(id, true, target); 
+        });
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }

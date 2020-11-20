@@ -772,7 +772,7 @@ class TeacherController extends AbstractActionController
 		$teacher_id = (int) $this->params()->fromRoute('teacher_id');
 		$teacher = Account::get($teacher_id);
 		$periods = array();
-		$noteLinks = NoteLink::getList('report', array('teacher_id' => $teacher_id, 'school_year' => $school_year), 'date', 'DESC', 'search');
+		$noteLinks = NoteLink::getList('report', array('teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year), 'date', 'DESC', 'search');
 
 		// Return the link list
 		$view = new ViewModel(array(
@@ -793,13 +793,33 @@ class TeacherController extends AbstractActionController
 	
 		$id = (int) $this->params()->fromRoute('id');
 		$noteLink = NoteLink::get($id);
-	
+		
+		// Compute the average
+		$notes = NoteLink::GetList('note', ['subject' => $noteLink->subject, 'school_year' => $noteLink->school_year, 'school_period' => $noteLink->school_period], 'subject', 'ASC', 'search');
+		$averages = [];
+		foreach ($notes as $link) {
+			if (!array_key_exists($link->account_id, $averages)) $averages[$link->account_id] = [0, 0];
+			if ($link->value !== null) {
+				$averages[$link->account_id][0] += $link->value * $link->weight;
+				$averages[$link->account_id][1] += $link->reference_value * $link->weight;
+			}
+		}
+		
+		// POST request for create or update
+		if ($this->request->isPost()) {
+			$noteLink->assessment = $this->request->getPost('assessment');
+			$noteLink->update(null);
+		}
+		
 		// Return the link list
 		$view = new ViewModel(array(
 			'context' => $context,
-			'config' => $context->getconfig(),
+			'request' => ($this->getRequest()->isPost()) ? 'POST' : (($this->getRequest()->isDelete()) ? 'DELETE' : 'GET'),
 			'noteLink' => $noteLink,
 			'id' => $id,
+			'averages' => $averages,
+			'statusCode' => $this->response->getStatusCode(),
+			'reasonPhrase' => $this->response->getReasonPhrase(),
 		));
 		$view->setTerminal(true);
 		return $view;
