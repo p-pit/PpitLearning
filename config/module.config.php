@@ -955,6 +955,7 @@ return array(
 						'n_fn' => [],
 						'groups' => [],
 						'property_3' => [],
+						'property_5' => [],
 						'property_2' => [],
 						'opening_date' => [],
 						'callback_date' => [],
