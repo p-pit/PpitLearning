@@ -301,16 +301,22 @@ class TeacherController extends AbstractActionController
     	$matched_accounts = ($event->matched_accounts) ? explode(',', $event->matched_accounts) : [];
     	if (!$groupIds) foreach ($cursor as $account_id => $account) $attendees[$account_id] = ['n_fn' => $account->n_fn, 'matched' => true];
     	else {
-    		foreach ($groupIds as $group_id) {
-    			foreach ($cursor as $account_id => $account) {
+    		foreach ($cursor as $account_id => $account) {
+    			$keep = false;
+    			foreach ($groupIds as $group_id) {
     				if ($account->groups) {
-    					if (in_array($group_id, explode(',', $account->groups))) {
-    						$attendees[$account_id] = $account->properties;
-    						if (in_array($account_id, $matched_accounts)) $attendees[$account_id]['matched'] = true;
-    						elseif (array_key_exists($account_id, $absences)) $attendees[$account_id]['matched'] = false;
-    						else $attendees[$account_id]['matched'] = true;
-    					}
+    					if (in_array($group_id, explode(',', $account->groups))) $keep = true;
     				}
+    			}
+    			if ($account->property_15 && $event->subcategory) {
+					$rythm = explode(',', $event->subcategory); 
+					if (!in_array($account->property_15, $rythm)) $keep = false;
+				}
+    			if ($keep) {
+    				$attendees[$account_id] = $account->properties;
+    				if (in_array($account_id, $matched_accounts)) $attendees[$account_id]['matched'] = true;
+    				elseif (array_key_exists($account_id, $absences)) $attendees[$account_id]['matched'] = false;
+    				else $attendees[$account_id]['matched'] = true;
     			}
     		}
     	}
