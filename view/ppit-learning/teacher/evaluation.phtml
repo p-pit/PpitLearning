@@ -161,7 +161,7 @@ $subjects = explode(',', $content['teacher']['property_5']);
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('Weight', 'ppit-studies', $context->getLocale()) ?></label>
       <div class="col-sm-7">
-        <input type="number" class="form-control form-control-sm update_input update_input_number" id="weight" value="<?php echo $weight ?>" <?php if ($isDisabled || ($content['type'] == 'report' && !$context->hasRole('manager'))) : ?>disabled="disabled"<?php endif;?> required />
+        <input type="input" class="form-control form-control-sm update_input update_input_number" id="weight" value="<?php echo $weight ?>" <?php if ($isDisabled || ($content['type'] == 'report' && !$context->hasRole('manager'))) : ?>disabled="disabled"<?php endif;?> required />
       </div>
     </div>
 <?php endif;?>
