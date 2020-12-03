@@ -778,7 +778,9 @@ class TeacherController extends AbstractActionController
 		$teacher_id = (int) $this->params()->fromRoute('teacher_id');
 		$teacher = Account::get($teacher_id);
 		$periods = array();
-		$noteLinks = NoteLink::getList('report', array('teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year), 'group_id', 'ASC', 'search');
+		$where = ['teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year];
+		if ($teacher->place_id) $where['place_id'] = $teacher->place_id;
+		$noteLinks = NoteLink::getList('report', $where, 'group_id', 'ASC', 'search');
 
 		// Return the link list
 		$view = new ViewModel(array(
