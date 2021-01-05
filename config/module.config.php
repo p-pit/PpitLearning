@@ -661,8 +661,8 @@ return array(
 			'gone' => array('en_US' => 'Gone', 'fr_FR' => 'Parti'),
 		),
 		'labels' => array(
-			'en_US' => 'Status',
-			'fr_FR' => 'Statut',
+			'en_US' => 'Account status',
+			'fr_FR' => 'Statut du compte',
 		),
 		'perspectives' => array(
 			'account' => array('new', 'follow-up', 'answer', 'committed', 'active', 'gone'),
