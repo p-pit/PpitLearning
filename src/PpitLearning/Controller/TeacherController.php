@@ -623,7 +623,7 @@ class TeacherController extends AbstractActionController
 		
 			// user_story - student_evaluation_period: La période est pré-renseignée à la période en cours (en paramètre) mais peut être modifiée (ex. pour effectuer une rétro-saisie sur une période antérieure).
 			$school_periods = $place->getConfig('school_periods');
-			$current_school_period = 'Q1'; //$context->getCurrentPeriod($school_periods);
+			$current_school_period = $context->getCurrentPeriod($school_periods);
 		
 			$content['note']['school_period'] = $current_school_period;
 			$content['note']['reference_value'] = $context->getConfig('student/parameter/average_computation')['reference_value'];
