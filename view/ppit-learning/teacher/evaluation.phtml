@@ -23,6 +23,8 @@ $subjects = explode(',', $content['teacher']['property_5']);
            
         <div class="card-body">
 
+          <form class="was-validated">
+          
 <!-- Filters -->
 		
 <?php foreach ($config['search'] as $propertyId => $property) : ?>
@@ -261,7 +263,8 @@ $subjects = explode(',', $content['teacher']['property_5']);
       </div>
 <?php endif;?>
 
-  </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
