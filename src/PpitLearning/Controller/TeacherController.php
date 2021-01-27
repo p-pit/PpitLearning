@@ -780,7 +780,7 @@ class TeacherController extends AbstractActionController
 		$periods = array();
 		$where = ['teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year];
 		if ($teacher->place_id) $where['place_id'] = $teacher->place_id;
-		$noteLinks = NoteLink::getList('report', $where, 'date', 'DESC', 'search');
+		$noteLinks = NoteLink::getList('report', $where, 'creation_date', 'DESC', 'search');
 
 		// Return the link list
 		$view = new ViewModel(array(
