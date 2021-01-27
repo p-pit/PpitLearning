@@ -780,7 +780,7 @@ class TeacherController extends AbstractActionController
 		$periods = array();
 		$where = ['teacher_id' => $teacher->contact_1_id, 'school_year' => $school_year];
 		if ($teacher->place_id) $where['place_id'] = $teacher->place_id;
-		$noteLinks = NoteLink::getList('report', $where, 'group_id', 'ASC', 'search');
+		$noteLinks = NoteLink::getList('report', $where, 'date', 'DESC', 'search');
 
 		// Return the link list
 		$view = new ViewModel(array(
@@ -804,7 +804,7 @@ class TeacherController extends AbstractActionController
 		$noteLink = NoteLink::get($id);
 		
 		// Compute the average
-		$notes = NoteLink::GetList('note', ['subject' => $noteLink->subject, 'school_year' => $noteLink->school_year, 'school_period' => $noteLink->school_period], 'creation_date', 'DESC', 'search');
+		$notes = NoteLink::GetList('note', ['subject' => $noteLink->subject, 'school_year' => $noteLink->school_year, 'school_period' => $noteLink->school_period], 'subject', 'ASC', 'search');
 		$averages = [];
 		foreach ($notes as $link) {
 			if (!array_key_exists($link->account_id, $averages)) $averages[$link->account_id] = [0, 0];
