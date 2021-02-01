@@ -330,33 +330,39 @@ function createCalendar(callback) {
 }
 
 function postEvaluationDetail(group_id, id) {
-  // Execute the ajax request
-  let xhttp = new XMLHttpRequest(), formData = new FormData();
+  var form = document.getElementById('teacherEvaluationForm');
+  form.onsubmit = function(event) {
+      
+    event.preventDefault();
 
-  formData.append('teacher_id', <?php echo $currentProfile->contact_1_id ?>);
+    // Execute the ajax request
+    let xhttp = new XMLHttpRequest(), formData = new FormData();
+
+    formData.append('teacher_id', <?php echo $currentProfile->contact_1_id ?>);
   
-  $('.update_input').each(function () {
-    let val = $(this).val();
-//    if ($(this).hasClass('update_input_date')) val = val.substr(6, 4) + "-" + val.substr(3, 2) + "-" + val.substr(0, 2);
-    formData.append($(this).attr('id'), val);
-  });
+    $('.update_input').each(function () {
+      let val = $(this).val();
+//      if ($(this).hasClass('update_input_date')) val = val.substr(6, 4) + "-" + val.substr(3, 2) + "-" + val.substr(0, 2);
+      formData.append($(this).attr('id'), val);
+    });
 
-  $('.matched_accounts').each(function () {
-    if ($(this).prop('checked')) formData.append($(this).attr('id'), 1);
-  });
+    $('.matched_accounts').each(function () {
+      if ($(this).prop('checked')) formData.append($(this).attr('id'), 1);
+    });
 
-  xhttp.open("POST", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
-  xhttp.onreadystatechange = function() {
-    if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
-    if (xhttp.readyState == 4) {
-      if (xhttp.status == 200) {
-        $('#modalForm').html(xhttp.responseText);
-        toastr.success("<?php echo $this->translate('Your request has been registered', 'ppit-core', $context->getLocale()) ?>");
+    xhttp.open("POST", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
+    xhttp.onreadystatechange = function() {
+      if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
+      if (xhttp.readyState == 4) {
+        if (xhttp.status == 200) {
+          $('#modalForm').html(xhttp.responseText);
+          toastr.success("<?php echo $this->translate('Your request has been registered', 'ppit-core', $context->getLocale()) ?>");
+        }
+        else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
       }
-      else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");
     }
+    xhttp.send(formData);
   }
-  xhttp.send(formData);
 }
 
 function deleteNoteEvaluation(id)
