@@ -58,7 +58,7 @@ function getEvents(calendar, activeStart, activeEnd) {
   let route = '<?php echo $this->url('event/planning', ['type' => 'calendar']) ?>?&begin=' + activeStart + '&end=' + activeEnd + '&account_id=<?php echo $currentProfile->id ?>';
 
 //Filter on place
-<?php if ($place) : ?>
+<?php if ($currentProfile->place_id) : ?>
 	  route += '&place_id=<?php echo $place->id ?>';
 <?php endif; ?>
 

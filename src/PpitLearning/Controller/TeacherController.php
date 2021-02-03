@@ -48,7 +48,8 @@ class TeacherController extends AbstractActionController
     		foreach ($profiles as $currentProfile) if ($currentProfile->status != 'gone') break;
     	}
     	if (!$currentProfile) return $this->redirect()->toRoute($context->getConfig('studentHome'));
-    	$place = Place::get($currentProfile->place_id);
+    	if ($currentProfile->place_id) $place = Place::get($currentProfile->place_id);
+    	else $place = $context->getPlace();
     	$template = $context->getConfig('teacher/home/tabs');
     	$logo = ($place->logo_src) ? $place->logo_src : '/logos/'.$context->getInstance()->caption.'/'.$context->getConfig('headerParams')['logo'];
     	$logo_height = ($place->logo_src) ? $place->logo_height : $context->getConfig('headerParams')['logo-height'];
@@ -593,14 +594,14 @@ class TeacherController extends AbstractActionController
 				return $this->response;
 			}
 			$content['group'] = $group->properties;
-			/*$place = Place::get($group->place_id);
-			if (!$place) */$place = Place::get($myAccount->place_id);
-			$content['place'] = $place->properties;
+			$place = Place::get($myAccount->place_id);
+			if (!$place) $place = Place::get($group->place_id);
+			if ($place) $content['place'] = $place->properties;
 				
 			$note = Note::instanciate($type, null, $group_id);
 			$noteLinks = [];
 			foreach ($group->members as $member_id => $member) {
-				if ($member->type == 'p-pit-studies' && $member->place_id == $myAccount->place_id) {
+				if ($member->type == 'p-pit-studies' && (!$myAccount->place_id || $member->place_id == $myAccount->place_id)) {
 					if (!$accounts || in_array($member_id, $accounts)) {
 						$noteLink = [
 							'account_id' => $member_id,
@@ -613,7 +614,7 @@ class TeacherController extends AbstractActionController
 				}
 			}
 			$content['note']['status'] = 'current';
-			$content['note']['place_id'] = $place->id;
+			if ($place) $content['note']['place_id'] = $place->id;
 			if ($context->hasRole('manager')) $content['note']['teacher_id'] = null;
 			else $content['note']['teacher_id'] = $myAccount->contact_1_id;
 			$content['note']['subject'] = $subject;
@@ -622,7 +623,7 @@ class TeacherController extends AbstractActionController
 			$content['note']['school_year'] = $context->getConfig('student/property/school_year/default');
 		
 			// user_story - student_evaluation_period: La période est pré-renseignée à la période en cours (en paramètre) mais peut être modifiée (ex. pour effectuer une rétro-saisie sur une période antérieure).
-			$school_periods = $place->getConfig('school_periods');
+			$school_periods = ($place) ? $place->getConfig('school_periods') : $context->getPlace()->getConfig('school_periods');
 			$current_school_period = $context->getCurrentPeriod($school_periods);
 		
 			$content['note']['school_period'] = $current_school_period;
@@ -635,7 +636,8 @@ class TeacherController extends AbstractActionController
 		
 		// Retrieve the subject list. As a teacher my subject list is restricted according to my competences
 		$subjects = [];
-		foreach ($place->getConfig('student/property/school_subject')['modalities'] as $subjectId => $subject) {
+		$modalities = ($place) ? $place->getConfig('student/property/school_subject')['modalities'] : $context->getPlace()->getConfig('student/property/school_subject')['modalities'];
+		foreach ($modalities as $subjectId => $subject) {
 			if (!array_key_exists('archive', $subject) || !$subject['archive']) {
 				if ($context->hasRole('manager')) $subjects[$subjectId] = $subject;
 				else {
@@ -647,7 +649,8 @@ class TeacherController extends AbstractActionController
 		}
 		$content['config'] = [];
 		$content['config']['subjects'] = $subjects;
-		$content['config']['categories'] = $place->getConfig('student/property/evaluationCategory')['modalities'];
+		$categories = ($place) ? $place->getConfig('student/property/evaluationCategory')['modalities'] : $context->getPlace()->getConfig('student/property/evaluationCategory')['modalities'];
+		$content['config']['categories'] = $categories;
 
 		// POST request for create or update
 		if ($this->request->isPost()) {
