@@ -673,7 +673,14 @@ class TeacherController extends AbstractActionController
 
 			foreach ($content['noteLinks'] as &$noteLinkData) {
 				$account_id = $noteLinkData['account_id'];
-				if ($this->request->getPost('noteAccount-' . $account_id)) {
+				if (!$this->request->getPost('noteAccount-' . $account_id)) {
+					if (array_key_exists($account_id, $note->links)) {
+						$noteLink = $note->links[$account_id];
+						$noteLink->value = $noteLinkData['value'] = null;
+						$noteLink->assessment = $noteLinkData['assessment'] = null;
+					}
+				}
+				else {
 					if (!$id || !array_key_exists($account_id, $note->links)) $noteLink = NoteLink::instanciate($account_id);
 					else $noteLink = $note->links[$account_id];
 					$value = $this->request->getPost('value-' . $account_id);
@@ -724,7 +731,7 @@ class TeacherController extends AbstractActionController
 						else {
 							$rc = $noteLink->drop();
 							$noteLink->id = null;
-							$rc = $noteLink->add(null);
+							if ($noteLink->value || $noteLink->assessment) $rc = $noteLink->add(null);
 						}
 						if ($rc != 'OK') {
 							$connection->rollback();
