@@ -329,14 +329,15 @@ function createCalendar(callback) {
     calendar.render();
 }
 
-function postEvaluationDetail(group_id, id) {
+function postEvaluationDetail(group_id, subject, id) {
   var form = document.getElementById('teacherEvaluationForm');
   form.onsubmit = function(event) {
       
     event.preventDefault();
 
     // Execute the ajax request
-    let xhttp = new XMLHttpRequest(), formData = new FormData();
+    let xhttp = new XMLHttpRequest(), formData = new FormData(), route = '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id;
+    if (subject) route += '&subject=' + subject;  
 
     formData.append('teacher_id', <?php echo $currentProfile->contact_1_id ?>);
   
@@ -350,7 +351,7 @@ function postEvaluationDetail(group_id, id) {
       if ($(this).prop('checked')) formData.append($(this).attr('id'), 1);
     });
 
-    xhttp.open("POST", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
+    xhttp.open("POST", route, true);
     xhttp.onreadystatechange = function() {
       if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
       if (xhttp.readyState == 4) {
@@ -387,11 +388,11 @@ function deleteNoteEvaluation(id)
   xhttp.send(formData);
 }
 
-function showEvaluationDetail(group_id, id, open) {
+function showEvaluationDetail(group_id, subject, id, open) {
   // Execute the ajax request
-  let xhttp = new XMLHttpRequest();
-  
-  xhttp.open("GET", '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id, true);
+  let xhttp = new XMLHttpRequest(), route = '<?php echo $this->url('teacher/evaluation', ['type' => 'note']) ?>/' + id + '?myAccount=<?php echo $currentProfile->id ?>&group_id=' + group_id;
+  if (subject) route += '&subject=' + subject;  
+  xhttp.open("GET", route, true);
   xhttp.onreadystatechange = function() {
     if (xhttp.status == 401) location.href = '<?php echo $this->url('user/expired')?>';
     if (xhttp.readyState == 4) {
@@ -399,10 +400,16 @@ function showEvaluationDetail(group_id, id, open) {
   	    $('#modalForm').html(xhttp.responseText);
         if (open) $('#modalForm').modal('toggle');
         $('#search-groups').change(function () {
-          let group_id = $(this).val();
-          showEvaluationDetail(group_id, id, false);
+          let group_id = $('#search-groups').val();
+          let subject = $('#subject').val();
+          showEvaluationDetail(group_id, subject, id, false);
         });
-        $('.note_evaluation_submit_button').click(function () { postEvaluationDetail(group_id, id); });
+        $('#subject').change(function () {
+          let group_id = $('#search-groups').val();
+          let subject = $('#subject').val();
+          showEvaluationDetail(group_id, subject, id, false);
+        });
+        $('.note_evaluation_submit_button').click(function () { postEvaluationDetail(group_id, subject, id); });
         $('.note_evaluation_delete_confirmation').hide();
         $('.note_evaluation_delete_button').click(function () { 
           $('.note_evaluation_delete_confirmation').show();
@@ -429,7 +436,7 @@ function showEvaluation(target) {
         document.getElementById(target).innerHTML = xhttp.responseText;
         $('.note-detail-anchor').click(function () { 
           let id = $(this).attr('id').split('_')[1];
-          showEvaluationDetail('<?php echo current(explode(',', $currentProfile->groups)) ?>', id, true); 
+          showEvaluationDetail('<?php echo current(explode(',', $currentProfile->groups)) ?>', '', id, true); 
         });
       }
       else toastr.error("<?php echo $this->translate('A technical error has occured. PLease try again later', 'ppit-core', $context->getLocale()) ?>");

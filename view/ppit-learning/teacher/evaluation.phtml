@@ -1,6 +1,4 @@
 <?php 
-$updateProperties = $context->getConfig('teacher/evaluation/update')['properties'];
-
 if ($request == 'POST' && $statusCode == '200') $isDisabled = true;
 else $isDisabled = false; 
 
@@ -52,7 +50,12 @@ $subjects = explode(',', $content['teacher']['property_5']);
 		?>
           <select class="browser-default custom-select form-control form-control-sm" id="search-<?php echo $propertyId ?>">
       <?php foreach ($modalities as $modalityId => $modalityLabel) : ?>
-             <option value="<?php echo $modalityId ?>" <?php if ($content['note']['group_id'] == $modalityId) echo 'selected="selected"' ?>><?php echo $modalityLabel ?></option>
+        <?php 
+        if ($propertyId == 'groups') $value = $content['note']['group_id'];
+        elseif ($propertyId == 'subject') $value = $content['note']['subject'];
+        else $value = null;
+        ?>
+             <option value="<?php echo $modalityId ?>" <?php if ($value == $modalityId) echo 'selected="selected"' ?>><?php echo $modalityLabel ?></option>
       <?php endforeach;?>
           </select>
 

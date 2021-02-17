@@ -450,6 +450,8 @@ class TeacherController extends AbstractActionController
     public function evaluationAction()
     {
     	$context = Context::getCurrent();
+		$updateProperties = $context->getConfig('teacher/evaluation/update')['properties'];
+
     	$config = [];
     	$config['properties'] = Account::getConfig('p-pit-studies');
     	$search = $context->getConfig('teacher/evaluation/account/search');
@@ -603,13 +605,31 @@ class TeacherController extends AbstractActionController
 			foreach ($group->members as $member_id => $member) {
 				if ($member->type == 'p-pit-studies' && (!$myAccount->place_id || $member->place_id == $myAccount->place_id)) {
 					if (!$accounts || in_array($member_id, $accounts)) {
-						$noteLink = [
-							'account_id' => $member_id,
-							'n_fn' => $member->n_fn,
-							'value' => 0,
-							'assessment' => '',
-						];
-						$noteLinks[] = $noteLink;
+
+						// Select rule based on subject repository
+						$keep = true;
+						if ($subject) {
+							$subjectConfig = $context->getConfig('student/property/school_subject')['modalities'][$subject];
+							if (array_key_exists('filter', $updateProperties['subject'])) {
+								foreach($updateProperties['subject']['filter'] as $paramId => $rule) {
+									if (array_key_exists($paramId, $subjectConfig) && $subjectConfig[$paramId]) {
+										foreach ($rule as $propertyId => $value) {
+											if (!in_array($member->properties[$propertyId], explode(',', $value))) $keep = false;
+											break;
+										}
+									}
+								}
+							}
+						}
+						if ($keep) {
+							$noteLink = [
+								'account_id' => $member_id,
+								'n_fn' => $member->n_fn,
+								'value' => 0,
+								'assessment' => '',
+							];
+							$noteLinks[] = $noteLink;
+						}
 					}
 				}
 			}
@@ -770,6 +790,7 @@ class TeacherController extends AbstractActionController
 		$view = new ViewModel(array(
 			'context' => $context,
 			'config' => $config,
+			'updateProperties' => $updateProperties,
 			'request' => ($this->getRequest()->isPost()) ? 'POST' : (($this->getRequest()->isDelete()) ? 'DELETE' : 'GET'),
 			'content' => $content,
 			'statusCode' => $this->response->getStatusCode(),
