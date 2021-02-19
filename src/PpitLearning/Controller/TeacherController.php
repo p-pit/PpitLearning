@@ -614,8 +614,10 @@ class TeacherController extends AbstractActionController
 								foreach($updateProperties['subject']['filter'] as $paramId => $rule) {
 									if (array_key_exists($paramId, $subjectConfig) && $subjectConfig[$paramId]) {
 										foreach ($rule as $propertyId => $value) {
-											if (!in_array($member->properties[$propertyId], explode(',', $value))) $keep = false;
-											break;
+											if (!in_array($member->properties[$propertyId], explode(',', $value))) {
+												$keep = false;
+												break;
+											}
 										}
 									}
 								}
@@ -625,7 +627,7 @@ class TeacherController extends AbstractActionController
 							$noteLink = [
 								'account_id' => $member_id,
 								'n_fn' => $member->n_fn,
-								'value' => 0,
+								'value' => null,
 								'assessment' => '',
 							];
 							$noteLinks[] = $noteLink;

@@ -399,16 +399,31 @@ function showEvaluationDetail(group_id, subject, id, open) {
       if (xhttp.status == 200) {
   	    $('#modalForm').html(xhttp.responseText);
         if (open) $('#modalForm').modal('toggle');
+        
         $('#search-groups').change(function () {
           let group_id = $('#search-groups').val();
           let subject = $('#subject').val();
           showEvaluationDetail(group_id, subject, id, false);
         });
+        
         $('#subject').change(function () {
           let group_id = $('#search-groups').val();
           let subject = $('#subject').val();
           showEvaluationDetail(group_id, subject, id, false);
         });
+
+        $('.update_input_value').change(function () {
+          let account_id = $(this).attr('id').split('-')[1];
+          $('#noteAccount-' + account_id).prop('checked', true);
+        });
+
+        $('.matched_accounts').change(function () {
+          if (!$(this).prop('checked')) {
+            let account_id = $(this).attr('id').split('-')[1];
+            $('#value-' + account_id).val(null);
+          }
+        });
+
         $('.note_evaluation_submit_button').click(function () { postEvaluationDetail(group_id, subject, id); });
         $('.note_evaluation_delete_confirmation').hide();
         $('.note_evaluation_delete_button').click(function () { 
