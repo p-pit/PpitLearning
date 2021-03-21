@@ -591,6 +591,7 @@ return array(
 	
 	'teacher/evaluation/update' => [
 		'properties' => [
+			'school_period' => [],
 			'subject' => [],
 			'level' => [],
 			'date' => [],

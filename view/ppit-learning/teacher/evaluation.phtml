@@ -92,6 +92,29 @@ $subjects = explode(',', $content['teacher']['property_5']);
 <?php endif;?>
 
 
+<?php if (array_key_exists('school_period', $updateProperties)) : ?>
+
+<!-- School period -->
+    <div class="form-group row">
+<?php if ($content['type'] != 'exam') : ?>
+      <label class="col-sm-5 col-form-label col-form-label-sm"><?php echo $this->translate('School period', 'ppit-studies', $context->getLocale()) ?></label>
+      <div class="col-sm-7">
+          <select class="browser-default custom-select form-control form-control-sm update_input update_input_select" id="school_period" <?php if ($isDisabled || ($content['type'] == 'report' && $content['note']['school_period'])) echo 'disabled="disabled"'?> required>
+            <option />
+  <?php foreach ($context->getConfig('student/property/school_period')['modalities'] as $periodId => $period) : ?>
+	    <?php
+	    $period = $context->getConfig('student/property/school_period')['modalities'][$periodId];
+	    $caption = $context->localize($period);
+	    ?>
+            <option value="<?php echo $periodId ?>" <?php if ($content['note']['school_period'] == $periodId) echo 'selected="selected"' ?>><?php echo $caption ?></option>
+  <?php endforeach;?>
+          </select>
+      </div>
+<?php endif;?>
+    </div>
+<?php endif;?>
+
+
 <?php if (array_key_exists('level', $updateProperties)) : ?>
 
 <!-- Evaluation category -->
