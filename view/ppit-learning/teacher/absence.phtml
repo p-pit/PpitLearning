@@ -37,10 +37,10 @@
   </div>
 
 <?php 
-if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $isDisabled = false;
+if ($message == 'OK' || in_array($event->status, ['realized', 'invoiced', 'canceled'])) $isDisabled = true; else $isDisabled = false;
 ?>
   
-<?php if ($message != 'OK' && $event->status != 'realized') : ?>
+<?php if ($message != 'OK' && !in_array($event->status, ['realized', 'invoiced', 'canceled'])) : ?>
   <div class="alert alert-warning my-3" style="text-align: center">
     <strong><?php echo $this->translate('Please uncheck the absent attendees, or input the lateness duration', 'ppit-core', $context->getLocale()) ?></strong>
   </div>
@@ -68,7 +68,7 @@ if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $
   </div>
 <?php endforeach;?>
 
-<?php if ($message != 'OK' && $event->status != 'realized') : ?>
+<?php if ($message != 'OK' && !in_array($event->status, ['realized', 'invoiced', 'canceled'])) : ?>
   <input type="hidden" id="status" value="new">
   <div class="form-group row">
     <div class="col-sm-5">&nbsp;</div>
@@ -78,7 +78,7 @@ if ($message == 'OK' || $event->status == 'realized') $isDisabled = true; else $
   </div>
 <?php endif;?>
   
-<?php if ($message == 'OK' && $event->status != 'realized') : ?>
+<?php if ($message == 'OK' && !in_array($event->status, ['realized', 'invoiced', 'canceled'])) : ?>
   <div class="alert alert-danger my-3" style="text-align: center">
     <strong><?php echo $this->translate('Do you want to complete the attendance? This action cannot be undone.', 'ppit-learning', $context->getLocale()) ?></strong>
   </div>
