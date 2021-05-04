@@ -447,6 +447,7 @@ class TeacherController extends AbstractActionController
     	return $view;
     }
     
+	// ICI
     public function evaluationAction()
     {
     	$context = Context::getCurrent();
@@ -563,6 +564,7 @@ class TeacherController extends AbstractActionController
 			foreach ($note->links as $link_id => $link) {
 				$noteLinks[$link_id]['value'] = $link->value;
 				$noteLinks[$link_id]['assessment'] = $link->assessment;
+				$noteLinks[$link_id]['evaluation'] = $link->evaluation;
 			}
 			$content['note']['status'] = $note->status;
 			$content['note']['place_id'] = $place->id;
@@ -693,7 +695,7 @@ class TeacherController extends AbstractActionController
 			$content['note']['weight'] = $this->request->getPost('weight');
 			$content['note']['observations'] = $this->request->getPost('observations');
 
-			foreach ($content['noteLinks'] as &$noteLinkData) {
+			foreach ($content['noteLinks'] as $noteLinkData) {
 				$account_id = $noteLinkData['account_id'];
 				if (!$this->request->getPost('noteAccount-' . $account_id)) {
 					if (array_key_exists($account_id, $note->links)) {
@@ -711,7 +713,13 @@ class TeacherController extends AbstractActionController
 					$assessment = $this->request->getPost('assessment-' . $account_id);
 					$audit = [];
 					if ($value !== null || $assessment) {
-						$noteLinkData['value'] = $value;
+						if ($value != 'Non Évalué') {
+							$noteLinkData['value'] = $value;
+							$noteLinkData['evaluation'] = NULL;
+						} else {
+							$noteLinkData['value'] = 0;
+							$noteLinkData['evaluation'] = $value;
+						}
 						//					$noteLinkData['evaluation'] = $mention;
 						$noteLinkData['assessment'] = $assessment;
 						$noteLink->loadData($noteLinkData);
@@ -726,7 +734,6 @@ class TeacherController extends AbstractActionController
 				return null;
 			}
 			else {
-		
 				// Atomically save
 				$connection = Note::getTable()->getAdapter()->getDriver()->getConnection();
 				$connection->beginTransaction();
@@ -745,6 +752,7 @@ class TeacherController extends AbstractActionController
 					}
 		
 					// Save the note at the student level
+					
 					foreach ($note->links as $noteLink) {
 						if (!$noteLink->id) {
 							$noteLink->note_id = $note->id;
@@ -753,7 +761,7 @@ class TeacherController extends AbstractActionController
 						else {
 							$rc = $noteLink->drop();
 							$noteLink->id = null;
-							if ($noteLink->value || $noteLink->assessment) $rc = $noteLink->add(null);
+							if ($noteLink->value || $noteLink->assessment || $noteLink->evaluation) $rc = $noteLink->add(null);
 						}
 						if ($rc != 'OK') {
 							$connection->rollback();

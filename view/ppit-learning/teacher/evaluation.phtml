@@ -211,12 +211,42 @@ $subjects = explode(',', $content['teacher']['property_5']);
   <?php if ($context->getConfig('note/property/value')['type'] == 'number') : ?>
         <input class="form-control form-control-sm update_input update_input_text update_input_value" id="value-<?php echo $noteLink['account_id'] ?>" <?php if ($noteLink['value'] !== null) echo 'value="'.$noteLink['value'].'"' ?> <?php if ($isDisabled || $content['type'] == 'report') echo 'disabled="disabled"' ?> />
   <?php else : ?>
-                <select class="form-control form-control-sm update_input update_input_select" id="value-<?php echo $noteLink['account_id'] ?>" <?php if ($noteLink['value'] !== null) echo 'value="'.$context->formatFloat($noteLink['value'], 2).'"' ?> <?php if ($isDisabled || $content['type'] == 'report') echo 'disabled="disabled"' ?> <?php if ($isDisabled) echo 'disabled="disabled"'?>>
-                  <option value=""></option>
-  <?php foreach ($context->getConfig('note/property/value')['modalities'] as $modalityId => $modality) : ?>
-                  <option value="<?php echo $modalityId ?>" <?php if ($noteLink['value'] == $modalityId) echo 'selected="selected"' ?>><?php echo $context->localize($modality) ?></option>
-  <?php endforeach;?>
-                </select>
+          <select class="form-control form-control-sm update_input update_input_select" id="value-<?php echo $noteLink['account_id'] ?>" <?php if ($noteLink['value'] !== null) echo 'value="'.$context->formatFloat($noteLink['value'], 2).'"' ?> <?php if ($isDisabled || $content['type'] == 'report') echo 'disabled="disabled"' ?> <?php if ($isDisabled) echo 'disabled="disabled"'?>>
+
+            <option value="" <?php if ($noteLink['value'] == null) echo 'selected="selected"' ?> ></option>
+
+    <?php 
+
+    if (array_key_exists('value', $context->getConfig('teacher/evaluation/update')['properties'])) {
+      $values = $context->getConfig('teacher/evaluation/update')['properties']['value'];
+    } else {
+      $values = $context->getConfig('note/property/value')['modalities'];
+    }
+    ?>
+
+    <?php foreach ($values as $modalityId => $modality) : ?>
+      <?php     
+        if (array_key_exists('evaluation', $noteLink) && $noteLink['evaluation'] == !NULL) {
+          if ($noteLink['evaluation'] == $modalityId && $noteLink['value'] != $modalityId) {
+            $value = $noteLink['evaluation'];
+            $selected = 'selected="selected"';
+          } else {
+            $value = $modalityId;
+            $selected = null;
+          }
+        } else {
+          if ($noteLink['value'] !== null && $noteLink['value'] == $modalityId) {
+              $value = $modalityId;
+              $selected = 'selected="selected"';
+          } else {
+            $value = $modalityId;
+            $selected = null;
+          }
+        }
+      ?>
+            <option value="<?php echo $value ?>" <?php echo $selected ?> ><?php echo $context->localize($modality) ?></option>
+    <?php endforeach;?>
+          </select>
   <?php endif;?>
       </div>
     </div>
