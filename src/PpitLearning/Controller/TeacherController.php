@@ -40,7 +40,7 @@ class TeacherController extends AbstractActionController
     	$context = Context::getCurrent();
     	$account_id = (int) $this->params()->fromRoute('account_id');
 
-    	$profiles = Account::getList('teacher', ['contact_1_id' => $context->getContactId(), 'status' => 'active']);
+    	$profiles = Account::getList('teacher', ['contact_1_id' => $context->getContactId()/*, 'status' => 'active'*/]);
     	 
     	$currentProfile = null;
     	if ($account_id) $currentProfile = Account::get($account_id);
