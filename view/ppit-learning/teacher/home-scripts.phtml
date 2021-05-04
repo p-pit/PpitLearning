@@ -412,6 +412,15 @@ function showEvaluationDetail(group_id, subject, id, open) {
           showEvaluationDetail(group_id, subject, id, false);
         });
 
+        $('.update_input_select').change(function() {
+          let account_id = $(this).attr('id').split('-')[1];
+          if ($(this).val() === '') {
+            $('#noteAccount-' + account_id).prop('checked', false);
+          } else {
+            $('#noteAccount-' + account_id).prop('checked', true);
+          }
+        });
+
         $('.update_input_value').change(function () {
           let account_id = $(this).attr('id').split('-')[1];
           $('#noteAccount-' + account_id).prop('checked', true);
