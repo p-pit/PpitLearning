@@ -708,17 +708,17 @@ class TeacherController extends AbstractActionController
 					if (!$id || !array_key_exists($account_id, $note->links)) $noteLink = NoteLink::instanciate($account_id);
 					else $noteLink = $note->links[$account_id];
 					$value = $this->request->getPost('value-' . $account_id);
-					if ($value == '') $value = null;
+					if ($value === '') $value = null;
 					//				$mention = $this->request->getPost('mention-' . $account_id);
 					$assessment = $this->request->getPost('assessment-' . $account_id);
 					$audit = [];
 					if ($value !== null || $assessment) {
-						if ($value != 'Non Évalué') {
-							$noteLinkData['value'] = $value;
-							$noteLinkData['evaluation'] = NULL;
-						} else {
+						if ($value == 'Non Évalué') {
 							$noteLinkData['value'] = 0;
 							$noteLinkData['evaluation'] = $value;
+						} else {
+							$noteLinkData['value'] = $value;
+							$noteLinkData['evaluation'] = NULL;
 						}
 						//					$noteLinkData['evaluation'] = $mention;
 						$noteLinkData['assessment'] = $assessment;
@@ -761,7 +761,7 @@ class TeacherController extends AbstractActionController
 						else {
 							$rc = $noteLink->drop();
 							$noteLink->id = null;
-							if ($noteLink->value || $noteLink->assessment || $noteLink->evaluation) $rc = $noteLink->add(null);
+							if ($noteLink->value !== null || $noteLink->assessment || $noteLink->evaluation) $rc = $noteLink->add(null);
 						}
 						if ($rc != 'OK') {
 							$connection->rollback();
