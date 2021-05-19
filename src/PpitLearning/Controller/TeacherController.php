@@ -686,8 +686,7 @@ class TeacherController extends AbstractActionController
 			// Load the input data
 		
 			$content['note']['teacher_id'] = $this->request->getPost('teacher_id');
-		
-			$content['note']['school_period'] = $this->request->getPost('school_period');
+			$content['note']['school_period'] = ($this->request->getPost('school_period')) ? $this->request->getPost('school_period') : 'Q1';
 			$content['note']['level'] = $this->request->getPost('level');
 			$content['note']['subject'] = $this->request->getPost('subject');
 			$content['note']['date'] = $this->request->getPost('date');
