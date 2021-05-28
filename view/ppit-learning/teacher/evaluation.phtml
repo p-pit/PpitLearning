@@ -4,7 +4,6 @@ else $isDisabled = false;
 
 $subjects = explode(',', $content['teacher']['property_5']);
 ?>
-
 <div class="modal-dialog modal-lg" role="document">
   <div class="modal-content">
     <div class="modal-header">
@@ -194,15 +193,31 @@ $subjects = explode(',', $content['teacher']['property_5']);
     </div>
 <?php endif;?>
 
-
 <?php foreach ($content['noteLinks'] as $noteLink) : ?>
+  <?php 
+    if ($context->getConfig('teacher/evaluation')['studentRythm']) {
+      $value = $content['group']['members'][$noteLink['account_id']]->property_15;
+      $studentRythmConfig = $context->getConfig('teacher/evaluation')['studentRythm'];
+      $args = [];
+
+      foreach ($studentRythmConfig['params'] as $param) {
+        $description = $context->getConfig('core_account/p-pit-studies/property/' . $param);
+        if ($description['type'] == 'select' && array_key_exists($value, $description['modalities'])) $args[] = $context->localize($description['modalities'][$value]);
+        else $args[] = $value;
+      }
+      $studentRythm = vsprintf($context->localize($studentRythmConfig), $args);
+    } else {
+      $studentRythm = null;
+    };
+  ?>
+
     <div class="form-group row">
       <label class="col-sm-5 col-form-label col-form-label-sm">
 
 <!-- Checkbox-->
     <div class="form-check">
       <input type="checkbox" class="form-check-input updatable-control matched_accounts" id="noteAccount-<?php echo $noteLink['account_id'] ?>" name="noteAccount" value="<?php echo $noteLink['n_fn'] ?>" <?php if ($noteLink['value'] !== null) : ?>checked<?php endif;?> <?php if ($isDisabled) : ?>disabled<?php endif;?>/>
-      <label class="form-check-label" for="noteAccount-<?php echo $noteLink['account_id'] ?>"><?php echo $noteLink['n_fn'] ?></label>
+      <label class="form-check-label" for="noteAccount-<?php echo $noteLink['account_id'] ?>"><?php echo $noteLink['n_fn'] ?><?php if ($studentRythm) echo $studentRythm ?></label>
     </div>
       </label>
 
