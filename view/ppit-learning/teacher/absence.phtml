@@ -7,7 +7,13 @@
  * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
  */
 -->
-
+<?php 
+$groupId = $event->account_groups;
+$groupName = $description['properties']['groups']['modalities'][$groupId]['default'];
+?>
+<div>
+  <h3 class="mb-4 text-center">Groupe <?php echo $groupName ?></h3>
+</div>
 <form method="post" id="teacherAbsenceForm">
 <div class="container">
 
