@@ -89,12 +89,14 @@
                     <li class="nav-item dropdown">
                       <a class="nav-link dark-grey-text font-weight-bold dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-map-marker-alt ml-1"></i>
-                        <span class="clearfix d-none d-sm-inline-block"><?php echo $this->translate('Places', 'ppit-core', $context->getLocale()) ?></span>
+                        <span class="clearfix d-none d-sm-inline-block"><?php echo $this->translate('Accounts', 'ppit-core', $context->getLocale()) ?></span>
                       </a>
                       <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink">
     <?php foreach ($profiles as $profile) : ?>
                         <a class="dropdown-item p-0 <?php if ($currentProfile->id == $profile->id) echo 'active' ?>" href="<?php echo $this->url('teacher/home', ['account_id' => $profile->id]) ?>">
-                          <?php echo $profile->place_caption ?> - <?php echo $profile->n_fn ?>
+                          <?php if ($profile->place_id) : ?><?php echo $profile->place_caption ?> - <?php endif ?>
+                          <?php if ($profile->property_8) : ?><?php echo $profile->property_8 ?> - <?php endif ?>
+                          <?php echo $profile->n_fn ?>
                         </a>
     <?php endforeach;?>
     

@@ -825,7 +825,22 @@ return array(
 	'core_account/teacher/property/property_5' => array('definition' => 'student/property/school_subject', 'type' => 'multiselect'),
 	'core_account/teacher/property/property_6' => array('definition' => 'core_account/generic/property/property_6'),
 	'core_account/teacher/property/property_7' => array('definition' => 'core_account/generic/property/property_7'),
-	'core_account/teacher/property/property_8' => array('definition' => 'core_account/generic/property/property_8'),
+//	'core_account/teacher/property/property_8' => array('definition' => 'core_account/generic/property/property_8'),
+
+	'core_account/teacher/property/property_8' => array(
+		'definition' => 'inline',
+		'type' => 'select',
+		'modalities' => [
+			'2019-2020' => array('default' => '2019-2020'),
+			'2020-2021' => array('default' => '2020-2021'),
+			'2021-2022' => array('default' => '2021-2022'),
+			'2022-2023' => array('default' => '2022-2023'),
+		],
+		'labels' => array(
+			'default' => 'Année scolaire',
+		),
+	),
+
 	'core_account/teacher/property/property_9' => array('definition' => 'core_account/generic/property/property_9'),
 	'core_account/teacher/property/property_10' => array('definition' => 'core_account/generic/property/property_10'),
 	'core_account/teacher/property/property_11' => array('definition' => 'core_account/generic/property/property_11'),
