@@ -7,7 +7,21 @@
  * @license   https://github.com/p-pit/PpitCore/blob/master/license.txt GNU-GPL license
  */
 -->
-
+<?php 
+$groupIds = explode(',', $event->groups);
+if (sizeof($groupIds) > 1) {
+  foreach ($groupIds as $groupId) {
+    $groupNames = 'Groupes ';
+    $groupNames .= $description['properties']['groups']['modalities'][$groupId]['default'] . ' ';
+  }
+} else {
+  $groupNames = 'Groupe ';
+  $groupNames .= $description['properties']['groups']['modalities'][$groupIds[0]]['default'];
+}
+?>
+<div>
+  <h4 class="mb-4 text-center"><?php echo $groupNames ?></h4>
+</div>
 <form method="post" id="teacherAbsenceForm">
 <div class="container">
 

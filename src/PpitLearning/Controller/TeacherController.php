@@ -686,8 +686,7 @@ class TeacherController extends AbstractActionController
 			// Load the input data
 		
 			$content['note']['teacher_id'] = $this->request->getPost('teacher_id');
-		
-			$content['note']['school_period'] = $this->request->getPost('school_period');
+			$content['note']['school_period'] = ($this->request->getPost('school_period')) ? $this->request->getPost('school_period') : 'Q1';
 			$content['note']['level'] = $this->request->getPost('level');
 			$content['note']['subject'] = $this->request->getPost('subject');
 			$content['note']['date'] = $this->request->getPost('date');
@@ -708,17 +707,17 @@ class TeacherController extends AbstractActionController
 					if (!$id || !array_key_exists($account_id, $note->links)) $noteLink = NoteLink::instanciate($account_id);
 					else $noteLink = $note->links[$account_id];
 					$value = $this->request->getPost('value-' . $account_id);
-					if ($value == '') $value = null;
+					if ($value === '') $value = null;
 					//				$mention = $this->request->getPost('mention-' . $account_id);
 					$assessment = $this->request->getPost('assessment-' . $account_id);
 					$audit = [];
 					if ($value !== null || $assessment) {
-						if ($value != 'Non Évalué') {
-							$noteLinkData['value'] = $value;
-							$noteLinkData['evaluation'] = NULL;
-						} else {
+						if ($value == 'Non Évalué') {
 							$noteLinkData['value'] = 0;
 							$noteLinkData['evaluation'] = $value;
+						} else {
+							$noteLinkData['value'] = $value;
+							$noteLinkData['evaluation'] = NULL;
 						}
 						//					$noteLinkData['evaluation'] = $mention;
 						$noteLinkData['assessment'] = $assessment;
@@ -761,7 +760,7 @@ class TeacherController extends AbstractActionController
 						else {
 							$rc = $noteLink->drop();
 							$noteLink->id = null;
-							if ($noteLink->value || $noteLink->assessment || $noteLink->evaluation) $rc = $noteLink->add(null);
+							if ($noteLink->value !== null || $noteLink->assessment || $noteLink->evaluation) $rc = $noteLink->add(null);
 						}
 						if ($rc != 'OK') {
 							$connection->rollback();
