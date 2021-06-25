@@ -837,7 +837,8 @@ return array(
 			'2022-2023' => array('default' => '2022-2023'),
 		],
 		'labels' => array(
-			'default' => 'Année scolaire',
+			'default' => 'School year',
+			'fr_FR' => 'Année scolaire',
 		),
 	),
 
@@ -1058,9 +1059,13 @@ return array(
 				'adr_country' => array('mandatory' => false),
 				'locale' => array('mandatory' => false),
 		),
+
 		'core_account/groupUpdate/teacher' => array(
 				'status' => array('mandatory' => true),
 				'callback_date' => array('mandatory' => false),
+				'property_8' => array('mandatory' => true),
+				'groups' => array('mandatory' => false),
+				'property_5' => array('mandatory' => false),
 		),
 
 		'core_account/export/teacher' => array(
