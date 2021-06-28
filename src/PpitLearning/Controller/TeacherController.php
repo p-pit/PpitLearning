@@ -484,8 +484,8 @@ class TeacherController extends AbstractActionController
 		
 		// user_story - student_evaluation_teachers: Les enseignants pouvant être selectionnés dans le formulaire sont tous les enseignants ayant un statut "actif"
 		$teachers = [];
-		if ($context->hasRole('manager') && !$context->hasRole('teacher')) {
-			$cursor = Account::getList('teacher', ['status' => 'active,committed,contrat_envoye,reconnect_with'], '+name', null, null);
+/*		if ($context->hasRole('manager') && !$context->hasRole('teacher')) {
+			$cursor = Account::getList('teacher', ['status' => 'active,committed,contrat_envoye,reconnect_with'], '+name', null);
 			foreach ($cursor as $teacher_id => $teacher) {
 				$teachers[$teacher->contact_1_id] = $teacher->properties;
 				$competences = $teachers[$teacher->contact_1_id]['property_3'];
@@ -501,8 +501,9 @@ class TeacherController extends AbstractActionController
     		$owner_id = (int) $this->params()->fromQuery('myAccount');
 	    	$myAccount = Account::get($owner_id);
 		}
-		else {
-			$myAccount = Account::get($this->params()->fromQuery('myAccount'));
+		else {*/
+			if ($context->hasRole('manager') && !$context->hasRole('teacher')) $myAccount = Account::get($owner_id);
+			else $myAccount = Account::get($this->params()->fromQuery('myAccount'));
 			if (!$myAccount) {
 				$this->response->setStatusCode('403');
 				return $this->response;
@@ -516,7 +517,7 @@ class TeacherController extends AbstractActionController
 				
 			if ($myAccount->groups) $teachers[$myAccount->contact_1_id]['groups'] = explode(',', $myAccount->groups);
 			else $teachers[$myAccount->contact_1_id]['groups'] = [];
-		}
+//		}
 		$teacher = $teachers[$myAccount->contact_1_id];
 		
 		// Retrieve the existing note or instanciate
