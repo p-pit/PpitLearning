@@ -907,7 +907,7 @@ return array(
 			'adr_street_4', 'adr_extended_4', 'adr_post_office_box_4', 'adr_zip_4', 'adr_city_4', 'adr_state_4', 'adr_country_4',
 			'n_title_5', 'n_first_5', 'n_last_5', 'email_5', 'tel_work_5', 'tel_cell_5',
 			'adr_street_5', 'adr_extended_5', 'adr_post_office_box_5', 'adr_zip_5', 'adr_city_5', 'adr_state_5', 'adr_country_5',
-			'groups', 'opening_date', 'closing_date', 'callback_date', 'priority', 'origine', 'contact_history', 'notification_time',
+			'invoice_account_id', 'groups', 'opening_date', 'closing_date', 'callback_date', 'priority', 'origine', 'contact_history', 'notification_time',
 			'availability', 'availability_begin', 'availability_end', 'availability_exceptions', 'availability_constraints',
 			'property_1', 'property_2', 'property_3', 'property_4', 'property_5', 'property_6', 'property_7', 'property_8',
 			'property_9', 'property_10', 'property_11', 'property_12', 'property_13', 'property_14', 'property_15', 'property_16',
