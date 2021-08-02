@@ -217,7 +217,7 @@ if ($currentProfile->groups) {
   foreach (explode(',', $currentProfile->groups) as $group_id) $studentGroups[] = $groups[$group_id]->name;
   $studentGroups = implode(',', $studentGroups);
 }
-elseif ($currentProfile->property_7) $studentGroups = $context->localize($configProperties['property_7']['modalities'][$currentProfile->property_7]);
+//elseif ($currentProfile->property_7) $studentGroups = $context->localize($configProperties['property_7']['modalities'][$currentProfile->property_7]);
 else $studentGroups = null;
 ?>
               <div class="h6 text-center text-muted my-4"><?php echo $currentProfile->property_16 ?><?php if ($studentGroups) : ?> &mdash; <?php echo $studentGroups ?><?php endif;?></div>
