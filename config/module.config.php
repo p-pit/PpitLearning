@@ -374,6 +374,15 @@ return array(
         										),
         								),
         						),
+								'v1' => array(
+										'type' => 'segment',
+										'options' => array(
+												'route' => '/v1[/:id]',
+												'defaults' => array(
+														'action' => 'v1',
+												),
+										),
+								),
 	       						'init' => array(
         								'type' => 'segment',
         								'options' => array(
@@ -432,6 +441,7 @@ return array(
 				array('route' => 'teacher/evaluation', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/reportList', 'roles' => array('teacher', 'manager')),
 				array('route' => 'teacher/report', 'roles' => array('teacher', 'manager')),
+				array('route' => 'teacher/v1', 'roles' => array('guest')),
 				array('route' => 'teacher/init', 'roles' => array('manager')),
 			)
 		)

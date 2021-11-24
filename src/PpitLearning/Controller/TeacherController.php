@@ -925,7 +925,374 @@ class TeacherController extends AbstractActionController
 				}
 			}
 		}*/
-				
 		exit;
+	}
+	public function v1Get($context, $type, $requestBody, $response)
+	{
+		$context->getConfig('student/property/school_subject');
+		$responseBody = [];
+
+		$account_id = $this->params()->fromRoute('id');
+		if ($account_id) {
+			$account = Account::getTable()->get($account_id);
+			if (!$account) {
+				$response->setStatusCode('400');
+				$response->setContent(json_encode(['message' => 'Not existing account with id ' . $account_id]));
+				$response->setReasonPhrase("Not existing account with id $account_id");
+				return;
+			}
+
+			$vcard = Vcard::getTable()->get($account->contact_1_id);
+		}
+		else {
+			$email = $this->params()->fromQuery('email');
+			if ($email) {
+				$vcard = Vcard::getTable()->get($email, 'email');
+				if ($vcard) {
+					$account = Account::getTable()->get($type, 'type', $vcard->id, 'contact_1_id');
+				}
+				else $account = null;
+			}
+			else {
+				$response->setStatusCode('400');
+				$response->setContent(json_encode(['message' => 'Account search not available']));
+				$response->setReasonPhrase("Account search not available");
+				return;
+			}
+		}
+		if ($account) {
+			$responseBody[] = [
+				'id' => $account->id,
+				'status' => $account->status,
+				'name' => $account->name,
+				'n_first' => $vcard->n_first,
+				'n_last' => $vcard->n_last,
+				'n_fn' => $vcard->n_fn,
+				'email' => $vcard->email,
+				'tel_cell' => $vcard->tel_cell,
+				'tel_work' => $vcard->tel_work,
+				'org' => $vcard->org,
+				'nationality' => $vcard->nationality,
+				'tiny_4' => $vcard->tiny_4,
+				'adr_street' => $vcard->adr_street,
+				'adr_zip' => $vcard->adr_zip,
+				'adr_city' => $vcard->adr_city,
+				'adr_country' => $vcard->adr_country,
+				'birth_date' => $vcard->birth_date,
+				'origine' => $account->origine,
+				'invoice_account_id' => $account->invoice_account_id,
+				'transfer_order_id' => $account->transfer_order_id,
+				'bank_identifier' => ($account->bank_identifier) ? $context->getSecurityAgent()->unprotectPrivateDataV2($account->bank_identifier) : null,
+				'property_2' => $account->property_2,
+				'subject' => $account->property_5,
+				'groups_id' => $account->groups,
+				'property_7' => $account->property_7,
+				'property_11' => $account->property_11,
+			];
+		}
+		$response->setContent(json_encode($responseBody));
+		$response->setStatusCode(200);
+	}
+
+    public function v1Put($context, $type, $requestBody, $response)
+	{
+		$connection = Account::getTable()->getAdapter()->getDriver()->getConnection();
+		$connection->beginTransaction();
+		try {
+			$responseBody = [];
+			foreach ($requestBody as $accountData) {
+
+				// Check existing account based on email
+				$email = $accountData['email'];
+				// $vcard = Vcard::getTable()->get($email, 'email');
+				// if ($vcard) {
+				// 	$account = Account::getTable()->get($vcard->id, 'contact_1_id', $type, 'type');
+				// 	if ($account) { 
+				// 		$responseBody[$email] = [
+				// 			'status' => 'exists',
+				// 			'account_id' => $account->id,
+				// 			'account_status' => $account->status,
+				// 			'account_callback_date' => $account->callback_date,
+				// 		];
+				// 		continue;
+				// 	}
+				// }
+
+				// Instanciate vcard
+				$vcard = new Vcard;
+				$vcard->status = 'new';
+				$vcard->locale = 'fr_FR';
+				$vcard->photo_link_id = 'no-photo.png';
+				$vcard->applications = array();
+				$vcard->roles = array();
+				$vcard->perimeters = array();
+				$vcard->audit = array();
+				$vcard->specifications = array();
+				
+				// Instanciate account
+				$account = new Account;
+				$account->status = 'new';
+				$account->type = $type;
+				$account->opening_date = date('Y-m-d');
+				$account->callback_date = date('Y-m-d');
+				$account->contact_history = array();
+				$account->audit = array();
+				$account->availability_exceptions = array();
+				$account->availability_constraints = array();
+				$account->credits = array();
+				$account->json_property_1 = array();
+				$account->json_property_2 = array();
+				$account->json_property_3 = array();
+				$account->json_property_4 = array();
+				$account->json_property_5 = array();
+						
+				$comment = [];
+
+				// Load data
+				foreach ($accountData as $name => $value) {
+		
+					$vcard->id = null;
+					$vcard->status = 'new';
+					if ($name == 'email') $vcard->email = $value;
+					elseif ($name == 'n_first') $vcard->n_first = $value;
+					elseif ($name == 'n_last') $vcard->n_last = $value;
+					elseif ($name == 'org') $vcard->org = $value;
+					elseif ($name == 'tel_cell') $vcard->tel_cell = $value;
+					elseif ($name == 'tel_work') $vcard->tel_work = $value;
+					elseif ($name == 'birth_date') $vcard->birth_date = $value;
+					elseif ($name == 'adr_street') $vcard->adr_street = $value;
+					elseif ($name == 'adr_zip') $vcard->adr_zip = $value;
+					elseif ($name == 'adr_city') $vcard->adr_city = $value;
+					elseif ($name == 'adr_country') $vcard->adr_country = $value;
+
+					elseif ($name == 'status') $account->status = $value;
+					elseif ($name == 'identifier') $account->identifier = $value;
+					elseif ($name == 'origine') $account->origine = $value;
+					elseif ($name == 'place_id') $account->place_id = $value;
+					elseif ($name == 'place_identifier') {
+						$place = Place::get($value, 'identifier');
+						$account->place_id = $place->id;
+					} 
+					elseif ($name == 'property_1') $account->property_1 = $value;
+					elseif ($name == 'property_5') $account->property_5 = $value;
+					elseif ($name == 'name') $account->name = $value;
+					elseif ($name == 'property_6') $account->property_6 = $value;
+					elseif ($name == 'property_7') $account->property_7 = $value;
+					elseif ($name == 'property_8') $account->property_8 = $value;
+					elseif ($name == 'property_10') $account->property_10 = $value;
+					elseif ($name == 'property_11') $account->property_11 = $value;
+					elseif ($name == 'property_13') $account->property_13 = $value;
+					elseif ($name == 'property_18') $account->property_18 = $value;
+					elseif ($name == 'comment') $comment[] = $value;
+					else $comment[] = $value;
+				}
+
+				$vcard->n_fn = $vcard->n_last . ', '. $vcard->n_first;
+
+				// Add vcard
+				Vcard::getTable()->save($vcard);
+
+				// Add account
+				$account->contact_1_id = $vcard->id;
+				$account->contact_1_status = 'main';
+				if (!$account->name) $account->name = $vcard->n_fn;
+				Account::getTable()->save($account);
+				if (!$account->identifier) {
+					$account->identifier = $account->id;
+					Account::getTable()->save($account);
+				}
+		
+				// Add audit
+				if ($comment) {
+					$audit = new Audit;
+					$audit->status = 'new';
+					$audit->entity = 'core_account';
+					$audit->row_id = $account->id;
+					$audit->action = 'add';
+					$audit->time = date('Y-m-d H:i:s');
+					$audit->n_fn = $context->getFormatedName();
+					$audit->comment = implode("<br>", $comment);
+					Audit::getTable()->save($audit);
+				}
+
+				$responseBody[$email] = [
+					'status' => 'OK',
+					'account_id' => $account->id,
+					'account_status' => $account->status,
+					'account_callback_date' => $account->callback_date,
+				];
+			}
+
+			$connection->commit();
+		
+			$response->setContent(json_encode($responseBody));
+			$response->setStatusCode('200');
+		}
+		catch (\Exception $e) {
+			$connection->rollback();
+			$response->setStatusCode('500');
+			$response->setReasonPhrase($e->getMessage());
+		}
+	}
+	
+    public function v1Post($context, $type, $requestBody, $response)
+	{
+		$connection = Account::getTable()->getAdapter()->getDriver()->getConnection();
+		$connection->beginTransaction();
+		
+		// Retrieve the account
+		$account_id = $this->params()->fromRoute('id');
+		$account = Account::getTable()->get($account_id);
+		if (!$account) {
+			$response->setStatusCode('400');
+			$response->setContent(json_encode(['message' => 'Not existing account with id ' . $account_id]));
+			$response->setReasonPhrase("Not existing account with id $account_id");
+			return;
+		}
+		$contact_1 = Vcard::getTable()->get($account->contact_1_id);
+
+		try {
+			$responseBody = [];
+			$accountData = $requestBody;
+					
+			$comment = [];
+
+			// Load data
+			$updateVcard = false;
+			foreach ($accountData as $name => $value) {
+				if ($name == 'n_first') {
+					$contact_1->n_first = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'n_last') {
+					$contact_1->n_last = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'n_fn') {
+					$contact_1->n_fn = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'email') {
+					$contact_1->email = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'org') {
+					$contact_1->org = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'adr_street') {
+					$contact_1->adr_street = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'adr_zip') {
+					$contact_1->adr_zip = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'adr_city') {
+					$contact_1->adr_city = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'adr_country') {
+					$contact_1->adr_country = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'tel_cell') {
+					$contact_1->tel_cell = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'tel_work') {
+					$contact_1->tel_work = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'birth_date') {
+					$contact_1->birth_date = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'nationality') {
+					$contact_1->nationality = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'tiny_4') {
+					$contact_1->tiny_4 = $value;
+					$updateVcard = true;
+				}
+				elseif ($name == 'status') $account->status = $value;
+				elseif ($name == 'origine') $account->origine = $value;
+				elseif ($name == 'place_identifier') {
+					$place = Place::get($value, 'identifier');
+					$account->place_id = $place->id;
+				}
+				// elseif ($name == 'place_id') $vcard->place_id = $value;
+				elseif ($name == 'org') $vcard->org = $value;
+				elseif ($name == 'place_id') $account->place_id = $value;
+				elseif ($name == 'name') $account->name = $value;
+				elseif ($name == 'identifier') $account->identifier = $value;
+				elseif ($name == 'transfer_order_id') $account->transfer_order_id = $value;
+				elseif ($name == 'bank_identifier') $account->bank_identifier = $context->getSecurityAgent()->protectPrivateDataV2($value);
+				elseif ($name == 'property_1') $account->property_1 = $value;
+				elseif ($name == 'property_5') $account->property_5 = $value;
+				elseif ($name == 'property_6') $account->property_6 = $value;
+				elseif ($name == 'property_7') $account->property_7 = $value;
+				elseif ($name == 'property_8') $account->property_8 = $value;
+				elseif ($name == 'property_11') $account->property_11 = $value;
+				elseif ($name == 'property_13') $account->property_13 = $value;
+				elseif ($name == 'comment') $comment[] = $value;
+				else $comment[] = $value;
+			}
+			$account->callback_date = date('Y-m-d');
+
+			// Update account and vcard
+			Account::getTable()->save($account);
+			if ($updateVcard) Vcard::getTable()->save($contact_1);
+	
+			// Add audit
+			if ($comment) {
+				$audit = new Audit;
+				$audit->status = 'new';
+				$audit->entity = 'core_account';
+				$audit->row_id = $account->id;
+				$audit->action = 'update';
+				$audit->time = date('Y-m-d H:i:s');
+				$audit->n_fn = $context->getFormatedName();
+				$audit->comment = implode("<br>", $comment);
+				Audit::getTable()->save($audit);
+			}
+
+			$responseBody[$account->id] = 'Updated';
+
+			$connection->commit();
+		
+			$response->setContent(json_encode($responseBody));
+			$response->setStatusCode(200);
+		}
+		catch (\Exception $e) {
+			$connection->rollback();
+			$response->setStatusCode(500);
+			$response->setContent(json_encode(['message' => 'Erreur de serveur, veuillez contacter votre interlocuteur']));
+			$response->setReasonPhrase($e->getMessage());
+		}
+	}
+
+    public function v1Action()
+	{
+        $context = Context::getCurrent();
+        $request = $this->getRequest();
+        if ($request->isGet()) $requestType = 'GET';
+        elseif ($request->isPut()) $requestType = 'PUT';
+        elseif ($request->isPost()) $requestType = 'POST';
+
+		$type = $this->params()->fromRoute('type');
+		$requestBody = json_decode($request->getContent(), true);
+
+        if ($requestType == 'GET') $this->v1get($context, $type, $requestBody, $this->response);
+
+        // New account
+        elseif ($requestType == 'PUT') $this->v1put($context, $type, $requestBody, $this->response);
+
+        // Already existing account
+        elseif ($requestType == 'POST') $this->v1post($context, $type, $requestBody, $this->response);
+
+		header('Content-Type: application/json');
+		return $this->response;
 	}
 }
