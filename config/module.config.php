@@ -1079,6 +1079,7 @@ return array(
 		),
 
 		'core_account/export/teacher' => array(
+			'properties' => [
 				'status' => [],
 				'place_id' => [],
 				'name' => [],
@@ -1112,6 +1113,7 @@ return array(
 				
 				'contact_history' => [],
 				'notification_time' => [],
+			],
 		),
 		
 		'core_account/indexCard/teacher' => array(
