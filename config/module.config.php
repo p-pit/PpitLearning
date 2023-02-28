@@ -845,6 +845,7 @@ return array(
 			'2020-2021' => array('default' => '2020-2021'),
 			'2021-2022' => array('default' => '2021-2022'),
 			'2022-2023' => array('default' => '2022-2023'),
+			'2023-2024' => array('default' => '2023-2024'), //  Demande de Gad ajout année 2023-2024
 		],
 		'labels' => array(
 			'default' => 'School year',
