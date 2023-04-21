@@ -634,6 +634,19 @@ return array(
 	],
 	
 	// Account teacher
+	'core_account/teacher/property/invoice_account_id' => array(
+		'definition' => 'inline',
+		'type' => 'select',
+		'source' => array(
+			'entity' => 'core_account',
+			'type' => 'generic',
+			'status' => 'new,active',
+			'property' => 'name',
+		),
+		'labels' => array(
+			'default' => 'Compte fournisseur',
+		),
+	),
 	
 	'core_account/teacher/property/title_1' => array(
 		'definition' => 'inline',
