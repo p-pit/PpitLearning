@@ -679,6 +679,7 @@ return array(
 		'modalities' => array(
 			'new' => array('en_US' => 'Contact', 'fr_FR' => 'A contacter'),
 			'follow-up' => array('en_US' => 'Follow up', 'fr_FR' => 'A relancer'),
+			'contract_signed' => array('default' => 'Contrat signé'),
 			'answer' => array('en_US' => 'Answer', 'fr_FR' => 'Répondre'),
 			'committed' => array('en_US' => 'Send contract', 'fr_FR' => 'Envoyer contrat'),
 			'active' => array('en_US' => 'Active', 'fr_FR' => 'Actif'),
@@ -689,7 +690,7 @@ return array(
 			'fr_FR' => 'Statut du compte',
 		),
 		'perspectives' => array(
-			'account' => array('new', 'follow-up', 'answer', 'committed', 'active', 'gone'),
+			'account' => array('new', 'follow-up', 'contract_signed', 'answer', 'committed', 'active', 'gone'),
 		),
 	),
 
